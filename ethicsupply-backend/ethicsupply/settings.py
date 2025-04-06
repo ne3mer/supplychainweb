@@ -150,7 +150,8 @@ CORS_ALLOWED_ORIGINS = [
     "http://localhost:5175",
     "https://ethic-supply.vercel.app",
     "https://supplychainweb.vercel.app",
-    "https://ethicsupply-frontend.vercel.app"
+    "https://ethicsupply-frontend.vercel.app",
+    "https://backend-suppl.vercel.app"
 ]
 
 # Add Render.com to allowed hosts
