@@ -6,6 +6,11 @@ import {
   MinusIcon,
   InformationCircleIcon,
   XCircleIcon,
+  ChartBarIcon,
+  LightBulbIcon,
+  SparklesIcon,
+  ChartPieIcon,
+  AcademicCapIcon,
 } from "@heroicons/react/24/outline";
 
 const Recommendations = () => {
@@ -13,6 +18,7 @@ const Recommendations = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [usingMockData, setUsingMockData] = useState(false);
+  const [expandedSupplier, setExpandedSupplier] = useState(null);
 
   useEffect(() => {
     const fetchRecommendations = async () => {
@@ -57,6 +63,14 @@ const Recommendations = () => {
     return { variant, icon };
   };
 
+  const toggleExpandSupplier = (supplierId) => {
+    if (expandedSupplier === supplierId) {
+      setExpandedSupplier(null);
+    } else {
+      setExpandedSupplier(supplierId);
+    }
+  };
+
   if (loading) {
     return (
       <div className="space-y-8 bg-neutral-50">
@@ -99,7 +113,7 @@ const Recommendations = () => {
   }
 
   return (
-    <div className="space-y-8 bg-neutral-50">
+    <div className="space-y-8 bg-neutral-50 p-4">
       <div className="px-4 py-6 bg-gradient-to-r from-emerald-700 to-teal-700 rounded-lg shadow-md text-white">
         <h1 className="text-3xl font-bold">Recommendations</h1>
         <p className="mt-2 text-emerald-100">
@@ -125,121 +139,192 @@ const Recommendations = () => {
         </div>
       )}
 
-      <div className="bg-white shadow-md rounded-lg overflow-hidden transition-shadow duration-300 hover:shadow-lg">
-        <div className="px-4 py-5 sm:p-6">
-          <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th
-                    scope="col"
-                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                  >
-                    Supplier
-                  </th>
-                  <th
-                    scope="col"
-                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                  >
-                    Country
-                  </th>
-                  <th
-                    scope="col"
-                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                  >
-                    Industry
-                  </th>
-                  <th
-                    scope="col"
-                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                  >
-                    Ethical Score
-                  </th>
-                  <th
-                    scope="col"
-                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                  >
-                    CO₂ Emissions
-                  </th>
-                  <th
-                    scope="col"
-                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                  >
-                    Recommendation
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {recommendations.map((supplier, index) => {
-                  const { variant, icon: Icon } = getScoreBadge(
-                    supplier.ethical_score
-                  );
-                  return (
-                    <tr key={index} className="hover:bg-gray-50">
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm font-medium text-gray-900">
-                          {supplier.name}
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-gray-500">
-                          {supplier.country}
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-gray-500">
-                          {supplier.industry || "Manufacturing"}
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="flex items-center">
-                          <Icon
-                            className={`h-5 w-5 ${
-                              variant === "success"
-                                ? "text-green-500"
-                                : variant === "warning"
-                                ? "text-yellow-500"
-                                : "text-red-500"
-                            }`}
-                          />
-                          <span
-                            className={`ml-2 text-sm font-medium ${
-                              variant === "success"
-                                ? "text-green-600"
-                                : variant === "warning"
-                                ? "text-yellow-600"
-                                : "text-red-600"
-                            }`}
-                          >
-                            {supplier.ethical_score.toFixed(1)}%
-                          </span>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-gray-500">
-                          {supplier.co2_emissions.toFixed(1)} t
-                        </div>
-                      </td>
-                      <td className="px-6 py-4">
-                        <div className="text-sm text-gray-500">
-                          {supplier.recommendation}
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                })}
-                {recommendations.length === 0 && (
-                  <tr>
-                    <td
-                      colSpan={6}
-                      className="px-6 py-4 text-center text-sm text-gray-500"
-                    >
-                      No recommendations available
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
+      <div className="bg-white shadow-md rounded-lg overflow-hidden">
+        <div className="p-4">
+          <h2 className="text-lg font-medium text-gray-900 mb-4 flex items-center">
+            <AcademicCapIcon className="h-5 w-5 text-emerald-600 mr-2" />
+            Transparent AI Recommendations
+          </h2>
+
+          <div className="space-y-6">
+            {recommendations.map((supplier, index) => {
+              const { variant, icon: Icon } = getScoreBadge(
+                supplier.ethical_score
+              );
+              const isExpanded = expandedSupplier === supplier.id;
+
+              return (
+                <div
+                  key={index}
+                  className="border border-gray-200 rounded-lg overflow-hidden transition-shadow duration-300 hover:shadow-md"
+                >
+                  <div className="flex flex-col md:flex-row md:items-center p-4 bg-gray-50">
+                    <div className="flex-1">
+                      <h3 className="text-lg font-medium text-gray-900">
+                        {supplier.name}
+                      </h3>
+                      <div className="text-sm text-gray-500 flex items-center gap-2 mt-1">
+                        <span>{supplier.country}</span>
+                        <span className="text-gray-300">•</span>
+                        <span>{supplier.industry || "Manufacturing"}</span>
+                      </div>
+                    </div>
+
+                    <div className="mt-2 md:mt-0 flex items-center gap-4">
+                      <div className="flex items-center">
+                        <Icon
+                          className={`h-5 w-5 ${
+                            variant === "success"
+                              ? "text-green-500"
+                              : variant === "warning"
+                              ? "text-yellow-500"
+                              : "text-red-500"
+                          }`}
+                        />
+                        <span
+                          className={`ml-1 font-medium ${
+                            variant === "success"
+                              ? "text-green-600"
+                              : variant === "warning"
+                              ? "text-yellow-600"
+                              : "text-red-600"
+                          }`}
+                        >
+                          {supplier.ethical_score?.toFixed(1)}%
+                        </span>
+                      </div>
+
+                      <button
+                        onClick={() => toggleExpandSupplier(supplier.id)}
+                        className="text-sm font-medium text-emerald-600 hover:text-emerald-800 flex items-center transition-colors"
+                      >
+                        {isExpanded ? "Hide details" : "Show details"}
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="p-4 border-t border-gray-200">
+                    <div className="flex items-start gap-3">
+                      <LightBulbIcon className="h-5 w-5 text-yellow-500 flex-shrink-0 mt-0.5" />
+                      <p className="text-gray-800">{supplier.recommendation}</p>
+                    </div>
+                  </div>
+
+                  {isExpanded && supplier.ai_explanation && (
+                    <div className="border-t border-gray-200 p-4 bg-gray-50">
+                      <div className="space-y-4">
+                        {/* Key Strengths */}
+                        {supplier.ai_explanation.key_strengths &&
+                          supplier.ai_explanation.key_strengths.length > 0 && (
+                            <div>
+                              <h4 className="text-sm font-medium text-gray-700 mb-2 flex items-center">
+                                <SparklesIcon className="h-4 w-4 text-emerald-500 mr-1" />
+                                Key Strengths
+                              </h4>
+                              <ul className="space-y-2">
+                                {supplier.ai_explanation.key_strengths.map(
+                                  (strength, i) => (
+                                    <li
+                                      key={i}
+                                      className="text-sm bg-white p-2 rounded border border-emerald-100 text-gray-700"
+                                    >
+                                      {strength}
+                                    </li>
+                                  )
+                                )}
+                              </ul>
+                            </div>
+                          )}
+
+                        {/* Percentile Insights */}
+                        {supplier.ai_explanation.percentile_insights &&
+                          supplier.ai_explanation.percentile_insights.length >
+                            0 && (
+                            <div>
+                              <h4 className="text-sm font-medium text-gray-700 mb-2 flex items-center">
+                                <ChartBarIcon className="h-4 w-4 text-blue-500 mr-1" />
+                                Industry Comparison
+                              </h4>
+                              <ul className="space-y-2">
+                                {supplier.ai_explanation.percentile_insights.map(
+                                  (insight, i) => (
+                                    <li
+                                      key={i}
+                                      className="text-sm bg-white p-2 rounded border border-blue-100 text-gray-700"
+                                    >
+                                      {insight}
+                                    </li>
+                                  )
+                                )}
+                              </ul>
+                            </div>
+                          )}
+
+                        {/* Comparative Insights */}
+                        {supplier.ai_explanation.comparative_insights &&
+                          supplier.ai_explanation.comparative_insights.length >
+                            0 && (
+                            <div>
+                              <h4 className="text-sm font-medium text-gray-700 mb-2 flex items-center">
+                                <ChartPieIcon className="h-4 w-4 text-purple-500 mr-1" />
+                                Performance Metrics
+                              </h4>
+                              <ul className="space-y-2">
+                                {supplier.ai_explanation.comparative_insights.map(
+                                  (insight, i) => (
+                                    <li
+                                      key={i}
+                                      className="text-sm bg-white p-2 rounded border border-purple-100 text-gray-700"
+                                    >
+                                      {insight}
+                                    </li>
+                                  )
+                                )}
+                              </ul>
+                            </div>
+                          )}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+
+            {recommendations.length === 0 && (
+              <div className="text-center text-gray-500 py-10">
+                No recommendations available
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+
+      <div className="bg-white shadow-md rounded-lg overflow-hidden p-4 border-t-4 border-emerald-500">
+        <div className="flex items-start">
+          <div className="flex-shrink-0 bg-emerald-100 rounded-full p-2">
+            <InformationCircleIcon className="h-5 w-5 text-emerald-600" />
+          </div>
+          <div className="ml-3">
+            <h3 className="text-sm font-medium text-gray-900">
+              About our AI recommendation engine
+            </h3>
+            <div className="mt-2 text-sm text-gray-600">
+              <p>
+                Our transparent AI recommendation engine analyzes multiple
+                ethical and environmental factors to recommend suppliers. Each
+                recommendation includes:
+              </p>
+              <ul className="list-disc list-inside mt-2 space-y-1">
+                <li>
+                  Key strengths based on emissions, labor policies, and resource
+                  usage
+                </li>
+                <li>Percentile rankings compared to industry peers</li>
+                <li>
+                  Specific performance metrics with quantifiable comparisons
+                </li>
+              </ul>
+            </div>
           </div>
         </div>
       </div>

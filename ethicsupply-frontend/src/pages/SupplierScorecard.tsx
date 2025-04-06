@@ -8,6 +8,8 @@ import {
   InformationCircleIcon,
   ChartBarIcon,
   AcademicCapIcon,
+  SparklesIcon,
+  ChartPieIcon,
 } from "@heroicons/react/24/outline";
 
 const SupplierScorecard = () => {
@@ -190,6 +192,16 @@ const SupplierScorecard = () => {
           onClick={() => setActiveTab("simulation")}
         >
           What-If Analysis
+        </button>
+        <button
+          className={`px-4 py-2 font-medium ${
+            activeTab === "ai_analysis"
+              ? "border-b-2 border-emerald-500 text-emerald-600"
+              : "text-gray-500 hover:text-gray-700"
+          }`}
+          onClick={() => setActiveTab("ai_analysis")}
+        >
+          AI Analysis
         </button>
       </div>
 
@@ -620,6 +632,124 @@ const SupplierScorecard = () => {
                 </div>
               )}
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* AI Analysis Tab */}
+      {activeTab === "ai_analysis" && analysis.ai_explanation && (
+        <div className="bg-white shadow-md rounded-lg overflow-hidden">
+          <div className="px-4 py-5 border-b border-gray-200">
+            <h3 className="text-lg font-medium text-gray-900 flex items-center">
+              <AcademicCapIcon className="h-5 w-5 mr-2 text-emerald-600" />
+              Transparent AI Analysis
+            </h3>
+            <p className="mt-1 text-sm text-gray-500">
+              Explainable insights about why this supplier received its ethical
+              score
+            </p>
+          </div>
+
+          <div className="p-6 space-y-6">
+            {/* AI Summary */}
+            {analysis.ai_explanation.summary && (
+              <div className="bg-emerald-50 rounded-lg p-4 border border-emerald-200">
+                <h4 className="text-md font-medium text-emerald-800 mb-2">
+                  Summary Analysis
+                </h4>
+                <p className="text-emerald-700">
+                  {analysis.ai_explanation.summary}
+                </p>
+              </div>
+            )}
+
+            {/* Key Strengths */}
+            {analysis.ai_explanation.key_strengths &&
+              analysis.ai_explanation.key_strengths.length > 0 && (
+                <div>
+                  <h4 className="text-md font-medium text-gray-800 mb-3 flex items-center">
+                    <SparklesIcon className="h-5 w-5 text-yellow-400 mr-2" />
+                    Key Strengths
+                  </h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {analysis.ai_explanation.key_strengths.map(
+                      (strength, i) => (
+                        <div
+                          key={i}
+                          className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm"
+                        >
+                          <p className="text-gray-700">{strength}</p>
+                        </div>
+                      )
+                    )}
+                  </div>
+                </div>
+              )}
+
+            {/* Percentile Insights */}
+            {analysis.ai_explanation.percentile_insights &&
+              analysis.ai_explanation.percentile_insights.length > 0 && (
+                <div>
+                  <h4 className="text-md font-medium text-gray-800 mb-3 flex items-center">
+                    <ChartBarIcon className="h-5 w-5 text-blue-500 mr-2" />
+                    Industry Percentile Rankings
+                  </h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {analysis.ai_explanation.percentile_insights.map(
+                      (insight, i) => (
+                        <div
+                          key={i}
+                          className="bg-blue-50 p-4 rounded-lg border border-blue-200 shadow-sm"
+                        >
+                          <p className="text-blue-800">{insight}</p>
+                        </div>
+                      )
+                    )}
+                  </div>
+                </div>
+              )}
+
+            {/* Comparative Insights */}
+            {analysis.ai_explanation.comparative_insights &&
+              analysis.ai_explanation.comparative_insights.length > 0 && (
+                <div>
+                  <h4 className="text-md font-medium text-gray-800 mb-3 flex items-center">
+                    <ChartPieIcon className="h-5 w-5 text-purple-500 mr-2" />
+                    Comparative Performance Metrics
+                  </h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {analysis.ai_explanation.comparative_insights.map(
+                      (insight, i) => (
+                        <div
+                          key={i}
+                          className="bg-purple-50 p-4 rounded-lg border border-purple-200 shadow-sm"
+                        >
+                          <p className="text-purple-800">{insight}</p>
+                        </div>
+                      )
+                    )}
+                  </div>
+                </div>
+              )}
+
+            {/* If no explanation data available */}
+            {(!analysis.ai_explanation.key_strengths ||
+              analysis.ai_explanation.key_strengths.length === 0) &&
+              (!analysis.ai_explanation.percentile_insights ||
+                analysis.ai_explanation.percentile_insights.length === 0) &&
+              (!analysis.ai_explanation.comparative_insights ||
+                analysis.ai_explanation.comparative_insights.length === 0) && (
+                <div className="text-center py-8">
+                  <InformationCircleIcon className="h-12 w-12 text-gray-300 mx-auto mb-4" />
+                  <p className="text-gray-500">
+                    No detailed AI analysis available for this supplier yet.
+                  </p>
+                  <p className="text-gray-400 text-sm mt-2">
+                    Try evaluating this supplier with more metrics to generate
+                    insights.
+                  </p>
+                </div>
+              )}
           </div>
         </div>
       )}
