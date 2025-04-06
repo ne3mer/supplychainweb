@@ -1,8 +1,12 @@
 import axios from "axios";
 
 // Define the API URL in one place for easy updates
-// Using port 8001 as the Django server is now running on that port
-const API_BASE_URL = "http://localhost:8001/api";
+// Using a dynamic approach to determine API URL based on environment
+const API_BASE_URL =
+  import.meta.env.VITE_API_URL ||
+  (window.location.hostname === "localhost"
+    ? "http://localhost:8000/api"
+    : "https://ethicsupply-backend.onrender.com/api"); // Update with your actual backend URL
 
 export interface Supplier {
   id: number;
