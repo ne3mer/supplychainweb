@@ -1,7 +1,7 @@
 import axios from "axios";
 
-// Change from localhost to the real production API
-const API_BASE_URL = "https://ethicsupply-api.herokuapp.com/api";
+// Change from the Heroku API back to your local development server
+const API_BASE_URL = "http://localhost:8000/api";
 
 export interface Supplier {
   id: number;
@@ -495,13 +495,7 @@ export const getSuppliers = async (): Promise<Supplier[]> => {
       const response = await fetch(nextUrl);
 
       if (!response.ok) {
-        console.warn(
-          `Suppliers API returned status ${response.status}. Using mock data.`
-        );
-        return mockSuppliers.map((supplier) => ({
-          ...supplier,
-          isMockData: true,
-        }));
+        throw new Error(`API returned status ${response.status}`);
       }
 
       const data = await response.json();
@@ -530,23 +524,13 @@ export const getSuppliers = async (): Promise<Supplier[]> => {
       }
     }
 
-    if (allSuppliers.length > 0) {
-      return allSuppliers;
-    }
-
-    // Only if the API returns empty data, use mock data
-    console.warn("API returned empty data. Using mock data.");
-    return mockSuppliers.map((supplier) => ({
+    return allSuppliers.map((supplier) => ({
       ...supplier,
-      isMockData: true,
+      isMockData: false,
     }));
   } catch (error) {
     console.error("Error fetching suppliers:", error);
-    // Return mock data if the API endpoint errors out
-    return mockSuppliers.map((supplier) => ({
-      ...supplier,
-      isMockData: true,
-    }));
+    throw error;
   }
 };
 
@@ -1053,46 +1037,23 @@ export const getRecommendations = async () => {
 
 export const getDashboardData = async (): Promise<DashboardData> => {
   try {
-    console.log(
-      "Fetching dashboard data from API:",
-      `${API_BASE_URL}/dashboard/`
-    );
+    console.log("Fetching dashboard data from API...");
     const response = await fetch(`${API_BASE_URL}/dashboard/`);
 
     if (!response.ok) {
-      console.warn(
-        `Dashboard API returned status ${response.status}. Using mock data.`
-      );
-      return getMockDashboardData();
+      throw new Error(`API returned status ${response.status}`);
     }
 
     const data = await response.json();
     console.log("Dashboard API response:", data);
 
-    // Handle potential paginated response
-    if (data && typeof data === "object") {
-      // Check if it's a paginated response
-      if (data.results && typeof data.results === "object") {
-        console.log("Using paginated API results for dashboard");
-        return data.results;
-      }
-
-      // If it's a regular object (not paginated), just use it directly
-      if (!Array.isArray(data)) {
-        console.log("Using direct API results for dashboard");
-        return data;
-      }
-    }
-
-    // If we get here, the API didn't return usable data
-    console.warn(
-      "API returned unexpected dashboard data format. Using mock data."
-    );
-    return getMockDashboardData();
+    return {
+      ...data,
+      isMockData: false,
+    };
   } catch (error) {
     console.error("Error fetching dashboard data:", error);
-    // Return mock data in case of error
-    return getMockDashboardData();
+    throw error;
   }
 };
 
@@ -1776,10 +1737,7 @@ export const getMLStatus = async (): Promise<MLStatus> => {
     const response = await fetch(`${API_BASE_URL}/ml/status/`);
 
     if (!response.ok) {
-      console.warn(
-        `ML Status API returned status ${response.status}. Using mock data.`
-      );
-      return getMockMLStatus();
+      throw new Error(`ML Status API returned status ${response.status}`);
     }
 
     const data = await response.json();
@@ -1790,7 +1748,7 @@ export const getMLStatus = async (): Promise<MLStatus> => {
     };
   } catch (error) {
     console.error("Error fetching ML status:", error);
-    return getMockMLStatus();
+    throw error;
   }
 };
 

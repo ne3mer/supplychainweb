@@ -40,16 +40,19 @@ const MachineLearningStatus: React.FC<MachineLearningStatusProps> = ({
   const fetchMLStatus = async () => {
     try {
       setLoading(true);
+      setError(null);
       const mlStatus = await getMLStatus();
       setModels(mlStatus.models);
       setSystemStatus(mlStatus.systemStatus);
       setLastRefreshed(new Date().toLocaleTimeString());
       setUsingMockData(!!mlStatus.isMockData);
-      setError(null);
     } catch (error) {
       console.error("Error fetching ML status:", error);
-      setError("Failed to load ML status data");
-      setUsingMockData(true);
+      setError(
+        "Failed to connect to ML API. Please ensure the backend server is running."
+      );
+      // Don't automatically fall back to mock data
+      setUsingMockData(false);
     } finally {
       setLoading(false);
     }
@@ -153,14 +156,63 @@ const MachineLearningStatus: React.FC<MachineLearningStatusProps> = ({
                 <div className="flex-shrink-0">
                   <ExclamationCircleIcon className="h-5 w-5 text-red-400" />
                 </div>
-                <div className="ml-3">
+                <div className="ml-3 flex-grow">
                   <p className="text-sm text-red-700">{error}</p>
-                  <button
-                    className="mt-2 px-3 py-1 text-xs bg-red-100 text-red-800 rounded-md hover:bg-red-200"
-                    onClick={handleRefresh}
-                  >
-                    Try Again
-                  </button>
+                  <div className="mt-2 flex justify-between">
+                    <button
+                      className="px-3 py-1 text-xs bg-red-100 text-red-800 rounded-md hover:bg-red-200"
+                      onClick={handleRefresh}
+                    >
+                      Try Again
+                    </button>
+
+                    <button
+                      className="px-3 py-1 text-xs bg-blue-100 text-blue-800 rounded-md hover:bg-blue-200"
+                      onClick={() => {
+                        // Use mock data as fallback
+                        const mockData = {
+                          models: [
+                            {
+                              name: "Supplier Risk Prediction",
+                              status: "ready",
+                              accuracy: 0.89,
+                              lastUpdated: "2 hours ago",
+                              predictionCount: 287,
+                            },
+                            {
+                              name: "ESG Score Estimation",
+                              status: "training",
+                              accuracy: 0.75,
+                              lastUpdated: "in progress",
+                              predictionCount: 143,
+                            },
+                            {
+                              name: "Supply Chain Disruption",
+                              status: "ready",
+                              accuracy: 0.91,
+                              lastUpdated: "30 minutes ago",
+                              predictionCount: 321,
+                            },
+                          ],
+                          systemStatus: {
+                            apiHealth: true,
+                            dataIngestion: true,
+                            mlPipeline: true,
+                            lastChecked: new Date().toLocaleTimeString(),
+                          },
+                          isMockData: true,
+                        };
+
+                        setModels(mockData.models);
+                        setSystemStatus(mockData.systemStatus);
+                        setUsingMockData(true);
+                        setError(null);
+                        setLastRefreshed(new Date().toLocaleTimeString());
+                      }}
+                    >
+                      Use Demo Data
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>

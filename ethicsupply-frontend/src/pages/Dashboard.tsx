@@ -90,18 +90,20 @@ const Dashboard = () => {
     const fetchData = async () => {
       try {
         setLoading(true);
+        setError(null);
         const dashboardData = await getDashboardData();
         console.log("Dashboard data received:", dashboardData);
         setData(dashboardData);
 
-        // Check if we're using mock data based on the API indicator
-        const isMock = dashboardData.isMockData === true;
-        console.log("Using mock dashboard data:", isMock);
-        setUsingMockData(isMock);
+        // Real data is being used
+        setUsingMockData(false);
       } catch (error) {
         console.error("Error fetching dashboard data:", error);
-        setError("Failed to load dashboard data. Using sample data instead.");
-        setUsingMockData(true);
+        setError(
+          "Failed to connect to the API server. Please make sure the backend server is running at http://localhost:8000"
+        );
+        // Don't automatically fall back to mock data
+        setUsingMockData(false);
       } finally {
         setLoading(false);
       }
@@ -264,12 +266,55 @@ const Dashboard = () => {
         </div>
       ) : error ? (
         <div className="bg-red-50 border-l-4 border-red-400 p-4">
-          <div className="flex">
-            <div className="flex-shrink-0">
-              <ExclamationCircleIcon className="h-5 w-5 text-red-400" />
+          <div className="flex flex-col">
+            <div className="flex">
+              <div className="flex-shrink-0">
+                <ExclamationCircleIcon className="h-5 w-5 text-red-400" />
+              </div>
+              <div className="ml-3">
+                <p className="text-sm text-red-700">{error}</p>
+              </div>
             </div>
-            <div className="ml-3">
-              <p className="text-sm text-red-700">{error}</p>
+            <div className="mt-4 flex justify-end">
+              <button
+                className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-md text-sm"
+                onClick={() => {
+                  setUsingMockData(true);
+                  setData({
+                    total_suppliers: 12,
+                    avg_ethical_score: 75.3,
+                    avg_co2_emissions: 23.9,
+                    suppliers_by_country: {
+                      "United States": 4,
+                      "United Kingdom": 1,
+                      Taiwan: 1,
+                      "South Korea": 1,
+                      Switzerland: 1,
+                      "Hong Kong": 1,
+                      France: 1,
+                      China: 1,
+                    },
+                    ethical_score_distribution: [
+                      { range: "0-20", count: 0 },
+                      { range: "21-40", count: 0 },
+                      { range: "41-60", count: 2 },
+                      { range: "61-80", count: 7 },
+                      { range: "81-100", count: 3 },
+                    ],
+                    co2_emissions_by_industry: [
+                      { name: "Consumer Goods", value: 4.3 },
+                      { name: "Electronics", value: 20.4 },
+                      { name: "Food & Beverage", value: 128.7 },
+                      { name: "Apparel", value: 2.5 },
+                      { name: "Home Appliances", value: 18.5 },
+                    ],
+                    isMockData: true,
+                  });
+                  setError(null);
+                }}
+              >
+                Use Demo Data Instead
+              </button>
             </div>
           </div>
         </div>
