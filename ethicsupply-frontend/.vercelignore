@@ -1,0 +1,4 @@
+# Ignore node_modules to ensure a clean install
+node_modules
+.git
+.github 
