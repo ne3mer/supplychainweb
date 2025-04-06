@@ -132,12 +132,18 @@ const LandingPage = () => {
               Optimize supplier selection with AI that balances efficiency,
               sustainability, and ethics.
             </p>
-            <div>
+            <div className="flex gap-4">
               <Link
                 to="/dashboard"
                 className="inline-flex items-center px-6 py-3 bg-emerald-700 hover:bg-emerald-800 transition-colors rounded-md text-white font-medium text-lg shadow-md"
               >
                 Get Started
+              </Link>
+              <Link
+                to="/3d-visualization"
+                className="inline-flex items-center px-6 py-3 bg-white border border-emerald-700 hover:bg-emerald-50 transition-colors rounded-md text-emerald-700 font-medium text-lg shadow-md"
+              >
+                View 3D Experience
               </Link>
             </div>
           </div>

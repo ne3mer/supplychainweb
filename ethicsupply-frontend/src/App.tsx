@@ -19,6 +19,7 @@ import SupplierAssessment from "./pages/enhanced/SupplierAssessment";
 import GeoRiskMapping from "./pages/GeoRiskMapping";
 import SupplyChainGraph from "./pages/SupplyChainGraph";
 import About from "./pages/About";
+import { useEffect } from "react";
 
 // Redirect component for suppliers/:id to supplier-details/:id
 const SupplierRedirect = () => {
@@ -30,6 +31,14 @@ const SupplierRedirect = () => {
 const ScorecardRedirect = () => {
   const { id } = useParams();
   return <Navigate replace to={`/supplier-scorecard/${id}`} />;
+};
+
+// Add a component that will redirect to the 3D visualization
+const Redirect3D = () => {
+  useEffect(() => {
+    window.location.href = "/index.html";
+  }, []);
+  return <div>Redirecting...</div>;
 };
 
 function App() {
@@ -66,6 +75,7 @@ function App() {
             <Route path="/geo-risk-mapping" element={<GeoRiskMapping />} />
             <Route path="/supply-chain-graph" element={<SupplyChainGraph />} />
             <Route path="/about" element={<About />} />
+            <Route path="/3d-visualization" element={<Redirect3D />} />
           </Routes>
         </main>
       </div>

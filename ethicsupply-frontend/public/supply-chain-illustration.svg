@@ -1,0 +1,34 @@
+<svg width="100%" height="100%" viewBox="0 0 1200 600" xmlns="http://www.w3.org/2000/svg" fill="none">
+  <!-- Background -->
+  <rect width="1200" height="600" fill="#f5f5f7"/>
+
+  <!-- Title Text -->
+  <text x="60" y="100" font-size="48" font-family="Helvetica, Arial, sans-serif" fill="#1a1a1a" font-weight="bold">
+    EthicSupply
+  </text>
+  <text x="60" y="150" font-size="24" font-family="Helvetica, Arial, sans-serif" fill="#555">
+    Ethical AI-Powered Supply Chain Optimization
+  </text>
+
+  <!-- Tree -->
+  <circle cx="900" cy="420" r="60" fill="#4CAF50"/>
+  <rect x="880" y="420" width="40" height="90" fill="#8D6E63"/>
+
+  <!-- Warehouse -->
+  <rect x="200" y="350" width="200" height="150" rx="8" fill="#cfd8dc"/>
+  <rect x="250" y="400" width="100" height="100" rx="4" fill="#90a4ae"/>
+  <text x="240" y="380" font-size="16" fill="#333" font-family="sans-serif">Warehouse A</text>
+
+  <!-- AI Brain (symbolic) -->
+  <circle cx="650" cy="280" r="50" fill="#7986cb"/>
+  <path d="M640 270 L660 270 M650 260 L650 280" stroke="white" stroke-width="3" stroke-linecap="round"/>
+
+  <!-- Supply Route Lines -->
+  <line x1="400" y1="425" x2="600" y2="300" stroke="#9e9e9e" stroke-width="2" stroke-dasharray="5,5"/>
+  <line x1="700" y1="300" x2="900" y2="420" stroke="#9e9e9e" stroke-width="2" stroke-dasharray="5,5"/>
+
+  <!-- Sustainability Badge -->
+  <circle cx="1050" cy="100" r="40" fill="#81C784"/>
+  <text x="1020" y="110" font-size="12" fill="white" font-family="Arial" font-weight="bold">ESG</text>
+
+</svg> 

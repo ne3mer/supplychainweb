@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>EthicSupply - 3D Supply Chain</title>
+    <style>
+      body {
+        margin: 0;
+        padding: 0;
+        overflow: hidden;
+        font-family: "Helvetica", Arial, sans-serif;
+      }
+
+      #container {
+        position: relative;
+        width: 100vw;
+        height: 100vh;
+      }
+
+      #3d-container {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+      }
+
+      #overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        padding: 20px;
+        color: #1a1a1a;
+        z-index: 10;
+        pointer-events: none;
+      }
+
+      #overlay h1 {
+        font-size: 48px;
+        margin: 0;
+        font-weight: bold;
+        text-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
+      }
+
+      #overlay h2 {
+        font-size: 24px;
+        margin: 10px 0 0 0;
+        font-weight: normal;
+        text-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
+      }
+
+      #overlay p {
+        max-width: 500px;
+        margin-top: 20px;
+        font-size: 18px;
+        text-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
+      }
+
+      #overlay .cta-button {
+        display: inline-block;
+        margin-top: 20px;
+        padding: 12px 24px;
+        background-color: #2e7d32;
+        color: white;
+        text-decoration: none;
+        border-radius: 4px;
+        font-weight: bold;
+        pointer-events: auto;
+        transition: background-color 0.3s ease;
+      }
+
+      #overlay .cta-button:hover {
+        background-color: #1b5e20;
+      }
+
+      #instructions {
+        position: absolute;
+        bottom: 20px;
+        left: 20px;
+        background-color: rgba(255, 255, 255, 0.7);
+        padding: 10px;
+        border-radius: 5px;
+        font-size: 14px;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="container">
+      <div id="3d-container"></div>
+      <div id="overlay">
+        <h1>EthicSupply</h1>
+        <h2>Ethical AI for Smarter Supply Chains</h2>
+        <p>
+          Optimize supplier selection with AI that balances efficiency,
+          sustainability, and ethics.
+        </p>
+        <a href="/dashboard" class="cta-button">Get Started</a>
+      </div>
+      <div id="instructions">
+        Click and drag to rotate | Scroll to zoom | Right-click and drag to pan
+      </div>
+    </div>
+
+    <script type="importmap">
+      {
+        "imports": {
+          "three": "https://unpkg.com/three@0.158.0/build/three.module.js",
+          "three/examples/jsm/controls/OrbitControls.js": "https://unpkg.com/three@0.158.0/examples/jsm/controls/OrbitControls.js"
+        }
+      }
+    </script>
+    <script type="module" src="3d-supply-chain.js"></script>
+  </body>
+</html>
