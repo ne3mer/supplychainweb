@@ -1,7 +1,7 @@
 import axios from "axios";
 
-// Change from the default port to port 8001
-const API_BASE_URL = "http://localhost:8001/api";
+// Change back to the default port 8000
+const API_BASE_URL = "http://localhost:8000/api";
 
 export interface Supplier {
   id: number;
