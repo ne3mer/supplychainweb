@@ -7,6 +7,7 @@ import {
 } from "@heroicons/react/24/outline";
 import { getSupplyChainGraphData } from "../services/api";
 
+// Supply Chain Graph Component - Simplified version without external dependencies
 const SupplyChainGraph = () => {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
@@ -30,6 +31,7 @@ const SupplyChainGraph = () => {
     fetchData();
   }, []);
 
+  // Component rendering
   return (
     <div className="container mx-auto py-6 px-4">
       <div className="flex flex-col md:flex-row justify-between items-start mb-6">
