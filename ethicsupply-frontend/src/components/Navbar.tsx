@@ -26,11 +26,6 @@ const NavigationBar = () => {
     { name: "Home", href: "/", icon: HomeIcon },
     { name: "Dashboard", href: "/dashboard", icon: ChartBarIcon },
     { name: "Suppliers", href: "/suppliers", icon: UserGroupIcon },
-    {
-      name: "Assessment",
-      href: "/supplier-assessment",
-      icon: DocumentMagnifyingGlassIcon,
-    },
     { name: "Risk Map", href: "/geo-risk-mapping", icon: GlobeAltIcon },
     {
       name: "Supply Chain",
