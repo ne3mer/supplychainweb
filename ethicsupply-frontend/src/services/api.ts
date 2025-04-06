@@ -1811,3 +1811,310 @@ export const checkApiConnection = async (): Promise<boolean> => {
     return false;
   }
 };
+
+// Add new interfaces for supply chain graph
+export interface GraphNode {
+  id: string;
+  name: string;
+  type:
+    | "supplier"
+    | "manufacturer"
+    | "wholesaler"
+    | "rawMaterial"
+    | "distributor"
+    | "retailer";
+  country?: string;
+  ethical_score?: number;
+  group?: number;
+  level?: number;
+}
+
+export interface GraphLink {
+  source: string;
+  target: string;
+  type?: string;
+  strength?: number;
+  ethical?: boolean;
+}
+
+export interface GraphData {
+  nodes: GraphNode[];
+  links: GraphLink[];
+}
+
+// Function to get supply chain graph data
+export const getSupplyChainGraphData = async (): Promise<GraphData> => {
+  const isConnected = await checkApiConnection();
+
+  if (isConnected) {
+    try {
+      const response = await fetch(`${API_BASE_URL}/supply-chain-graph`);
+
+      if (!response.ok) {
+        console.warn(
+          `Supply Chain Graph API returned status ${response.status}. Using mock data.`
+        );
+        return getMockSupplyChainGraphData();
+      }
+
+      return await response.json();
+    } catch (error) {
+      console.error("Error fetching supply chain graph data:", error);
+      return getMockSupplyChainGraphData();
+    }
+  } else {
+    console.warn("API not available, using mock data for supply chain graph");
+    return getMockSupplyChainGraphData();
+  }
+};
+
+// Mock data for supply chain graph
+const getMockSupplyChainGraphData = (): GraphData => {
+  return {
+    nodes: [
+      // Raw Materials
+      {
+        id: "cotton",
+        name: "Cotton",
+        type: "rawMaterial",
+        level: 1,
+        ethical_score: 85,
+        country: "India",
+      },
+      {
+        id: "oil",
+        name: "Crude Oil",
+        type: "rawMaterial",
+        level: 1,
+        ethical_score: 40,
+        country: "Saudi Arabia",
+      },
+      {
+        id: "minerals",
+        name: "Rare Earth Minerals",
+        type: "rawMaterial",
+        level: 1,
+        ethical_score: 30,
+        country: "China",
+      },
+      {
+        id: "aluminum",
+        name: "Aluminum",
+        type: "rawMaterial",
+        level: 1,
+        ethical_score: 60,
+        country: "Australia",
+      },
+      {
+        id: "timber",
+        name: "Timber",
+        type: "rawMaterial",
+        level: 1,
+        ethical_score: 75,
+        country: "Brazil",
+      },
+
+      // Suppliers
+      {
+        id: "s1",
+        name: "EcoFabrics Inc",
+        type: "supplier",
+        level: 2,
+        ethical_score: 90,
+        country: "India",
+      },
+      {
+        id: "s2",
+        name: "PlastiCorp",
+        type: "supplier",
+        level: 2,
+        ethical_score: 45,
+        country: "China",
+      },
+      {
+        id: "s3",
+        name: "GlobalMetal Ltd",
+        type: "supplier",
+        level: 2,
+        ethical_score: 65,
+        country: "Australia",
+      },
+      {
+        id: "s4",
+        name: "WoodWorks",
+        type: "supplier",
+        level: 2,
+        ethical_score: 80,
+        country: "Canada",
+      },
+      {
+        id: "s5",
+        name: "ChemTech Industries",
+        type: "supplier",
+        level: 2,
+        ethical_score: 55,
+        country: "Germany",
+      },
+
+      // Manufacturers
+      {
+        id: "m1",
+        name: "EcoApparel",
+        type: "manufacturer",
+        level: 3,
+        ethical_score: 88,
+        country: "Portugal",
+      },
+      {
+        id: "m2",
+        name: "TechBuild Inc",
+        type: "manufacturer",
+        level: 3,
+        ethical_score: 72,
+        country: "Taiwan",
+      },
+      {
+        id: "m3",
+        name: "GlobalProducts",
+        type: "manufacturer",
+        level: 3,
+        ethical_score: 50,
+        country: "Mexico",
+      },
+      {
+        id: "m4",
+        name: "FurniturePlus",
+        type: "manufacturer",
+        level: 3,
+        ethical_score: 83,
+        country: "Sweden",
+      },
+      {
+        id: "m5",
+        name: "AutoParts Ltd",
+        type: "manufacturer",
+        level: 3,
+        ethical_score: 65,
+        country: "Japan",
+      },
+
+      // Wholesalers
+      {
+        id: "w1",
+        name: "Fashion Distributors",
+        type: "wholesaler",
+        level: 4,
+        ethical_score: 78,
+        country: "France",
+      },
+      {
+        id: "w2",
+        name: "Tech Wholesale Group",
+        type: "wholesaler",
+        level: 4,
+        ethical_score: 60,
+        country: "United States",
+      },
+      {
+        id: "w3",
+        name: "Global Goods Inc",
+        type: "wholesaler",
+        level: 4,
+        ethical_score: 55,
+        country: "Netherlands",
+      },
+      {
+        id: "w4",
+        name: "Home Solutions",
+        type: "wholesaler",
+        level: 4,
+        ethical_score: 75,
+        country: "Denmark",
+      },
+      {
+        id: "w5",
+        name: "Auto Wholesale",
+        type: "wholesaler",
+        level: 4,
+        ethical_score: 62,
+        country: "Germany",
+      },
+
+      // Retailers
+      {
+        id: "r1",
+        name: "Eco Clothes",
+        type: "retailer",
+        level: 5,
+        ethical_score: 85,
+        country: "United Kingdom",
+      },
+      {
+        id: "r2",
+        name: "TechShop",
+        type: "retailer",
+        level: 5,
+        ethical_score: 68,
+        country: "United States",
+      },
+      {
+        id: "r3",
+        name: "Global Mart",
+        type: "retailer",
+        level: 5,
+        ethical_score: 52,
+        country: "Canada",
+      },
+      {
+        id: "r4",
+        name: "Design Home",
+        type: "retailer",
+        level: 5,
+        ethical_score: 80,
+        country: "Italy",
+      },
+      {
+        id: "r5",
+        name: "Auto World",
+        type: "retailer",
+        level: 5,
+        ethical_score: 60,
+        country: "France",
+      },
+    ],
+    links: [
+      // Raw Materials to Suppliers
+      { source: "cotton", target: "s1", ethical: true },
+      { source: "oil", target: "s2", ethical: false },
+      { source: "minerals", target: "s2", ethical: false },
+      { source: "aluminum", target: "s3", ethical: true },
+      { source: "timber", target: "s4", ethical: true },
+
+      // Some suppliers to multiple manufacturers
+      { source: "s1", target: "m1", ethical: true },
+      { source: "s2", target: "m2", ethical: false },
+      { source: "s2", target: "m3", ethical: false },
+      { source: "s3", target: "m5", ethical: true },
+      { source: "s3", target: "m2", ethical: true },
+      { source: "s4", target: "m4", ethical: true },
+      { source: "s5", target: "m3", ethical: false },
+      { source: "s5", target: "m5", ethical: false },
+
+      // Manufacturers to Wholesalers
+      { source: "m1", target: "w1", ethical: true },
+      { source: "m2", target: "w2", ethical: true },
+      { source: "m3", target: "w3", ethical: false },
+      { source: "m4", target: "w4", ethical: true },
+      { source: "m5", target: "w5", ethical: true },
+      { source: "m2", target: "w3", ethical: true },
+
+      // Wholesalers to Retailers
+      { source: "w1", target: "r1", ethical: true },
+      { source: "w2", target: "r2", ethical: true },
+      { source: "w3", target: "r3", ethical: false },
+      { source: "w4", target: "r4", ethical: true },
+      { source: "w5", target: "r5", ethical: true },
+    ],
+    isMockData: true,
+  };
+};
