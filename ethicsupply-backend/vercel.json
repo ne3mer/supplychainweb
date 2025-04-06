@@ -29,7 +29,9 @@
   "env": {
     "DJANGO_SETTINGS_MODULE": "ethicsupply.settings",
     "SECRET_KEY": "${SECRET_KEY}",
-    "ALLOWED_HOSTS": ".vercel.app"
+    "ALLOWED_HOSTS": ".vercel.app",
+    "DEBUG": "False",
+    "VERCEL": "1"
   },
   "outputDirectory": "staticfiles"
 }
