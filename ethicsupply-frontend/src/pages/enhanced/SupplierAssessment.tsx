@@ -181,38 +181,186 @@ const SupplierAssessment = () => {
         if (supplier) {
           console.log("Found supplier for assessment:", supplier);
 
-          // Set the basic data we have
-          const updatedFormData = {
-            ...formData,
-            name: supplier.name,
-            country: supplier.country,
-            industry: supplier.industry || "Manufacturing",
-            co2_emissions: supplier.co2_emissions,
-            delivery_efficiency: supplier.delivery_efficiency,
-            wage_fairness: supplier.wage_fairness,
-            human_rights_index: supplier.human_rights_index,
-            waste_management_score: supplier.waste_management_score,
-          };
+          // Create a new form data object that keeps default values for fields
+          // not present in the supplier data
+          const updatedFormData = { ...formData };
 
-          // If we have enhanced data, use it
-          if (supplier.environmental_score) {
-            updatedFormData.energy_efficiency = 0.7; // Estimated
-            updatedFormData.renewable_energy_percent = 30; // Estimated
-            updatedFormData.pollution_control = 0.6; // Estimated
+          // Basic Information
+          updatedFormData.name = supplier.name || "";
+          updatedFormData.country = supplier.country || "";
+          updatedFormData.industry = supplier.industry || "Manufacturing";
+
+          // Environmental Metrics - map existing supplier properties directly when available
+          if (supplier.co2_emissions !== undefined)
+            updatedFormData.co2_emissions = supplier.co2_emissions;
+          if (supplier.water_usage !== undefined)
+            updatedFormData.water_usage = supplier.water_usage;
+          if (supplier.energy_efficiency !== undefined)
+            updatedFormData.energy_efficiency = supplier.energy_efficiency;
+          if (supplier.waste_management_score !== undefined)
+            updatedFormData.waste_management_score =
+              supplier.waste_management_score;
+          if (supplier.renewable_energy_percent !== undefined)
+            updatedFormData.renewable_energy_percent =
+              supplier.renewable_energy_percent;
+          if (supplier.pollution_control !== undefined)
+            updatedFormData.pollution_control = supplier.pollution_control;
+
+          // Social Metrics
+          if (supplier.wage_fairness !== undefined)
+            updatedFormData.wage_fairness = supplier.wage_fairness;
+          if (supplier.human_rights_index !== undefined)
+            updatedFormData.human_rights_index = supplier.human_rights_index;
+          if (supplier.diversity_inclusion_score !== undefined)
+            updatedFormData.diversity_inclusion_score =
+              supplier.diversity_inclusion_score;
+          if (supplier.community_engagement !== undefined)
+            updatedFormData.community_engagement =
+              supplier.community_engagement;
+          if (supplier.worker_safety !== undefined)
+            updatedFormData.worker_safety = supplier.worker_safety;
+
+          // Governance Metrics
+          if (supplier.transparency_score !== undefined)
+            updatedFormData.transparency_score = supplier.transparency_score;
+          if (supplier.corruption_risk !== undefined)
+            updatedFormData.corruption_risk = supplier.corruption_risk;
+          if (supplier.board_diversity !== undefined)
+            updatedFormData.board_diversity = supplier.board_diversity;
+          if (supplier.ethics_program !== undefined)
+            updatedFormData.ethics_program = supplier.ethics_program;
+          if (supplier.compliance_systems !== undefined)
+            updatedFormData.compliance_systems = supplier.compliance_systems;
+
+          // Supply Chain Metrics
+          if (supplier.delivery_efficiency !== undefined)
+            updatedFormData.delivery_efficiency = supplier.delivery_efficiency;
+          if (supplier.quality_control_score !== undefined)
+            updatedFormData.quality_control_score =
+              supplier.quality_control_score;
+          if (supplier.supplier_diversity !== undefined)
+            updatedFormData.supplier_diversity = supplier.supplier_diversity;
+          if (supplier.traceability !== undefined)
+            updatedFormData.traceability = supplier.traceability;
+
+          // Risk Factors
+          if (supplier.geopolitical_risk !== undefined)
+            updatedFormData.geopolitical_risk = supplier.geopolitical_risk;
+          if (supplier.climate_risk !== undefined)
+            updatedFormData.climate_risk = supplier.climate_risk;
+          if (supplier.labor_dispute_risk !== undefined)
+            updatedFormData.labor_dispute_risk = supplier.labor_dispute_risk;
+
+          // If we have ESG scores, use them to estimate missing metrics
+          if (supplier.environmental_score !== undefined) {
+            // Use environmental score to estimate any missing environmental metrics
+            const envScore = supplier.environmental_score / 100; // convert to 0-1 scale
+            if (
+              updatedFormData.energy_efficiency === 0.5 &&
+              !supplier.energy_efficiency
+            )
+              updatedFormData.energy_efficiency = Math.min(
+                0.9,
+                Math.max(0.1, envScore)
+              );
+
+            if (
+              updatedFormData.renewable_energy_percent === 20 &&
+              !supplier.renewable_energy_percent
+            )
+              updatedFormData.renewable_energy_percent = Math.min(
+                90,
+                Math.max(10, envScore * 100)
+              );
+
+            if (
+              updatedFormData.pollution_control === 0.5 &&
+              !supplier.pollution_control
+            )
+              updatedFormData.pollution_control = Math.min(
+                0.9,
+                Math.max(0.1, envScore)
+              );
           }
 
-          if (supplier.social_score) {
-            updatedFormData.diversity_inclusion_score = 0.6; // Estimated
-            updatedFormData.community_engagement = 0.7; // Estimated
-            updatedFormData.worker_safety = 0.65; // Estimated
+          if (supplier.social_score !== undefined) {
+            // Use social score to estimate any missing social metrics
+            const socScore = supplier.social_score / 100; // convert to 0-1 scale
+            if (
+              updatedFormData.diversity_inclusion_score === 0.5 &&
+              !supplier.diversity_inclusion_score
+            )
+              updatedFormData.diversity_inclusion_score = Math.min(
+                0.9,
+                Math.max(0.1, socScore)
+              );
+
+            if (
+              updatedFormData.community_engagement === 0.5 &&
+              !supplier.community_engagement
+            )
+              updatedFormData.community_engagement = Math.min(
+                0.9,
+                Math.max(0.1, socScore)
+              );
+
+            if (
+              updatedFormData.worker_safety === 0.5 &&
+              !supplier.worker_safety
+            )
+              updatedFormData.worker_safety = Math.min(
+                0.9,
+                Math.max(0.1, socScore)
+              );
           }
 
-          if (supplier.governance_score) {
-            updatedFormData.transparency_score = 0.7; // Estimated
-            updatedFormData.corruption_risk = 0.3; // Estimated
-            updatedFormData.board_diversity = 0.6; // Estimated
-            updatedFormData.ethics_program = 0.7; // Estimated
-            updatedFormData.compliance_systems = 0.65; // Estimated
+          if (supplier.governance_score !== undefined) {
+            // Use governance score to estimate any missing governance metrics
+            const govScore = supplier.governance_score / 100; // convert to 0-1 scale
+            if (
+              updatedFormData.transparency_score === 0.5 &&
+              !supplier.transparency_score
+            )
+              updatedFormData.transparency_score = Math.min(
+                0.9,
+                Math.max(0.1, govScore)
+              );
+
+            if (
+              updatedFormData.corruption_risk === 0.5 &&
+              !supplier.corruption_risk
+            )
+              updatedFormData.corruption_risk = Math.min(
+                0.9,
+                Math.max(0.1, 1 - govScore)
+              ); // inverted
+
+            if (
+              updatedFormData.board_diversity === 0.5 &&
+              !supplier.board_diversity
+            )
+              updatedFormData.board_diversity = Math.min(
+                0.9,
+                Math.max(0.1, govScore)
+              );
+
+            if (
+              updatedFormData.ethics_program === 0.5 &&
+              !supplier.ethics_program
+            )
+              updatedFormData.ethics_program = Math.min(
+                0.9,
+                Math.max(0.1, govScore)
+              );
+
+            if (
+              updatedFormData.compliance_systems === 0.5 &&
+              !supplier.compliance_systems
+            )
+              updatedFormData.compliance_systems = Math.min(
+                0.9,
+                Math.max(0.1, govScore)
+              );
           }
 
           // Set the form data
@@ -660,6 +808,15 @@ const SupplierAssessment = () => {
         </p>
       </div>
 
+      {loadingSupplier && (
+        <div className="bg-white shadow rounded-lg p-6 flex justify-center items-center">
+          <div className="flex flex-col items-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mb-3"></div>
+            <p className="text-gray-600">Loading supplier data...</p>
+          </div>
+        </div>
+      )}
+
       {usingMockData && (
         <div className="rounded-md bg-blue-50 p-4 border-l-4 border-blue-400">
           <div className="flex">
@@ -718,7 +875,7 @@ const SupplierAssessment = () => {
         </div>
 
         <div className="p-4 sm:p-6">
-          {activeTab === "form" && (
+          {activeTab === "form" && !loadingSupplier && (
             <div>
               <p className="text-sm text-gray-500 mb-6">
                 Complete all fields for a comprehensive assessment. Fields are
