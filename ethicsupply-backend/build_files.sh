@@ -3,16 +3,20 @@
 # Make the script executable
 chmod +x build_files.sh
 
-# Install pip
-pip install --upgrade pip
+echo "Python version:"
+python3 --version
 
 # Install dependencies
-pip install -r requirements.txt
+echo "Installing dependencies..."
+python3 -m pip install --upgrade pip
+python3 -m pip install -r requirements.txt
 
 # Collect static files
-python manage.py collectstatic --noinput
+echo "Collecting static files..."
+python3 manage.py collectstatic --noinput
 
 # Run migrations
-python manage.py migrate
+echo "Running migrations..."
+python3 manage.py migrate
 
 echo "Build completed successfully!" 
