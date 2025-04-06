@@ -49,6 +49,7 @@ import ChartInfoOverlay, {
 } from "../components/ChartInfoOverlay";
 import ChartMetricsExplainer from "../components/ChartMetricsExplainer";
 import InsightsPanel, { chartInsights } from "../components/InsightsPanel";
+import MachineLearningStatus from "../components/MachineLearningStatus";
 
 // Define the dashboard data interface to fix type errors
 interface EthicalScoreData {
@@ -248,6 +249,11 @@ const Dashboard = () => {
         </div>
       </div>
 
+      {/* ML Status Section - Add this right before the stats cards */}
+      <div className="mb-6">
+        <MachineLearningStatus isVisible={true} />
+      </div>
+
       {loading ? (
         <div className="flex items-center justify-center h-64">
           <ArrowPathIcon className="h-8 w-8 text-emerald-500 animate-spin" />
@@ -318,6 +324,11 @@ const Dashboard = () => {
                 </dd>
               </div>
             ))}
+          </div>
+
+          {/* Machine Learning Status Section */}
+          <div className="mb-6">
+            <MachineLearningStatus isVisible={true} />
           </div>
 
           {/* Charts Row 1 */}
