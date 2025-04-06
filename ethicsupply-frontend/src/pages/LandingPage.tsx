@@ -188,9 +188,9 @@ const LandingPage = () => {
 
         {/* Full-screen 3D visualization */}
         {show3D && (
-          <div className="absolute inset-0">
+          <div className="absolute inset-0 z-20">
             {isLoading && (
-              <div className="absolute inset-0 flex items-center justify-center bg-white bg-opacity-80 z-20">
+              <div className="absolute inset-0 flex items-center justify-center bg-white bg-opacity-80 z-30">
                 <div className="flex flex-col items-center">
                   <ArrowPathIcon className="w-16 h-16 text-emerald-600 animate-spin" />
                   <p className="mt-4 text-lg text-gray-700">

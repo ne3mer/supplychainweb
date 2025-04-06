@@ -18,12 +18,14 @@
         height: 100vh;
       }
 
-      #3d-container {
+      /* Fix for ID selector that starts with a number */
+      #three-container {
         position: absolute;
         top: 0;
         left: 0;
         width: 100%;
         height: 100%;
+        z-index: 5;
       }
 
       #overlay {
@@ -82,12 +84,13 @@
         padding: 10px;
         border-radius: 5px;
         font-size: 14px;
+        z-index: 10;
       }
     </style>
   </head>
   <body>
     <div id="container">
-      <div id="3d-container"></div>
+      <div id="three-container"></div>
       <div id="overlay">
         <h1>EthicSupply</h1>
         <h2>Ethical AI for Smarter Supply Chains</h2>
@@ -101,6 +104,21 @@
         Click and drag to rotate | Scroll to zoom | Right-click and drag to pan
       </div>
     </div>
+
+    <script>
+      // Create a global variable to ensure the 3D container exists
+      window.addEventListener("DOMContentLoaded", function () {
+        // Check that our 3D container exists
+        if (!document.getElementById("3d-container")) {
+          console.log("Creating 3d-container as alias to three-container");
+          // Create an alias for the three-container that the script expects
+          const threeContainer = document.getElementById("three-container");
+          if (threeContainer) {
+            threeContainer.id = "3d-container";
+          }
+        }
+      });
+    </script>
 
     <script type="importmap">
       {

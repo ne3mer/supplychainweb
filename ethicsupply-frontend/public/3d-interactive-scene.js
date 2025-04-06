@@ -4,6 +4,8 @@ import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 
 // Main scene setup
 function init() {
+  console.log("Initializing 3D scene...");
+
   // Scene, camera, renderer setup
   const scene = new THREE.Scene();
   scene.background = new THREE.Color(0xf8f9fa);
@@ -22,6 +24,8 @@ function init() {
   renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
   const container = document.getElementById("3d-container");
+  console.log("Container found:", container);
+
   if (container) {
     // Clear any existing content
     while (container.firstChild) {
@@ -29,8 +33,26 @@ function init() {
     }
     container.appendChild(renderer.domElement);
   } else {
-    console.error("Container not found");
-    return;
+    console.error("3D container not found - attempting to create it");
+
+    // If container not found, create it
+    const newContainer = document.createElement("div");
+    newContainer.id = "3d-container";
+    newContainer.style.position = "absolute";
+    newContainer.style.top = "0";
+    newContainer.style.left = "0";
+    newContainer.style.width = "100%";
+    newContainer.style.height = "100%";
+    newContainer.style.zIndex = "10";
+
+    const mainContainer = document.getElementById("container");
+    if (mainContainer) {
+      mainContainer.appendChild(newContainer);
+      newContainer.appendChild(renderer.domElement);
+    } else {
+      document.body.appendChild(newContainer);
+      newContainer.appendChild(renderer.domElement);
+    }
   }
 
   // Lighting
@@ -558,19 +580,38 @@ function createTrees(scene) {
 
 // Start the scene when DOM is loaded
 window.addEventListener("DOMContentLoaded", () => {
-  // Check if the 3D container exists before initializing
-  if (document.getElementById("3d-container")) {
-    init();
-  } else {
-    // If the container isn't available yet, wait a moment and try again
-    setTimeout(() => {
-      if (document.getElementById("3d-container")) {
-        init();
-      } else {
-        console.error("3D container not found after waiting");
-      }
-    }, 1000);
-  }
+  console.log("DOM content loaded, trying to initialize 3D scene");
+  tryInitScene();
 });
+
+// Try to initialize the scene, with multiple attempts if needed
+function tryInitScene(attempts = 0) {
+  console.log(`Attempt ${attempts + 1} to initialize 3D scene`);
+
+  if (document.getElementById("3d-container")) {
+    console.log("3D container found, initializing");
+    init();
+  } else if (attempts < 5) {
+    console.log("Container not found, waiting and trying again...");
+    // Wait longer between each attempt
+    setTimeout(() => {
+      tryInitScene(attempts + 1);
+    }, 500 * (attempts + 1));
+  } else {
+    console.error("Failed to find 3D container after multiple attempts");
+    // Create the container as a last resort
+    console.log("Creating container as fallback");
+    const newContainer = document.createElement("div");
+    newContainer.id = "3d-container";
+    newContainer.style.position = "absolute";
+    newContainer.style.top = "0";
+    newContainer.style.left = "0";
+    newContainer.style.width = "100%";
+    newContainer.style.height = "100%";
+    newContainer.style.zIndex = "10";
+    document.body.appendChild(newContainer);
+    init();
+  }
+}
 
 export { init };
