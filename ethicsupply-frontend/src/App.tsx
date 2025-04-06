@@ -25,12 +25,13 @@ function App() {
       try {
         // Normalize API URL to prevent double slashes
         const apiBaseUrl = import.meta.env.VITE_API_URL || "";
-        const apiUrl = apiBaseUrl.endsWith("/")
-          ? apiBaseUrl.slice(0, -1)
+        const baseUrl = apiBaseUrl.endsWith("/api")
+          ? apiBaseUrl.slice(0, -4) // Remove /api
+          : apiBaseUrl.endsWith("/api/")
+          ? apiBaseUrl.slice(0, -5) // Remove /api/
           : apiBaseUrl;
-        const baseUrl = apiUrl.replace(/\/api$/, "");
 
-        console.log("Testing connection to:", { apiUrl, baseUrl });
+        console.log("Testing connection to:", { apiUrl: apiBaseUrl, baseUrl });
 
         // Try the health endpoint first
         const healthResponse = await fetch(`${baseUrl}/health/`, {
@@ -48,6 +49,9 @@ function App() {
           );
           return;
         }
+
+        // Ensure apiUrl has the correct format with /api/
+        const apiUrl = baseUrl + "/api";
 
         // Try the simple test endpoint next
         const simpleResponse = await fetch(`${apiUrl}/simple-test/`, {

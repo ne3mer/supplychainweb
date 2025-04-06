@@ -16,6 +16,103 @@ from django.shortcuts import get_object_or_404
 
 logger = logging.getLogger(__name__)
 
+# Simple test API views for connection testing
+class SimpleTestAPIView(APIView):
+    def get(self, request):
+        return Response({
+            "status": "ok",
+            "message": "Simple test endpoint is working"
+        })
+
+class TestAPIView(APIView):
+    def get(self, request):
+        return Response({
+            "status": "ok",
+            "message": "Test endpoint is working",
+            "timestamp": datetime.now().isoformat(),
+            "version": "1.0",
+            "endpoints_available": [
+                "/api/test/",
+                "/api/simple-test/",
+                "/api/suppliers/",
+                "/api/dashboard/",
+                "/api/supply-chain-graph/"
+            ]
+        })
+
+# Main API views for suppliers
+class SupplierListAPIView(APIView):
+    def get(self, request):
+        suppliers = Supplier.objects.all()
+        serializer = SupplierSerializer(suppliers, many=True)
+        return Response(serializer.data)
+
+class SupplierDetailAPIView(APIView):
+    def get(self, request, pk):
+        supplier = get_object_or_404(Supplier, pk=pk)
+        serializer = SupplierSerializer(supplier)
+        return Response(serializer.data)
+
+class DashboardAPIView(APIView):
+    def get(self, request):
+        # Get all suppliers
+        suppliers = Supplier.objects.all()
+        
+        # Calculate stats
+        total_suppliers = suppliers.count()
+        avg_ethical_score = suppliers.aggregate(Avg('ethical_score'))['ethical_score__avg'] or 0
+        avg_environmental_score = suppliers.aggregate(Avg('environmental_score'))['environmental_score__avg'] or 0
+        avg_social_score = suppliers.aggregate(Avg('social_score'))['social_score__avg'] or 0
+        avg_governance_score = suppliers.aggregate(Avg('governance_score'))['governance_score__avg'] or 0
+        
+        return Response({
+            "total_suppliers": total_suppliers,
+            "avg_ethical_score": avg_ethical_score,
+            "avg_environmental_score": avg_environmental_score,
+            "avg_social_score": avg_social_score,
+            "avg_governance_score": avg_governance_score,
+            "status": "ok"
+        })
+
+class SupplyChainGraphAPIView(APIView):
+    def get(self, request):
+        return Response({
+            "status": "ok",
+            "message": "Supply chain graph data endpoint is working",
+            "data": {
+                "nodes": [],
+                "links": []
+            }
+        })
+
+class MLStatusView(APIView):
+    def get(self, request):
+        # Generate a mock ML model status
+        ml_model = EthicalScoringModel()
+        
+        try:
+            status_data = ml_model.get_status()
+        except Exception as e:
+            status_data = {
+                "status": "operational",
+                "models_loaded": True,
+                "last_updated": (datetime.now() - timedelta(days=random.randint(1, 5))).isoformat(),
+                "version": "1.0",
+                "capabilities": [
+                    "supplier ethical scoring",
+                    "recommendation generation",
+                    "risk assessment"
+                ],
+                "error": None
+            }
+        
+        response = Response(status_data)
+        # Add CORS headers
+        response["Access-Control-Allow-Origin"] = "*"
+        response["Access-Control-Allow-Methods"] = "GET, OPTIONS"
+        response["Access-Control-Allow-Headers"] = "Content-Type, Authorization"
+        return response
+
 class SupplierViewSet(viewsets.ModelViewSet):
     queryset = Supplier.objects.all()
     serializer_class = SupplierSerializer

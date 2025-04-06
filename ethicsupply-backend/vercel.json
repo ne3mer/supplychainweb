@@ -26,15 +26,15 @@
       "dest": "/staticfiles/favicon.ico"
     },
     {
-      "src": "/api/(.*)",
+      "src": "/health/",
       "dest": "ethicsupply/wsgi.py"
     },
     {
-      "src": "/admin/(.*)",
+      "src": "/api/(.*)/?",
       "dest": "ethicsupply/wsgi.py"
     },
     {
-      "src": "/health",
+      "src": "/admin/(.*)/?",
       "dest": "ethicsupply/wsgi.py"
     },
     {

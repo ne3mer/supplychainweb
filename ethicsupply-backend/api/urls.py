@@ -3,10 +3,19 @@ from rest_framework.routers import DefaultRouter
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from django.http import JsonResponse
-from .views import SupplierViewSet, SupplyChainGraphView, DashboardView
+from .views import (
+    SupplierViewSet,
+    SupplierListAPIView,
+    SupplierDetailAPIView,
+    DashboardAPIView,
+    SupplyChainGraphAPIView,
+    TestAPIView,
+    SimpleTestAPIView,
+)
 
+# Set up router for ViewSets
 router = DefaultRouter()
-router.register(r'suppliers', SupplierViewSet)
+router.register(r'suppliers-viewset', SupplierViewSet, basename='suppliers-viewset')
 
 # Simple test endpoint for debugging
 @api_view(['GET', 'OPTIONS'])
@@ -54,9 +63,14 @@ def simple_test(request):
 # POST /suppliers/create_scorecard_settings/
 
 urlpatterns = [
+    # Include router URLs
     path('', include(router.urls)),
-    path('dashboard/', DashboardView.as_view(), name='dashboard'),
-    path('supply-chain-graph/', SupplyChainGraphView.as_view(), name='supply-chain-graph'),
-    path('test/', test_endpoint, name='test-endpoint'),
-    path('simple-test/', simple_test, name='simple-test'),
+    
+    # API view URLs
+    path('suppliers/', SupplierListAPIView.as_view(), name='supplier-list'),
+    path('suppliers/<int:pk>/', SupplierDetailAPIView.as_view(), name='supplier-detail'),
+    path('dashboard/', DashboardAPIView.as_view(), name='dashboard'),
+    path('supply-chain-graph/', SupplyChainGraphAPIView.as_view(), name='supply-chain-graph'),
+    path('test/', TestAPIView.as_view(), name='test'),
+    path('simple-test/', SimpleTestAPIView.as_view(), name='simple-test'),
 ] 
