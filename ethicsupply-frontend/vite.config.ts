@@ -5,6 +5,17 @@ import react from "@vitejs/plugin-react";
 export default defineConfig({
   plugins: [react()],
   base: "./",
-  // We've simplified the components that used external dependencies
-  // No need for special optimization rules anymore
+  optimizeDeps: {
+    include: ["react-force-graph-2d", "react-leaflet", "leaflet"],
+  },
+  build: {
+    commonjsOptions: {
+      include: [
+        /react-force-graph-2d/,
+        /react-leaflet/,
+        /leaflet/,
+        /node_modules/,
+      ],
+    },
+  },
 });

@@ -1,17 +1,56 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
+import ForceGraph2D from "react-force-graph-2d";
 import {
   GlobeAltIcon,
   ArrowPathIcon,
   InformationCircleIcon,
   ExclamationTriangleIcon,
+  AdjustmentsHorizontalIcon,
 } from "@heroicons/react/24/outline";
 import { getSupplyChainGraphData } from "../services/api";
 
-// Supply Chain Graph Component - Simplified version without external dependencies
+// Define data types for the graph
+interface GraphNode {
+  id: string;
+  name: string;
+  type: string;
+  industry?: string;
+  country?: string;
+  ethical_score?: number;
+  val?: number;
+  color?: string;
+}
+
+interface GraphLink {
+  source: string;
+  target: string;
+  type: string;
+  strength?: number;
+  distance?: number;
+  color?: string;
+}
+
+interface GraphData {
+  nodes: GraphNode[];
+  links: GraphLink[];
+  isMockData?: boolean;
+}
+
+// Supply Chain Graph Component with ForceGraph2D visualization
 const SupplyChainGraph = () => {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  const [graphData, setGraphData] = useState<GraphData>({
+    nodes: [],
+    links: [],
+  });
   const [usingMockData, setUsingMockData] = useState<boolean>(false);
+  const [highlightNodes, setHighlightNodes] = useState<Set<string>>(new Set());
+  const [highlightLinks, setHighlightLinks] = useState<Set<string>>(new Set());
+  const [selectedNode, setSelectedNode] = useState<GraphNode | null>(null);
+  const [filterByType, setFilterByType] = useState<string | null>(null);
+
+  const graphRef = useRef<any>();
 
   // Load data
   useEffect(() => {
@@ -19,6 +58,7 @@ const SupplyChainGraph = () => {
       try {
         setLoading(true);
         const data = await getSupplyChainGraphData();
+        setGraphData(data);
         setUsingMockData(!!data.isMockData);
       } catch (err) {
         console.error("Error fetching supply chain graph data:", err);
@@ -30,6 +70,66 @@ const SupplyChainGraph = () => {
 
     fetchData();
   }, []);
+
+  // Process node selection
+  const handleNodeClick = (node: GraphNode) => {
+    setSelectedNode(node === selectedNode ? null : node);
+
+    if (node === selectedNode) {
+      setHighlightNodes(new Set());
+      setHighlightLinks(new Set());
+      return;
+    }
+
+    // Get connected nodes/links
+    const connectedNodes = new Set<string>([node.id]);
+    const connectedLinks = new Set<string>();
+
+    graphData.links.forEach((link) => {
+      if (link.source === node.id || link.target === node.id) {
+        const targetId =
+          typeof link.target === "object"
+            ? (link.target as any).id
+            : link.target;
+        const sourceId =
+          typeof link.source === "object"
+            ? (link.source as any).id
+            : link.source;
+
+        connectedNodes.add(targetId);
+        connectedNodes.add(sourceId);
+        connectedLinks.add(`${sourceId}-${targetId}`);
+      }
+    });
+
+    setHighlightNodes(connectedNodes);
+    setHighlightLinks(connectedLinks);
+  };
+
+  // Filter nodes by type
+  const getFilteredData = () => {
+    if (!filterByType) return graphData;
+
+    const filteredNodes = graphData.nodes.filter(
+      (node) => node.type === filterByType || node.industry === filterByType
+    );
+
+    const nodeIds = new Set(filteredNodes.map((n) => n.id));
+
+    const filteredLinks = graphData.links.filter((link) => {
+      const sourceId =
+        typeof link.source === "object" ? (link.source as any).id : link.source;
+      const targetId =
+        typeof link.target === "object" ? (link.target as any).id : link.target;
+
+      return nodeIds.has(sourceId) && nodeIds.has(targetId);
+    });
+
+    return {
+      nodes: filteredNodes,
+      links: filteredLinks,
+    };
+  };
 
   // Component rendering
   return (
@@ -52,10 +152,46 @@ const SupplyChainGraph = () => {
             </p>
           )}
         </div>
+
+        {!loading && !error && graphData.nodes.length > 0 && (
+          <div className="mt-4 md:mt-0 flex space-x-2">
+            <select
+              className="rounded border border-gray-300 py-1 px-3 text-sm"
+              value={filterByType || ""}
+              onChange={(e) => setFilterByType(e.target.value || null)}
+            >
+              <option value="">All Nodes</option>
+              <option value="supplier">Suppliers</option>
+              <option value="material">Materials</option>
+              <option value="electronics">Electronics Industry</option>
+              <option value="automotive">Automotive Industry</option>
+              <option value="textile">Textile Industry</option>
+              <option value="food">Food Industry</option>
+            </select>
+
+            <button
+              className="flex items-center text-sm px-3 py-1 bg-gray-100 hover:bg-gray-200 rounded"
+              onClick={() => {
+                setFilterByType(null);
+                setSelectedNode(null);
+                setHighlightNodes(new Set());
+                setHighlightLinks(new Set());
+
+                // Center the graph
+                if (graphRef.current) {
+                  graphRef.current.zoomToFit(400);
+                }
+              }}
+            >
+              <AdjustmentsHorizontalIcon className="h-4 w-4 mr-1" />
+              Reset
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Main content */}
-      <div className="bg-white rounded-lg shadow overflow-hidden p-8">
+      <div className="bg-white rounded-lg shadow overflow-hidden">
         {loading ? (
           <div className="p-12 text-center">
             <ArrowPathIcon className="h-12 w-12 text-gray-400 animate-spin mx-auto" />
@@ -72,17 +208,121 @@ const SupplyChainGraph = () => {
               Try Again
             </button>
           </div>
+        ) : graphData.nodes.length > 0 ? (
+          <div className="relative">
+            {/* Force Graph */}
+            <div className="h-[700px] w-full">
+              <ForceGraph2D
+                ref={graphRef}
+                graphData={getFilteredData()}
+                nodeLabel={(node: GraphNode) => `${node.name} (${node.type})`}
+                nodeColor={(node: GraphNode) => {
+                  if (highlightNodes.size > 0) {
+                    return highlightNodes.has(node.id)
+                      ? node.color || "#4f46e5"
+                      : "#ddd";
+                  }
+                  return node.color || "#4f46e5";
+                }}
+                nodeVal={(node: GraphNode) => node.val || 1}
+                linkColor={(link: GraphLink) => {
+                  const sourceId =
+                    typeof link.source === "object"
+                      ? (link.source as any).id
+                      : link.source;
+                  const targetId =
+                    typeof link.target === "object"
+                      ? (link.target as any).id
+                      : link.target;
+
+                  if (highlightLinks.size > 0) {
+                    return highlightLinks.has(`${sourceId}-${targetId}`)
+                      ? link.color || "#666"
+                      : "#eee";
+                  }
+                  return link.color || "#999";
+                }}
+                linkWidth={(link: GraphLink) => {
+                  const sourceId =
+                    typeof link.source === "object"
+                      ? (link.source as any).id
+                      : link.source;
+                  const targetId =
+                    typeof link.target === "object"
+                      ? (link.target as any).id
+                      : link.target;
+
+                  if (highlightLinks.size > 0) {
+                    return highlightLinks.has(`${sourceId}-${targetId}`)
+                      ? 2
+                      : 0.5;
+                  }
+                  return 1;
+                }}
+                onNodeClick={handleNodeClick}
+                cooldownTicks={100}
+                onEngineStop={() => graphRef.current?.zoomToFit(400)}
+              />
+            </div>
+
+            {/* Node details panel */}
+            {selectedNode && (
+              <div className="absolute top-4 right-4 bg-white p-4 rounded-lg shadow w-64">
+                <h3 className="font-semibold text-lg border-b pb-2 mb-2">
+                  {selectedNode.name}
+                </h3>
+                <p className="text-sm mb-1">
+                  <span className="font-medium">Type:</span> {selectedNode.type}
+                </p>
+                {selectedNode.industry && (
+                  <p className="text-sm mb-1">
+                    <span className="font-medium">Industry:</span>{" "}
+                    {selectedNode.industry}
+                  </p>
+                )}
+                {selectedNode.country && (
+                  <p className="text-sm mb-1">
+                    <span className="font-medium">Country:</span>{" "}
+                    {selectedNode.country}
+                  </p>
+                )}
+                {selectedNode.ethical_score !== undefined && (
+                  <p className="text-sm mb-1">
+                    <span className="font-medium">Ethical Score:</span>
+                    <span
+                      className={`ml-1 ${
+                        selectedNode.ethical_score > 75
+                          ? "text-green-600"
+                          : selectedNode.ethical_score > 50
+                          ? "text-amber-600"
+                          : "text-red-600"
+                      }`}
+                    >
+                      {selectedNode.ethical_score}
+                    </span>
+                  </p>
+                )}
+                <button
+                  className="w-full mt-3 text-xs text-gray-600 hover:text-gray-800"
+                  onClick={() => {
+                    setSelectedNode(null);
+                    setHighlightNodes(new Set());
+                    setHighlightLinks(new Set());
+                  }}
+                >
+                  Close
+                </button>
+              </div>
+            )}
+          </div>
         ) : (
           <div className="text-center p-12">
             <h2 className="text-xl font-semibold text-gray-800 mb-4">
-              Graph Visualization
+              No Data Available
             </h2>
             <p className="text-gray-600 mb-6">
-              The interactive supply chain graph is currently being upgraded.
-              Please check back soon for the full visualization feature.
-            </p>
-            <p className="text-gray-500 text-sm">
-              Supply chain data is available and ready to be visualized.
+              No supply chain relationships found. Try connecting to the API or
+              refreshing.
             </p>
           </div>
         )}

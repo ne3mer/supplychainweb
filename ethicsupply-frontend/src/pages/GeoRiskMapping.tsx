@@ -1,4 +1,11 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
+import {
+  MapContainer,
+  TileLayer,
+  Marker,
+  Popup,
+  CircleMarker,
+} from "react-leaflet";
 import {
   GlobeAltIcon,
   ExclamationTriangleIcon,
@@ -11,7 +18,21 @@ import {
   ScaleIcon,
   UserGroupIcon,
 } from "@heroicons/react/24/outline";
-import { getSuppliers } from "../services/api";
+import { getSuppliers, Supplier } from "../services/api";
+import "leaflet/dist/leaflet.css";
+import L from "leaflet";
+
+// Fix for default marker icons
+// @ts-ignore
+delete L.Icon.Default.prototype._getIconUrl;
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl:
+    "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png",
+  iconUrl:
+    "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png",
+  shadowUrl:
+    "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png",
+});
 
 // Risk categories with their color and icon
 const riskTypes = {
@@ -48,6 +69,77 @@ const riskTypes = {
     description:
       "Recent or upcoming regulatory changes affecting business operations",
   },
+};
+
+// Mock country-specific risk data
+const countryRiskData = {
+  China: ["political", "socialEthical"],
+  "United States": ["regulatory"],
+  India: ["environmental", "socialEthical"],
+  Russia: ["political", "conflict", "regulatory"],
+  Brazil: ["environmental", "political"],
+  Mexico: ["conflict", "socialEthical"],
+  Ukraine: ["conflict", "political"],
+  Bangladesh: ["environmental", "socialEthical"],
+  Vietnam: ["political", "socialEthical"],
+  Thailand: ["political", "environmental"],
+  Egypt: ["political", "conflict"],
+  "South Africa": ["environmental", "socialEthical"],
+  Indonesia: ["environmental", "political"],
+  Turkey: ["political", "regulatory"],
+  Philippines: ["environmental", "conflict"],
+  Pakistan: ["political", "conflict", "environmental"],
+  Nigeria: ["conflict", "political", "environmental"],
+};
+
+// Mock geocoding data (country name -> lat/lng)
+const countryCoordinates = {
+  "United States": [38.89511, -77.03637],
+  China: [39.90571, 116.39127],
+  India: [28.61389, 77.209],
+  Germany: [52.52437, 13.41053],
+  "United Kingdom": [51.50853, -0.12574],
+  France: [48.85661, 2.35222],
+  Brazil: [-15.77972, -47.92972],
+  Italy: [41.89193, 12.51133],
+  Canada: [45.42351, -75.69989],
+  Japan: [35.6895, 139.69171],
+  "South Korea": [37.56639, 126.99977],
+  Australia: [-35.28092, 149.13],
+  Spain: [40.4167, -3.70332],
+  Mexico: [19.42847, -99.12766],
+  Indonesia: [-6.1744, 106.8294],
+  Netherlands: [52.37022, 4.89517],
+  "Saudi Arabia": [24.68859, 46.72204],
+  Turkey: [39.93353, 32.85972],
+  Switzerland: [46.94799, 7.44744],
+  Poland: [52.22977, 21.01178],
+  Thailand: [13.75249, 100.49351],
+  Sweden: [59.33258, 18.06489],
+  Belgium: [50.85034, 4.35171],
+  Nigeria: [9.07648, 7.39859],
+  Austria: [48.2082, 16.3738],
+  Norway: [59.91603, 10.73874],
+  "United Arab Emirates": [24.45385, 54.37729],
+  Israel: [31.769, 35.21633],
+  Ireland: [53.34976, -6.26026],
+  Singapore: [1.35208, 103.81984],
+  Vietnam: [21.02776, 105.83416],
+  Malaysia: [3.13898, 101.68689],
+  Denmark: [55.67592, 12.56553],
+  Philippines: [14.59951, 120.98422],
+  Pakistan: [33.69296, 73.0545],
+  Colombia: [4.60971, -74.08175],
+  Chile: [-33.44901, -70.66927],
+  Finland: [60.16749, 24.94278],
+  Bangladesh: [23.81032, 90.41249],
+  Egypt: [30.04443, 31.23571],
+  "South Africa": [-25.74787, 28.22932],
+  "New Zealand": [-41.28874, 174.77721],
+  Argentina: [-34.60368, -58.38157],
+  Russia: [55.75045, 37.61742],
+  Ukraine: [50.4501, 30.5234],
+  Other: [0, 0],
 };
 
 // Mock recent alerts
@@ -104,6 +196,38 @@ const initialAlerts = [
   },
 ];
 
+// Risk overlay component
+interface RiskOverlayProps {
+  country: string;
+  riskTypes: string[];
+}
+
+const RiskOverlay: React.FC<RiskOverlayProps> = ({ country, riskTypes }) => {
+  const coordinates = countryCoordinates[country] || [0, 0];
+
+  if (coordinates[0] === 0 && coordinates[1] === 0) return null;
+
+  return (
+    <>
+      {riskTypes.map((riskType, index) => (
+        <CircleMarker
+          key={`${country}-${riskType}-${index}`}
+          center={[coordinates[0] as number, coordinates[1] as number]}
+          radius={15 + index * 5}
+          pathOptions={{
+            color:
+              riskTypes[riskType as keyof typeof riskTypes]?.color || "#000",
+            fillColor:
+              riskTypes[riskType as keyof typeof riskTypes]?.color || "#000",
+            fillOpacity: 0.2,
+            weight: 1,
+          }}
+        />
+      ))}
+    </>
+  );
+};
+
 interface Alert {
   id: number;
   date: string;
@@ -115,6 +239,7 @@ interface Alert {
 }
 
 const GeoRiskMapping = () => {
+  const [suppliers, setSuppliers] = useState<Supplier[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [activeRiskTypes, setActiveRiskTypes] = useState<string[]>(
@@ -122,22 +247,29 @@ const GeoRiskMapping = () => {
   );
   const [alerts, setAlerts] = useState<Alert[]>(initialAlerts);
   const [showAlerts, setShowAlerts] = useState<boolean>(false);
+  const [highlightedCountry, setHighlightedCountry] = useState<string | null>(
+    null
+  );
 
+  // Fetch suppliers
   useEffect(() => {
     async function fetchData() {
       try {
         setLoading(true);
-        await getSuppliers(); // Just to simulate API call
-        setLoading(false);
+        const suppliersData = await getSuppliers();
+        setSuppliers(suppliersData);
       } catch (err) {
-        console.error("Error fetching supplier data:", err);
+        console.error("Error fetching suppliers for map:", err);
         setError("Failed to load supplier data. Please try again later.");
+      } finally {
         setLoading(false);
       }
     }
+
     fetchData();
   }, []);
 
+  // Mark an alert as read
   const markAlertAsRead = (alertId: number) => {
     setAlerts(
       alerts.map((alert) =>
@@ -146,15 +278,26 @@ const GeoRiskMapping = () => {
     );
   };
 
+  // Toggle risk type visibility
   const toggleRiskType = (riskType: string) => {
-    setActiveRiskTypes(
-      activeRiskTypes.includes(riskType)
-        ? activeRiskTypes.filter((type) => type !== riskType)
-        : [...activeRiskTypes, riskType]
-    );
+    if (activeRiskTypes.includes(riskType)) {
+      setActiveRiskTypes(activeRiskTypes.filter((type) => type !== riskType));
+    } else {
+      setActiveRiskTypes([...activeRiskTypes, riskType]);
+    }
   };
 
-  const unreadAlerts = alerts.filter((alert) => !alert.read).length;
+  // Filter suppliers by country with active risks
+  const getCountriesWithActiveRisks = () => {
+    return Object.entries(countryRiskData)
+      .filter(([_, risks]) =>
+        risks.some((risk) => activeRiskTypes.includes(risk))
+      )
+      .map(([country]) => country);
+  };
+
+  // Count unread alerts
+  const unreadAlertsCount = alerts.filter((alert) => !alert.read).length;
 
   return (
     <div className="container mx-auto py-6 px-4">
@@ -175,11 +318,11 @@ const GeoRiskMapping = () => {
             onClick={() => setShowAlerts(!showAlerts)}
             className="relative inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
           >
-            {unreadAlerts > 0 ? (
+            {unreadAlertsCount > 0 ? (
               <>
                 <BellIcon className="h-5 w-5 mr-2 animate-pulse" />
                 <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">
-                  {unreadAlerts}
+                  {unreadAlertsCount}
                 </span>
               </>
             ) : (
@@ -200,11 +343,7 @@ const GeoRiskMapping = () => {
             <button
               key={key}
               onClick={() => toggleRiskType(key)}
-              className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${
-                activeRiskTypes.includes(key)
-                  ? `bg-${risk.color.substring(1)} text-white`
-                  : "bg-gray-100 text-gray-800"
-              }`}
+              className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium`}
               style={{
                 backgroundColor: activeRiskTypes.includes(key)
                   ? risk.color
@@ -238,39 +377,159 @@ const GeoRiskMapping = () => {
             </button>
           </div>
         ) : (
-          <div className="p-12 text-center">
-            <div className="mb-8">
-              <h2 className="text-xl font-semibold text-gray-800 mb-4">
-                Interactive Risk Map
-              </h2>
-              <p className="text-gray-600 mb-6">
-                The interactive geopolitical risk map is currently being
-                upgraded to improve performance. Please check back soon for the
-                full visualization.
+          <div>
+            <div className="p-4 border-b">
+              <h2 className="text-lg font-semibold">Supply Chain Risk Map</h2>
+              <p className="text-sm text-gray-500">
+                {loading
+                  ? "Loading supplier locations..."
+                  : `Showing ${suppliers.length} suppliers with active risk overlays`}
               </p>
-              <div className="bg-blue-50 p-4 rounded-lg inline-block">
-                <div className="flex items-start">
-                  <InformationCircleIcon className="h-5 w-5 text-blue-500 mr-2 mt-0.5" />
-                  <div className="text-left">
-                    <p className="text-blue-700 text-sm font-medium">
-                      Supply chain risk data is available
-                    </p>
-                    <p className="text-blue-600 text-xs mt-1">
-                      You can still view and manage risk alerts below while the
-                      map visualization is being updated.
-                    </p>
-                  </div>
-                </div>
-              </div>
+            </div>
+
+            {/* Map container with 600px height */}
+            <div className="h-[600px] w-full">
+              <MapContainer
+                center={[20, 0]}
+                zoom={2}
+                style={{ height: "100%", width: "100%" }}
+                scrollWheelZoom={true}
+              >
+                <TileLayer
+                  attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                  url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                />
+
+                {/* Risk Overlays */}
+                {Object.entries(countryRiskData).map(([country, risks]) => {
+                  const activeRisks = risks.filter((risk) =>
+                    activeRiskTypes.includes(risk)
+                  );
+
+                  if (activeRisks.length === 0) return null;
+
+                  return (
+                    <RiskOverlay
+                      key={country}
+                      country={country}
+                      riskTypes={activeRisks}
+                    />
+                  );
+                })}
+
+                {/* Supplier Markers */}
+                {!loading &&
+                  suppliers.map((supplier) => {
+                    const coordinates = countryCoordinates[
+                      supplier.country
+                    ] || [0, 0];
+
+                    if (coordinates[0] === 0 && coordinates[1] === 0)
+                      return null;
+
+                    const hasRisks = countryRiskData[supplier.country]?.some(
+                      (risk) => activeRiskTypes.includes(risk)
+                    );
+
+                    return (
+                      <Marker
+                        key={supplier.id}
+                        position={[
+                          coordinates[0] as number,
+                          coordinates[1] as number,
+                        ]}
+                        icon={L.divIcon({
+                          className: "custom-div-icon",
+                          html: `<div style="background-color: ${
+                            hasRisks ? "#ef4444" : "#3b82f6"
+                          }; width: 10px; height: 10px; border-radius: 50%; border: 2px solid white;"></div>`,
+                          iconSize: [12, 12],
+                          iconAnchor: [6, 6],
+                        })}
+                      >
+                        <Popup>
+                          <div className="p-2">
+                            <h3 className="font-bold">{supplier.name}</h3>
+                            <p className="text-sm">
+                              <span className="font-semibold">Country:</span>{" "}
+                              {supplier.country}
+                            </p>
+                            <p className="text-sm">
+                              <span className="font-semibold">Industry:</span>{" "}
+                              {supplier.industry || "N/A"}
+                            </p>
+                            <p className="text-sm">
+                              <span className="font-semibold">
+                                Ethical Score:
+                              </span>{" "}
+                              <span
+                                className={
+                                  (supplier.ethical_score || 0) > 75
+                                    ? "text-green-600"
+                                    : (supplier.ethical_score || 0) > 50
+                                    ? "text-yellow-600"
+                                    : "text-red-600"
+                                }
+                              >
+                                {supplier.ethical_score || "N/A"}
+                              </span>
+                            </p>
+
+                            {/* Risk warnings if any */}
+                            {countryRiskData[supplier.country] && (
+                              <div className="mt-2 pt-2 border-t">
+                                <p className="text-sm font-semibold text-red-600 flex items-center">
+                                  <ExclamationTriangleIcon className="h-4 w-4 mr-1" />
+                                  Risk Factors:
+                                </p>
+                                <ul className="text-xs mt-1">
+                                  {countryRiskData[supplier.country]
+                                    .filter((risk) =>
+                                      activeRiskTypes.includes(risk)
+                                    )
+                                    .map((risk) => (
+                                      <li
+                                        key={risk}
+                                        className="flex items-center mt-1"
+                                        style={{
+                                          color:
+                                            riskTypes[
+                                              risk as keyof typeof riskTypes
+                                            ]?.color,
+                                        }}
+                                      >
+                                        {
+                                          riskTypes[
+                                            risk as keyof typeof riskTypes
+                                          ]?.icon
+                                        }
+                                        <span className="ml-1">
+                                          {
+                                            riskTypes[
+                                              risk as keyof typeof riskTypes
+                                            ]?.name
+                                          }
+                                        </span>
+                                      </li>
+                                    ))}
+                                </ul>
+                              </div>
+                            )}
+                          </div>
+                        </Popup>
+                      </Marker>
+                    );
+                  })}
+              </MapContainer>
             </div>
 
             {/* Alerts panel */}
             {showAlerts && (
-              <div className="mt-6 bg-white rounded-lg shadow-lg border border-gray-200 p-4 max-w-2xl mx-auto">
+              <div className="mt-6 bg-white rounded-lg shadow-lg border border-gray-200 p-4 max-w-2xl mx-auto mb-6">
                 <div className="flex justify-between items-center mb-4">
                   <h3 className="font-semibold text-gray-900">Recent Alerts</h3>
                   <span className="text-xs text-gray-500">
-                    {unreadAlerts} unread
+                    {unreadAlertsCount} unread
                   </span>
                 </div>
                 <div className="space-y-3 max-h-96 overflow-y-auto">
