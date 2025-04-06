@@ -10,6 +10,9 @@ import {
   ExclamationTriangleIcon,
   XCircleIcon,
   InformationCircleIcon,
+  ChartBarIcon,
+  PlusCircleIcon,
+  DocumentMagnifyingGlassIcon,
 } from "@heroicons/react/24/outline";
 
 const SuppliersList = () => {
@@ -164,11 +167,21 @@ const SuppliersList = () => {
   return (
     <div className="space-y-8 bg-neutral-50">
       <div className="px-4 py-6 bg-gradient-to-r from-emerald-700 to-teal-700 rounded-lg shadow-md text-white">
-        <h1 className="text-3xl font-bold">Supplier Network</h1>
-        <p className="mt-2 text-emerald-100">
-          View and analyze your supplier network's ethical and sustainability
-          performance
-        </p>
+        <div className="flex justify-between items-center">
+          <div>
+            <h1 className="text-3xl font-bold">Supplier Network</h1>
+            <p className="mt-2 text-emerald-100">
+              View and analyze your supplier network's ethical and
+              sustainability performance
+            </p>
+          </div>
+          <Link
+            to="/add-supplier"
+            className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-emerald-500 hover:bg-emerald-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-400"
+          >
+            <PlusCircleIcon className="h-5 w-5 mr-1" /> Add New Supplier
+          </Link>
+        </div>
       </div>
 
       {usingMockData && (
@@ -560,7 +573,7 @@ const SuppliersList = () => {
                   </div>
                 </div>
 
-                <div className="mt-6 flex justify-between">
+                <div className="mt-6 flex flex-col space-y-2">
                   <Link
                     to={`/evaluate?id=${selectedSupplier.id}`}
                     className="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
@@ -568,11 +581,24 @@ const SuppliersList = () => {
                     <CheckCircleIcon className="h-4 w-4 mr-1" /> Evaluate
                   </Link>
                   <Link
+                    to={`/supplier-analytics/${selectedSupplier.id}`}
+                    className="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                  >
+                    <DocumentMagnifyingGlassIcon className="h-4 w-4 mr-1" /> AI
+                    Analytics
+                  </Link>
+                  <Link
                     to={`/suppliers/${selectedSupplier.id}`}
                     className="inline-flex items-center px-3 py-2 border border-gray-300 text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
                   >
                     <ArrowTopRightOnSquareIcon className="h-4 w-4 mr-1" /> View
                     Details
+                  </Link>
+                  <Link
+                    to={`/suppliers/${selectedSupplier.id}/scorecard`}
+                    className="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-emerald-600 hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500"
+                  >
+                    <ChartBarIcon className="h-4 w-4 mr-1" /> Ethical Scorecard
                   </Link>
                 </div>
               </div>
