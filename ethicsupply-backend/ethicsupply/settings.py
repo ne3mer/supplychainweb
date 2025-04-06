@@ -142,8 +142,10 @@ REST_FRAMEWORK = {
 }
 
 # CORS settings
-CORS_ALLOW_ALL_ORIGINS = False
+CORS_ALLOW_ALL_ORIGINS = True  # Temporarily enable all origins for testing
 CORS_ALLOW_CREDENTIALS = True
+
+# Keep specific origins for when we switch back to specific origins
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:5173",
     "http://localhost:5174",
@@ -154,8 +156,34 @@ CORS_ALLOWED_ORIGINS = [
     "https://backend-suppl.vercel.app"
 ]
 
+# Expose these headers for CORS requests
+CORS_EXPOSE_HEADERS = ['Content-Type', 'X-CSRFToken']
+
 # Add Render.com to allowed hosts
 ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', 'localhost,127.0.0.1,ethicsupply-backend.onrender.com,.vercel.app').split(',')
+
+# Add CORS configuration for production
+if not DEBUG:
+    CORS_ALLOW_METHODS = [
+        "DELETE",
+        "GET",
+        "OPTIONS",
+        "PATCH",
+        "POST",
+        "PUT",
+    ]
+    
+    CORS_ALLOW_HEADERS = [
+        "accept",
+        "accept-encoding",
+        "authorization",
+        "content-type",
+        "dnt",
+        "origin",
+        "user-agent",
+        "x-csrftoken",
+        "x-requested-with",
+    ]
 
 # Production settings
 if not DEBUG:
