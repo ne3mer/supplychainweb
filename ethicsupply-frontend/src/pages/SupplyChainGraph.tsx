@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import {
   GlobeAltIcon,
   ArrowPathIcon,
@@ -11,9 +11,10 @@ import {
   GraphLink,
   GraphData,
 } from "../services/api";
+import ForceGraph2D from "react-force-graph-2d";
 
-// Simple custom graph implementation to avoid library compatibility issues
 const SupplyChainGraph = () => {
+  const graphRef = useRef(null);
   const [graphData, setGraphData] = useState<GraphData>({
     nodes: [],
     links: [],
@@ -25,6 +26,9 @@ const SupplyChainGraph = () => {
   const [showEthicalPathsOnly, setShowEthicalPathsOnly] =
     useState<boolean>(false);
   const [usingMockData, setUsingMockData] = useState<boolean>(false);
+  const [highlightNodes, setHighlightNodes] = useState(new Set());
+  const [highlightLinks, setHighlightLinks] = useState(new Set());
+  const [hoverNode, setHoverNode] = useState<GraphNode | null>(null);
 
   // Load data
   useEffect(() => {
@@ -32,8 +36,21 @@ const SupplyChainGraph = () => {
       try {
         setLoading(true);
         const data = await getSupplyChainGraphData();
-        setGraphData(data);
+        // Convert sources and targets to string IDs if they're objects
+        const processedLinks = data.links.map((link) => ({
+          ...link,
+          source:
+            typeof link.source === "object" ? link.source.id : link.source,
+          target:
+            typeof link.target === "object" ? link.target.id : link.target,
+        }));
+
+        setGraphData({
+          nodes: data.nodes,
+          links: processedLinks,
+        });
         setUsingMockData(!!data.isMockData);
+        setError(null);
       } catch (err) {
         console.error("Error fetching supply chain graph data:", err);
         setError("Failed to load supply chain data. Please try again later.");
@@ -72,7 +89,7 @@ const SupplyChainGraph = () => {
   };
 
   // Filter nodes based on ethical score
-  const getFilteredGraphData = () => {
+  const getFilteredGraphData = useCallback(() => {
     if (filterEthicalScore === 0 && !showEthicalPathsOnly) {
       return graphData;
     }
@@ -103,10 +120,10 @@ const SupplyChainGraph = () => {
       nodes: filteredNodes,
       links: filteredLinks,
     };
-  };
+  }, [graphData, filterEthicalScore, showEthicalPathsOnly]);
 
   // Node color based on type and ethical score
-  const getNodeColor = (node) => {
+  const getNodeColor = useCallback((node) => {
     // Base color on node type
     const baseColors = {
       rawMaterial: "#8B5CF6", // Purple
@@ -118,24 +135,193 @@ const SupplyChainGraph = () => {
     };
 
     // Adjust color based on ethical score
-    const score = node.ethical_score || 50;
-    const ethicalColor =
-      score >= 70
+    if (node.type === "supplier" || node.type === "manufacturer") {
+      const score = node.ethical_score || 50;
+      return score >= 70
         ? "#059669" // Green for high score
         : score >= 50
         ? "#D97706" // Amber for medium
         : "#DC2626"; // Red for low score
+    }
 
-    // Return base color for different node types, with ethical tint for suppliers and manufacturers
-    return node.type === "supplier" || node.type === "manufacturer"
-      ? ethicalColor
-      : baseColors[node.type] || "#9CA3AF";
-  };
+    // Return base color for different node types
+    return baseColors[node.type] || "#9CA3AF";
+  }, []);
 
   // Link color based on ethical status
-  const getLinkColor = (link) => {
+  const getLinkColor = useCallback((link) => {
     return link.ethical ? "#059669" : "#DC2626";
-  };
+  }, []);
+
+  // Handle node hover
+  const handleNodeHover = useCallback(
+    (node) => {
+      setHoverNode(node);
+
+      if (!node) {
+        setHighlightNodes(new Set());
+        setHighlightLinks(new Set());
+        return;
+      }
+
+      // Get connected nodes and links
+      const connectedNodes = new Set([node.id]);
+      const connectedLinks = new Set();
+
+      // Add connected nodes and links in both directions
+      graphData.links.forEach((link) => {
+        const sourceId =
+          typeof link.source === "object" ? link.source.id : link.source;
+        const targetId =
+          typeof link.target === "object" ? link.target.id : link.target;
+
+        if (sourceId === node.id) {
+          connectedNodes.add(targetId);
+          connectedLinks.add(link);
+        }
+        if (targetId === node.id) {
+          connectedNodes.add(sourceId);
+          connectedLinks.add(link);
+        }
+      });
+
+      setHighlightNodes(connectedNodes);
+      setHighlightLinks(connectedLinks);
+    },
+    [graphData]
+  );
+
+  // Handle node click
+  const handleNodeClick = useCallback((node) => {
+    setSelectedNode(node);
+
+    if (graphRef.current) {
+      // Zoom in on the selected node
+      graphRef.current.centerAt(node.x, node.y, 1000);
+      graphRef.current.zoom(2.5, 1000);
+    }
+  }, []);
+
+  // Handle background click to deselect node
+  const handleBackgroundClick = useCallback(() => {
+    setSelectedNode(null);
+
+    if (graphRef.current) {
+      // Reset zoom
+      graphRef.current.centerAt(0, 0, 1000);
+      graphRef.current.zoom(1, 1000);
+    }
+  }, []);
+
+  // Custom node canvasing
+  const paintNode = useCallback(
+    (node, ctx, globalScale) => {
+      const isHighlighted = highlightNodes.has(node.id);
+      const isSelected = selectedNode && selectedNode.id === node.id;
+
+      // Calculate node size based on type and if it's highlighted
+      let size =
+        node.type === "rawMaterial"
+          ? 6
+          : node.type === "supplier"
+          ? 8
+          : node.type === "manufacturer"
+          ? 8
+          : node.type === "wholesaler"
+          ? 7
+          : node.type === "retailer"
+          ? 9
+          : 6;
+
+      // Increase size if highlighted or selected
+      if (isHighlighted) size *= 1.2;
+      if (isSelected) size *= 1.4;
+
+      // Get node color
+      const color = getNodeColor(node);
+
+      // Draw node
+      ctx.beginPath();
+      ctx.arc(node.x, node.y, size, 0, 2 * Math.PI);
+      ctx.fillStyle = color;
+      ctx.fill();
+
+      // Draw border if highlighted or selected
+      if (isHighlighted || isSelected) {
+        ctx.strokeStyle = "#ffffff";
+        ctx.lineWidth = isSelected ? 2 : 1.5;
+        ctx.stroke();
+      }
+
+      // Add label for larger nodes or when selected/highlighted
+      if (size > 6 || isSelected || isHighlighted) {
+        ctx.font = `${Math.max(8, 12 / globalScale)}px Arial`;
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillStyle = "#ffffff";
+        ctx.fillText(node.name, node.x, node.y + size + 8 / globalScale);
+      }
+    },
+    [getNodeColor, highlightNodes, selectedNode]
+  );
+
+  // Custom link rendering
+  const paintLink = useCallback(
+    (link, ctx) => {
+      const isHighlighted = highlightLinks.has(link);
+      const color = getLinkColor(link);
+
+      // Draw link
+      ctx.beginPath();
+      ctx.moveTo(link.source.x, link.source.y);
+      ctx.lineTo(link.target.x, link.target.y);
+      ctx.strokeStyle = color;
+      ctx.lineWidth = isHighlighted ? 2.5 : 1.5;
+
+      // Add dashed effect for non-ethical links
+      if (!link.ethical) {
+        ctx.setLineDash([5, 3]);
+      } else {
+        ctx.setLineDash([]);
+      }
+
+      ctx.stroke();
+
+      // Reset line dash
+      ctx.setLineDash([]);
+
+      // Draw direction arrow if highlighted
+      if (isHighlighted) {
+        const deltaX = link.target.x - link.source.x;
+        const deltaY = link.target.y - link.source.y;
+        const angle = Math.atan2(deltaY, deltaX);
+
+        // Position the arrow near the target node
+        const arrowLength = 10;
+        const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+        const targetNodeSize = 8; // Approximate
+
+        // Calculate position to draw arrow (before the target node)
+        const posX = link.source.x + deltaX * (1 - targetNodeSize / distance);
+        const posY = link.source.y + deltaY * (1 - targetNodeSize / distance);
+
+        ctx.beginPath();
+        ctx.moveTo(posX, posY);
+        ctx.lineTo(
+          posX - arrowLength * Math.cos(angle - Math.PI / 6),
+          posY - arrowLength * Math.sin(angle - Math.PI / 6)
+        );
+        ctx.lineTo(
+          posX - arrowLength * Math.cos(angle + Math.PI / 6),
+          posY - arrowLength * Math.sin(angle + Math.PI / 6)
+        );
+        ctx.closePath();
+        ctx.fillStyle = color;
+        ctx.fill();
+      }
+    },
+    [getLinkColor, highlightLinks]
+  );
 
   return (
     <div className="container mx-auto py-6 px-4">
@@ -229,7 +415,7 @@ const SupplyChainGraph = () => {
             <span className="text-xs">Ethical Link</span>
           </div>
           <div className="flex items-center">
-            <span className="w-6 h-1 bg-red-600 mr-1"></span>
+            <span className="w-6 h-1 border-t-2 border-dashed border-red-600 mr-1"></span>
             <span className="text-xs">Non-ethical Link</span>
           </div>
         </div>
@@ -257,49 +443,49 @@ const SupplyChainGraph = () => {
         ) : (
           <div className="relative" style={{ height: "70vh" }}>
             {getFilteredGraphData().nodes.length > 0 ? (
-              <div className="p-12 text-center">
-                <p className="text-gray-600">
-                  Graph visualization is temporarily unavailable due to library
-                  compatibility issues.
-                </p>
-                <p className="text-gray-600 mt-2">
-                  The API is connected and has {graphData.nodes.length} nodes
-                  and {graphData.links.length} connections.
-                </p>
-                <div className="mt-6 p-4 bg-gray-50 rounded-lg">
-                  <h3 className="text-lg font-medium mb-3">
-                    Supply Chain Data:
-                  </h3>
-                  <div className="text-left overflow-y-auto max-h-96 p-4 bg-white rounded border">
-                    <h4 className="font-medium mb-2">Node Types:</h4>
-                    <ul className="list-disc pl-5 mb-4">
-                      {Array.from(
-                        new Set(graphData.nodes.map((node) => node.type))
-                      ).map((type) => (
-                        <li key={type}>
-                          {type}:{" "}
-                          {
-                            graphData.nodes.filter((node) => node.type === type)
-                              .length
-                          }{" "}
-                          nodes
-                        </li>
-                      ))}
-                    </ul>
-                    <h4 className="font-medium mb-2">Ethical Status:</h4>
-                    <ul className="list-disc pl-5">
-                      <li>
-                        Ethical links:{" "}
-                        {graphData.links.filter((link) => link.ethical).length}
-                      </li>
-                      <li>
-                        Non-ethical links:{" "}
-                        {graphData.links.filter((link) => !link.ethical).length}
-                      </li>
-                    </ul>
+              <>
+                <ForceGraph2D
+                  ref={graphRef}
+                  graphData={getFilteredGraphData()}
+                  nodeAutoColorBy="type"
+                  linkDirectionalArrowLength={0}
+                  linkDirectionalArrowRelPos={1}
+                  linkCurvature={0}
+                  nodeCanvasObject={paintNode}
+                  linkCanvasObject={paintLink}
+                  onNodeHover={handleNodeHover}
+                  onNodeClick={handleNodeClick}
+                  onBackgroundClick={handleBackgroundClick}
+                  cooldownTicks={100}
+                  d3AlphaDecay={0.02}
+                  d3VelocityDecay={0.2}
+                  d3Force={
+                    ("link",
+                    (link) => {
+                      // Adjust link strength based on type
+                      link.strength((l) => (l.ethical ? 0.7 : 0.3));
+                    })
+                  }
+                  nodeRelSize={6}
+                  width={800}
+                  height={600}
+                  backgroundColor="#ffffff"
+                />
+
+                {/* Hover tooltip */}
+                {hoverNode && (
+                  <div className="absolute top-2 left-2 bg-white p-2 rounded-md shadow-lg border border-gray-200 text-xs">
+                    <div className="font-bold">{hoverNode.name}</div>
+                    <div>
+                      Type: <span className="capitalize">{hoverNode.type}</span>
+                    </div>
+                    <div>Country: {hoverNode.country}</div>
+                    {hoverNode.ethical_score && (
+                      <div>Ethical Score: {hoverNode.ethical_score}</div>
+                    )}
                   </div>
-                </div>
-              </div>
+                )}
+              </>
             ) : (
               <div className="flex items-center justify-center h-full">
                 <p className="text-gray-500">
@@ -340,6 +526,86 @@ const SupplyChainGraph = () => {
                       {isFullChainEthical(selectedNode.id) ? "Yes" : "No"}
                     </p>
                   )}
+
+                  {/* Relationships section */}
+                  <div className="border-t border-gray-200 pt-2 mt-2">
+                    <h4 className="font-medium mb-1">Connections:</h4>
+                    <div className="max-h-40 overflow-y-auto">
+                      {/* List incoming connections */}
+                      {graphData.links
+                        .filter((link) => {
+                          const targetId =
+                            typeof link.target === "object"
+                              ? link.target.id
+                              : link.target;
+                          return targetId === selectedNode.id;
+                        })
+                        .map((link, idx) => {
+                          const sourceId =
+                            typeof link.source === "object"
+                              ? link.source.id
+                              : link.source;
+                          const sourceNode = graphData.nodes.find(
+                            (n) => n.id === sourceId
+                          );
+                          return (
+                            <div key={`in-${idx}`} className="text-xs mb-1">
+                              <span className="mr-1">←</span>
+                              <span
+                                className={
+                                  link.ethical
+                                    ? "text-green-600"
+                                    : "text-red-600"
+                                }
+                              >
+                                {sourceNode?.name || sourceId}
+                              </span>
+                              <span className="text-gray-500">
+                                {" "}
+                                ({sourceNode?.type})
+                              </span>
+                            </div>
+                          );
+                        })}
+
+                      {/* List outgoing connections */}
+                      {graphData.links
+                        .filter((link) => {
+                          const sourceId =
+                            typeof link.source === "object"
+                              ? link.source.id
+                              : link.source;
+                          return sourceId === selectedNode.id;
+                        })
+                        .map((link, idx) => {
+                          const targetId =
+                            typeof link.target === "object"
+                              ? link.target.id
+                              : link.target;
+                          const targetNode = graphData.nodes.find(
+                            (n) => n.id === targetId
+                          );
+                          return (
+                            <div key={`out-${idx}`} className="text-xs mb-1">
+                              <span className="mr-1">→</span>
+                              <span
+                                className={
+                                  link.ethical
+                                    ? "text-green-600"
+                                    : "text-red-600"
+                                }
+                              >
+                                {targetNode?.name || targetId}
+                              </span>
+                              <span className="text-gray-500">
+                                {" "}
+                                ({targetNode?.type})
+                              </span>
+                            </div>
+                          );
+                        })}
+                    </div>
+                  </div>
                 </div>
               </div>
             )}
