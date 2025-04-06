@@ -23,23 +23,22 @@ const SupplierDetails = () => {
       try {
         setLoading(true);
         const suppliers = await getSuppliers();
+        console.log("Suppliers data for details:", suppliers);
         const foundSupplier = suppliers.find((s) => s.id === parseInt(id, 10));
 
         if (foundSupplier) {
           setSupplier(foundSupplier);
+          console.log("Found supplier:", foundSupplier);
 
-          // Check if we're using mock data
-          if (
-            suppliers.length > 0 &&
-            suppliers[0].id === 1 &&
-            suppliers[1]?.id === 2
-          ) {
-            setUsingMockData(true);
-          }
+          // Check if using mock data based on flag
+          const isMock = foundSupplier.isMockData === true;
+          console.log("Using mock data for supplier details:", isMock);
+          setUsingMockData(isMock);
         } else {
           setError(`Supplier with ID ${id} not found`);
         }
       } catch (err) {
+        console.error("Error fetching supplier details:", err);
         setError("Failed to fetch supplier details");
         setUsingMockData(true);
       } finally {

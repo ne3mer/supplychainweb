@@ -39,11 +39,13 @@ const Dashboard = () => {
       try {
         setLoading(true);
         const dashboardData = await getDashboardData();
+        console.log("Dashboard data received:", dashboardData);
         setData(dashboardData);
 
         // Check if we're using mock data based on the API indicator
-        // The API or the service function may set this flag
-        setUsingMockData(dashboardData.isMockData === true);
+        const isMock = dashboardData.isMockData === true;
+        console.log("Using mock dashboard data:", isMock);
+        setUsingMockData(isMock);
       } catch (error) {
         console.error("Error fetching dashboard data:", error);
         setError("Failed to load dashboard data. Using sample data instead.");

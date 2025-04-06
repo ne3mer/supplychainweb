@@ -27,12 +27,22 @@ const SuppliersList = () => {
       try {
         setLoading(true);
         const data = await getSuppliers();
+        console.log("Suppliers data received:", data);
         setSuppliers(data);
         setError(null);
 
-        // Check if we're using mock data based on flag from API service
-        setUsingMockData(data.length > 0 && data[0].isMockData === true);
+        // Check explicitly if we're using mock data based on flag
+        // Set usingMockData to false by default - only true if explicitly flagged
+        if (data && Array.isArray(data) && data.length > 0) {
+          // Look for the isMockData flag on the first supplier
+          const isMock = data[0].isMockData === true;
+          console.log("Using mock data:", isMock);
+          setUsingMockData(isMock);
+        } else {
+          setUsingMockData(false);
+        }
       } catch (err) {
+        console.error("Error fetching suppliers:", err);
         setError("Failed to fetch suppliers. Please try again later.");
         setUsingMockData(true); // Likely using mock data if there's an error
       } finally {

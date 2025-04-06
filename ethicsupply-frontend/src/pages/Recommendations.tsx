@@ -17,13 +17,23 @@ const Recommendations = () => {
   useEffect(() => {
     const fetchRecommendations = async () => {
       try {
+        setLoading(true);
         const data = await getRecommendations();
+        console.log("Recommendations data received:", data);
         setRecommendations(data);
         setError(null);
 
-        // Check if we're using mock data based on flag from API service
-        setUsingMockData(data.length > 0 && data[0].isMockData === true);
+        // Check explicitly if we're using mock data based on flag
+        // Only set usingMockData to true if the data has the isMockData flag
+        if (data && Array.isArray(data) && data.length > 0) {
+          const isMock = data[0].isMockData === true;
+          console.log("Using mock recommendations data:", isMock);
+          setUsingMockData(isMock);
+        } else {
+          setUsingMockData(false);
+        }
       } catch (err) {
+        console.error("Error fetching recommendations:", err);
         setError("Failed to fetch recommendations. Please try again later.");
         setUsingMockData(true); // Likely using mock data if there's an error
       } finally {

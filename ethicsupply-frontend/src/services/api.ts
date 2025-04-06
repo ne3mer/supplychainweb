@@ -137,10 +137,13 @@ const mockSuppliers: Supplier[] = [
 
 export const getSuppliers = async (): Promise<Supplier[]> => {
   try {
+    console.log("Fetching suppliers from API...");
     const response = await fetch(`${API_BASE_URL}/suppliers/`);
 
     if (!response.ok) {
-      console.warn("Suppliers API endpoint not available. Using mock data.");
+      console.warn(
+        `Suppliers API returned status ${response.status}. Using mock data.`
+      );
       return mockSuppliers.map((supplier) => ({
         ...supplier,
         isMockData: true,
@@ -148,14 +151,38 @@ export const getSuppliers = async (): Promise<Supplier[]> => {
     }
 
     const data = await response.json();
-    return data;
+    console.log("API response data:", data);
+
+    // Handle paginated response (Django REST Framework format)
+    if (data && typeof data === "object") {
+      // Check if the response has a 'results' field (paginated response)
+      if (data.results && Array.isArray(data.results)) {
+        console.log("Using paginated API results:", data.results);
+        if (data.results.length > 0) {
+          return data.results;
+        }
+      }
+
+      // Handle non-paginated response
+      if (Array.isArray(data) && data.length > 0) {
+        console.log("Using non-paginated API results");
+        return data;
+      }
+    }
+
+    // Only if the API returns an empty array, use mock data
+    console.warn("API returned empty data. Using mock data.");
+    return mockSuppliers.map((supplier) => ({
+      ...supplier,
+      isMockData: true,
+    }));
   } catch (error) {
-    console.warn(
-      "Suppliers API endpoint not available. Using mock data.",
-      error
-    );
-    // Return mock data if the API endpoint is not available
-    return mockSuppliers.map((supplier) => ({ ...supplier, isMockData: true }));
+    console.error("Error fetching suppliers:", error);
+    // Return mock data if the API endpoint errors out
+    return mockSuppliers.map((supplier) => ({
+      ...supplier,
+      isMockData: true,
+    }));
   }
 };
 
@@ -163,7 +190,7 @@ export const evaluateSupplier = async (
   supplierData: SupplierEvaluation
 ): Promise<EvaluationResult> => {
   try {
-    console.log("Submitting supplier data:", supplierData);
+    console.log("Submitting supplier data to API:", supplierData);
     const response = await fetch(`${API_BASE_URL}/suppliers/evaluate/`, {
       method: "POST",
       headers: {
@@ -179,14 +206,7 @@ export const evaluateSupplier = async (
       // Return mock result if API is not available
       if (response.status === 404) {
         console.warn("Evaluation API endpoint not available. Using mock data.");
-        return {
-          id: Math.floor(Math.random() * 1000) + 100,
-          name: supplierData.name,
-          ethical_score: calculateMockScore(supplierData),
-          recommendation: generateMockRecommendation(supplierData),
-          suggestions: generateMockSuggestions(supplierData),
-          isMockData: true,
-        };
+        return createMockEvaluationResult(supplierData);
       }
 
       throw new Error(
@@ -194,7 +214,10 @@ export const evaluateSupplier = async (
       );
     }
 
-    return response.json();
+    // Process the real API response
+    const data = await response.json();
+    console.log("Evaluation API response:", data);
+    return data;
   } catch (error) {
     console.error("Error in evaluateSupplier:", error);
 
@@ -204,26 +227,35 @@ export const evaluateSupplier = async (
       error.message?.includes("NetworkError")
     ) {
       console.warn("Evaluation API endpoint not available. Using mock data.");
-      return {
-        id: Math.floor(Math.random() * 1000) + 100,
-        name: supplierData.name,
-        ethical_score: calculateMockScore(supplierData),
-        recommendation: generateMockRecommendation(supplierData),
-        suggestions: generateMockSuggestions(supplierData),
-        isMockData: true,
-      };
+      return createMockEvaluationResult(supplierData);
     }
 
     throw error;
   }
 };
 
+// Helper function to create mock evaluation result
+function createMockEvaluationResult(
+  supplierData: SupplierEvaluation
+): EvaluationResult {
+  return {
+    id: Math.floor(Math.random() * 1000) + 100,
+    name: supplierData.name,
+    ethical_score: calculateMockScore(supplierData),
+    recommendation: generateMockRecommendation(supplierData),
+    suggestions: generateMockSuggestions(supplierData),
+    isMockData: true,
+  };
+}
+
 export const getRecommendations = async () => {
   try {
+    console.log("Fetching recommendations from API...");
     const response = await fetch(`${API_BASE_URL}/suppliers/recommendations/`);
+
     if (!response.ok) {
       console.warn(
-        "Recommendations API endpoint not available. Using mock data."
+        `Recommendations API returned status ${response.status}. Using mock data.`
       );
       // Return sorted mock suppliers if the endpoint is not available
       return mockSuppliers
@@ -234,11 +266,41 @@ export const getRecommendations = async () => {
           isMockData: true,
         }));
     }
-    return response.json();
+
+    const data = await response.json();
+    console.log("Recommendations API response:", data);
+
+    // Handle paginated response (Django REST Framework format)
+    if (data && typeof data === "object") {
+      // Check if the response has a 'results' field (paginated response)
+      if (data.results && Array.isArray(data.results)) {
+        console.log(
+          "Using paginated API results for recommendations:",
+          data.results
+        );
+        if (data.results.length > 0) {
+          return data.results;
+        }
+      }
+
+      // Handle non-paginated response
+      if (Array.isArray(data) && data.length > 0) {
+        console.log("Using non-paginated API results for recommendations");
+        return data;
+      }
+    }
+
+    // Return mock data if we couldn't get valid data from the API
+    console.warn("API returned empty recommendations data. Using mock data.");
+    return mockSuppliers
+      .sort((a, b) => (b.ethical_score || 0) - (a.ethical_score || 0))
+      .map((supplier) => ({
+        ...supplier,
+        recommendation: generateMockRecommendation(supplier),
+        isMockData: true,
+      }));
   } catch (error) {
-    console.warn(
-      "Recommendations API endpoint not available. Using mock data."
-    );
+    console.error("Error fetching recommendations:", error);
     // Return sorted mock suppliers in case of error
     return mockSuppliers
       .sort((a, b) => (b.ethical_score || 0) - (a.ethical_score || 0))
@@ -252,79 +314,79 @@ export const getRecommendations = async () => {
 
 export const getDashboardData = async (): Promise<DashboardData> => {
   try {
-    console.log("Fetching dashboard data from:", `${API_BASE_URL}/dashboard/`);
+    console.log(
+      "Fetching dashboard data from API:",
+      `${API_BASE_URL}/dashboard/`
+    );
     const response = await fetch(`${API_BASE_URL}/dashboard/`);
 
     if (!response.ok) {
       console.warn(
-        `Dashboard API endpoint returned status ${response.status}. Using mock data.`
+        `Dashboard API returned status ${response.status}. Using mock data.`
       );
-      // Return mock data if the endpoint is not available
-      return {
-        total_suppliers: 42,
-        avg_ethical_score: 73.5,
-        avg_co2_emissions: 35.8,
-        suppliers_by_country: {
-          "United States": 12,
-          China: 8,
-          Germany: 6,
-          Japan: 5,
-          India: 4,
-          Brazil: 3,
-          Other: 4,
-        },
-        ethical_score_distribution: [
-          { range: "0-20", count: 2 },
-          { range: "21-40", count: 5 },
-          { range: "41-60", count: 8 },
-          { range: "61-80", count: 15 },
-          { range: "81-100", count: 12 },
-        ],
-        co2_emissions_by_industry: [
-          { name: "Manufacturing", value: 35 },
-          { name: "Technology", value: 20 },
-          { name: "Retail", value: 15 },
-          { name: "Agriculture", value: 30 },
-        ],
-        isMockData: true,
-      };
+      return getMockDashboardData();
     }
 
     const data = await response.json();
-    // API data is real, so no mock data flag
-    return data;
+    console.log("Dashboard API response:", data);
+
+    // Handle potential paginated response
+    if (data && typeof data === "object") {
+      // Check if it's a paginated response
+      if (data.results && typeof data.results === "object") {
+        console.log("Using paginated API results for dashboard");
+        return data.results;
+      }
+
+      // If it's a regular object (not paginated), just use it directly
+      if (!Array.isArray(data)) {
+        console.log("Using direct API results for dashboard");
+        return data;
+      }
+    }
+
+    // If we get here, the API didn't return usable data
+    console.warn(
+      "API returned unexpected dashboard data format. Using mock data."
+    );
+    return getMockDashboardData();
   } catch (error) {
     console.error("Error fetching dashboard data:", error);
     // Return mock data in case of error
-    return {
-      total_suppliers: 42,
-      avg_ethical_score: 73.5,
-      avg_co2_emissions: 35.8,
-      suppliers_by_country: {
-        "United States": 12,
-        China: 8,
-        Germany: 6,
-        Japan: 5,
-        India: 4,
-        Brazil: 3,
-        Other: 4,
-      },
-      ethical_score_distribution: [
-        { range: "0-20", count: 2 },
-        { range: "21-40", count: 5 },
-        { range: "41-60", count: 8 },
-        { range: "61-80", count: 15 },
-        { range: "81-100", count: 12 },
-      ],
-      co2_emissions_by_industry: [
-        { name: "Manufacturing", value: 35 },
-        { name: "Technology", value: 20 },
-        { name: "Retail", value: 15 },
-        { name: "Agriculture", value: 30 },
-      ],
-      isMockData: true,
-    };
+    return getMockDashboardData();
   }
+};
+
+// Extract mock dashboard data to a function for reuse
+const getMockDashboardData = (): DashboardData => {
+  return {
+    total_suppliers: 42,
+    avg_ethical_score: 73.5,
+    avg_co2_emissions: 35.8,
+    suppliers_by_country: {
+      "United States": 12,
+      China: 8,
+      Germany: 6,
+      Japan: 5,
+      India: 4,
+      Brazil: 3,
+      Other: 4,
+    },
+    ethical_score_distribution: [
+      { range: "0-20", count: 2 },
+      { range: "21-40", count: 5 },
+      { range: "41-60", count: 8 },
+      { range: "61-80", count: 15 },
+      { range: "81-100", count: 12 },
+    ],
+    co2_emissions_by_industry: [
+      { name: "Manufacturing", value: 35 },
+      { name: "Technology", value: 20 },
+      { name: "Retail", value: 15 },
+      { name: "Agriculture", value: 30 },
+    ],
+    isMockData: true,
+  };
 };
 
 // Helper functions for mock data generation
