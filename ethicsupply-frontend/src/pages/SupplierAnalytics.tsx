@@ -446,6 +446,23 @@ const SupplierAnalytics = () => {
                   Overall Score: {(supplier.overall_score * 100).toFixed(0)}%
                 </div>
               </div>
+
+              <div className="mt-4 flex items-center">
+                <div className="bg-white bg-opacity-20 rounded-lg px-3 py-2 flex items-center mr-4">
+                  <span className="text-white font-semibold">73.5%</span>
+                  <span className="text-xs text-blue-100 ml-2">
+                    Overall Sustainability Score
+                  </span>
+                </div>
+                <div className="text-sm text-blue-100">
+                  <span className="font-medium">
+                    EthicSupply Sustainability Report
+                  </span>
+                  <span className="block mt-1">
+                    Helping your supply chain reach carbon neutrality by 2030
+                  </span>
+                </div>
+              </div>
             </div>
           </div>
         </div>
