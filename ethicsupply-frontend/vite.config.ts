@@ -5,12 +5,6 @@ import react from "@vitejs/plugin-react";
 export default defineConfig({
   plugins: [react()],
   base: "./",
-  optimizeDeps: {
-    include: ["react-force-graph-2d"],
-  },
-  build: {
-    commonjsOptions: {
-      include: [/react-force-graph-2d/, /node_modules/],
-    },
-  },
+  // We've simplified the components that used external dependencies
+  // No need for special optimization rules anymore
 });
