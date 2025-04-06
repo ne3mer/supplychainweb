@@ -11,6 +11,10 @@ from .ml_model import EthicalScoringModel
 from rest_framework.views import APIView
 from datetime import datetime, timedelta
 import random
+import logging
+from django.shortcuts import get_object_or_404
+
+logger = logging.getLogger(__name__)
 
 class SupplierViewSet(viewsets.ModelViewSet):
     queryset = Supplier.objects.all()
@@ -822,8 +826,6 @@ def dashboard_view(request):
         
     except Exception as e:
         # Log the error and return a 500 response
-        import logging
-        logger = logging.getLogger(__name__)
         logger.error(f"Dashboard view error: {str(e)}")
         return Response({"error": "Failed to generate dashboard data"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
@@ -996,4 +998,168 @@ def supply_chain_graph_view(request):
         return Response(
             {"error": "Failed to generate supply chain graph data"},
             status=status.HTTP_500_INTERNAL_SERVER_ERROR
-        ) 
+        )
+
+# Fix for the supply chain graph view
+class SupplyChainGraphView(APIView):
+    def get(self, request):
+        try:
+            # Fetch all suppliers
+            suppliers = Supplier.objects.all()
+            
+            # Initialize nodes and links lists
+            nodes = []
+            links = []
+            
+            # Node types mapping
+            node_types = {
+                'Manufacturing': 'manufacturer',
+                'Raw Materials': 'rawMaterial',
+                'Distribution': 'distributor',
+                'Retail': 'retailer',
+                # Add more mappings as needed
+            }
+            
+            # Process suppliers to create nodes
+            for supplier in suppliers:
+                # Get node type, defaulting to 'supplier' if not found
+                node_type = node_types.get(supplier.industry, 'supplier')
+                
+                # Get ethical score with safe handling for None
+                ethical_score = supplier.ethical_score if supplier.ethical_score is not None else 50
+                
+                # Create node
+                node = {
+                    'id': f's{supplier.id}',
+                    'name': supplier.name,
+                    'type': node_type,
+                    'country': supplier.country,
+                    'ethical_score': ethical_score,
+                    'level': 2  # Default level
+                }
+                nodes.append(node)
+            
+            # Create some sample links between suppliers
+            for i in range(len(suppliers) - 1):
+                source_id = f's{suppliers[i].id}'
+                target_id = f's{suppliers[i+1].id}'
+                
+                # Get ethical scores with safe handling for None
+                source_score = suppliers[i].ethical_score if suppliers[i].ethical_score is not None else 50
+                target_score = suppliers[i+1].ethical_score if suppliers[i+1].ethical_score is not None else 50
+                
+                # A link is ethical if both suppliers have good scores
+                is_ethical = (source_score >= 60) and (target_score >= 60)
+                
+                link = {
+                    'source': source_id,
+                    'target': target_id,
+                    'ethical': is_ethical
+                }
+                links.append(link)
+            
+            return Response({
+                'nodes': nodes,
+                'links': links
+            })
+        except Exception as e:
+            logger.error(f"Error generating supply chain graph: {str(e)}")
+            return Response(
+                {'error': 'Failed to generate supply chain graph'}, 
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+class DashboardView(APIView):
+    def get(self, request):
+        try:
+            # Get all suppliers
+            suppliers = list(Supplier.objects.all())
+            
+            if len(suppliers) == 0:
+                # No suppliers in database, return mock data
+                return Response({
+                    "total_suppliers": 0,
+                    "avg_ethical_score": 0,
+                    "avg_co2_emissions": 0,
+                    "suppliers_by_country": {},
+                    "ethical_score_distribution": [
+                        {"range": "0-20", "count": 0},
+                        {"range": "21-40", "count": 0},
+                        {"range": "41-60", "count": 0},
+                        {"range": "61-80", "count": 0},
+                        {"range": "81-100", "count": 0}
+                    ],
+                    "co2_emissions_by_industry": []
+                })
+            
+            # Calculate metrics
+            total_suppliers = len(suppliers)
+            
+            # Handle None values for ethical_score and co2_emissions
+            ethical_scores = [s.ethical_score for s in suppliers if s.ethical_score is not None]
+            co2_emissions = [s.co2_emissions for s in suppliers if s.co2_emissions is not None]
+            
+            avg_ethical_score = sum(ethical_scores) / len(ethical_scores) if ethical_scores else 0
+            avg_co2_emissions = sum(co2_emissions) / len(co2_emissions) if co2_emissions else 0
+            
+            # Group suppliers by country
+            suppliers_by_country = {}
+            for supplier in suppliers:
+                country = supplier.country
+                if country in suppliers_by_country:
+                    suppliers_by_country[country] += 1
+                else:
+                    suppliers_by_country[country] = 1
+            
+            # Compute ethical score distribution
+            ethical_score_distribution = [
+                {"range": "0-20", "count": 0},
+                {"range": "21-40", "count": 0},
+                {"range": "41-60", "count": 0},
+                {"range": "61-80", "count": 0},
+                {"range": "81-100", "count": 0}
+            ]
+            
+            for score in ethical_scores:
+                if score <= 20:
+                    ethical_score_distribution[0]["count"] += 1
+                elif score <= 40:
+                    ethical_score_distribution[1]["count"] += 1
+                elif score <= 60:
+                    ethical_score_distribution[2]["count"] += 1
+                elif score <= 80:
+                    ethical_score_distribution[3]["count"] += 1
+                else:
+                    ethical_score_distribution[4]["count"] += 1
+            
+            # Compute CO2 emissions by industry
+            co2_by_industry = {}
+            for supplier in suppliers:
+                industry = supplier.industry or "Other"
+                co2 = supplier.co2_emissions or 0
+                
+                if industry in co2_by_industry:
+                    co2_by_industry[industry] += co2
+                else:
+                    co2_by_industry[industry] = co2
+            
+            co2_emissions_by_industry = [
+                {"name": industry, "value": value}
+                for industry, value in co2_by_industry.items()
+            ]
+            
+            return Response({
+                "total_suppliers": total_suppliers,
+                "avg_ethical_score": avg_ethical_score,
+                "avg_co2_emissions": avg_co2_emissions,
+                "suppliers_by_country": suppliers_by_country,
+                "ethical_score_distribution": ethical_score_distribution,
+                "co2_emissions_by_industry": co2_emissions_by_industry
+            })
+            
+        except Exception as e:
+            logger.error(f"Dashboard view error: {str(e)}")
+            return Response(
+                {"error": "Failed to generate dashboard data"}, 
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            ) 

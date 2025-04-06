@@ -1,6 +1,6 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
-from .views import SupplierViewSet, dashboard_view, supply_chain_graph_view
+from .views import SupplierViewSet, SupplyChainGraphView, DashboardView
 
 router = DefaultRouter()
 router.register(r'suppliers', SupplierViewSet)
@@ -21,6 +21,6 @@ router.register(r'suppliers', SupplierViewSet)
 
 urlpatterns = [
     path('', include(router.urls)),
-    path('dashboard/', dashboard_view, name='dashboard'),
-    path('supply-chain-graph/', supply_chain_graph_view, name='supply_chain_graph'),
+    path('dashboard/', DashboardView.as_view(), name='dashboard'),
+    path('supply-chain-graph/', SupplyChainGraphView.as_view(), name='supply-chain-graph'),
 ] 
