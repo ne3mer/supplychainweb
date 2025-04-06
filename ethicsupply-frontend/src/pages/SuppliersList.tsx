@@ -14,6 +14,8 @@ import {
   PlusCircleIcon,
   DocumentMagnifyingGlassIcon,
   ClipboardDocumentCheckIcon,
+  ChevronLeftIcon,
+  ChevronRightIcon,
 } from "@heroicons/react/24/outline";
 
 const SuppliersList = () => {
@@ -25,6 +27,8 @@ const SuppliersList = () => {
   const [sortDirection, setSortDirection] = useState("desc");
   const [selectedSupplier, setSelectedSupplier] = useState(null);
   const [usingMockData, setUsingMockData] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const suppliersPerPage = 8;
 
   useEffect(() => {
     const fetchSuppliers = async () => {
@@ -61,6 +65,11 @@ const SuppliersList = () => {
     fetchSuppliers();
   }, []);
 
+  useEffect(() => {
+    // Reset to first page when search term changes
+    setCurrentPage(1);
+  }, [searchTerm]);
+
   const handleSort = (field) => {
     if (field === sortField) {
       setSortDirection(sortDirection === "asc" ? "desc" : "asc");
@@ -89,6 +98,23 @@ const SuppliersList = () => {
         return valueA < valueB ? 1 : -1;
       }
     });
+
+  // Get current suppliers for pagination
+  const indexOfLastSupplier = currentPage * suppliersPerPage;
+  const indexOfFirstSupplier = indexOfLastSupplier - suppliersPerPage;
+  const currentSuppliers = filteredAndSortedSuppliers.slice(
+    indexOfFirstSupplier,
+    indexOfLastSupplier
+  );
+  const totalPages = Math.ceil(
+    filteredAndSortedSuppliers.length / suppliersPerPage
+  );
+
+  // Change page
+  const paginate = (pageNumber) => setCurrentPage(pageNumber);
+  const nextPage = () =>
+    setCurrentPage((prev) => Math.min(prev + 1, totalPages));
+  const prevPage = () => setCurrentPage((prev) => Math.max(prev - 1, 1));
 
   const getSortIcon = (field) => {
     if (sortField !== field) return null;
@@ -324,7 +350,7 @@ const SuppliersList = () => {
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
-                {filteredAndSortedSuppliers.map((supplier) => (
+                {currentSuppliers.map((supplier) => (
                   <tr
                     key={supplier.id}
                     onClick={() => setSelectedSupplier(supplier)}
@@ -409,7 +435,7 @@ const SuppliersList = () => {
                     </td>
                   </tr>
                 ))}
-                {filteredAndSortedSuppliers.length === 0 && (
+                {currentSuppliers.length === 0 && (
                   <tr>
                     <td
                       className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-center"
@@ -421,6 +447,127 @@ const SuppliersList = () => {
                 )}
               </tbody>
             </table>
+
+            {/* Pagination Controls */}
+            {filteredAndSortedSuppliers.length > suppliersPerPage && (
+              <div className="px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6">
+                <div className="flex-1 flex justify-between sm:hidden">
+                  <button
+                    onClick={prevPage}
+                    disabled={currentPage === 1}
+                    className={`relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 ${
+                      currentPage === 1
+                        ? "bg-gray-100 cursor-not-allowed"
+                        : "bg-white hover:bg-gray-50"
+                    }`}
+                  >
+                    Previous
+                  </button>
+                  <button
+                    onClick={nextPage}
+                    disabled={currentPage === totalPages}
+                    className={`relative ml-3 inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 ${
+                      currentPage === totalPages
+                        ? "bg-gray-100 cursor-not-allowed"
+                        : "bg-white hover:bg-gray-50"
+                    }`}
+                  >
+                    Next
+                  </button>
+                </div>
+                <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+                  <div>
+                    <p className="text-sm text-gray-700">
+                      Showing{" "}
+                      <span className="font-medium">
+                        {indexOfFirstSupplier + 1}
+                      </span>{" "}
+                      to{" "}
+                      <span className="font-medium">
+                        {Math.min(
+                          indexOfLastSupplier,
+                          filteredAndSortedSuppliers.length
+                        )}
+                      </span>{" "}
+                      of{" "}
+                      <span className="font-medium">
+                        {filteredAndSortedSuppliers.length}
+                      </span>{" "}
+                      suppliers
+                    </p>
+                  </div>
+                  <div>
+                    <nav
+                      className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px"
+                      aria-label="Pagination"
+                    >
+                      <button
+                        onClick={prevPage}
+                        disabled={currentPage === 1}
+                        className={`relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 ${
+                          currentPage === 1
+                            ? "cursor-not-allowed"
+                            : "hover:bg-gray-50"
+                        }`}
+                      >
+                        <span className="sr-only">Previous</span>
+                        <ChevronLeftIcon
+                          className="h-5 w-5"
+                          aria-hidden="true"
+                        />
+                      </button>
+
+                      {/* Page numbers */}
+                      {Array.from(
+                        { length: Math.min(5, totalPages) },
+                        (_, i) => {
+                          let pageNum;
+                          if (totalPages <= 5) {
+                            pageNum = i + 1;
+                          } else if (currentPage <= 3) {
+                            pageNum = i + 1;
+                          } else if (currentPage >= totalPages - 2) {
+                            pageNum = totalPages - 4 + i;
+                          } else {
+                            pageNum = currentPage - 2 + i;
+                          }
+
+                          return (
+                            <button
+                              key={pageNum}
+                              onClick={() => paginate(pageNum)}
+                              className={`relative inline-flex items-center px-4 py-2 border text-sm font-medium ${
+                                currentPage === pageNum
+                                  ? "z-10 bg-emerald-50 border-emerald-500 text-emerald-600"
+                                  : "bg-white border-gray-300 text-gray-500 hover:bg-gray-50"
+                              }`}
+                            >
+                              {pageNum}
+                            </button>
+                          );
+                        }
+                      )}
+
+                      <button
+                        onClick={nextPage}
+                        disabled={currentPage === totalPages}
+                        className={`relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 ${
+                          currentPage === totalPages
+                            ? "cursor-not-allowed"
+                            : "hover:bg-gray-50"
+                        }`}
+                      >
+                        <span className="sr-only">Next</span>
+                        <ChevronRightIcon
+                          className="h-5 w-5"
+                          aria-hidden="true"
+                        />
+                      </button>
+                    </nav>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
 
           <div className="border-t md:border-t-0 md:border-l border-gray-200">
