@@ -23,15 +23,21 @@ function App() {
   useEffect(() => {
     const testBackendConnection = async () => {
       try {
+        // Normalize API URL to prevent double slashes
+        const apiBaseUrl = import.meta.env.VITE_API_URL || "";
+        const apiUrl = apiBaseUrl.endsWith("/")
+          ? apiBaseUrl.slice(0, -1)
+          : apiBaseUrl;
+        const baseUrl = apiUrl.replace(/\/api$/, "");
+
+        console.log("Testing connection to:", { apiUrl, baseUrl });
+
         // Try the health endpoint first
-        const healthResponse = await fetch(
-          `${import.meta.env.VITE_API_URL.replace(/\/api\/?$/, "")}/health/`,
-          {
-            method: "GET",
-            headers: { Accept: "application/json" },
-            cache: "no-cache",
-          }
-        );
+        const healthResponse = await fetch(`${baseUrl}/health/`, {
+          method: "GET",
+          headers: { Accept: "application/json" },
+          cache: "no-cache",
+        });
 
         if (healthResponse.ok) {
           const data = await healthResponse.json();
@@ -44,14 +50,11 @@ function App() {
         }
 
         // Try the simple test endpoint next
-        const simpleResponse = await fetch(
-          `${import.meta.env.VITE_API_URL}/simple-test/`,
-          {
-            method: "GET",
-            headers: { Accept: "application/json" },
-            cache: "no-cache",
-          }
-        );
+        const simpleResponse = await fetch(`${apiUrl}/simple-test/`, {
+          method: "GET",
+          headers: { Accept: "application/json" },
+          cache: "no-cache",
+        });
 
         if (simpleResponse.ok) {
           const data = await simpleResponse.json();
@@ -62,14 +65,11 @@ function App() {
         }
 
         // Finally try the regular test endpoint
-        const testResponse = await fetch(
-          `${import.meta.env.VITE_API_URL}/test/`,
-          {
-            method: "GET",
-            headers: { Accept: "application/json" },
-            cache: "no-cache",
-          }
-        );
+        const testResponse = await fetch(`${apiUrl}/test/`, {
+          method: "GET",
+          headers: { Accept: "application/json" },
+          cache: "no-cache",
+        });
 
         if (testResponse.ok) {
           const data = await testResponse.json();

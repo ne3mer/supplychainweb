@@ -142,8 +142,31 @@ REST_FRAMEWORK = {
 }
 
 # CORS settings
-CORS_ALLOW_ALL_ORIGINS = True  # Allow all origins for testing
+CORS_ALLOW_ALL_ORIGINS = True
 CORS_ALLOW_CREDENTIALS = True
+CORS_EXPOSE_HEADERS = ['Content-Type', 'X-CSRFToken', 'Authorization']
+
+# Add these to ensure CORS headers are properly included
+CORS_ALLOW_METHODS = [
+    'DELETE',
+    'GET',
+    'OPTIONS',
+    'PATCH',
+    'POST',
+    'PUT',
+]
+
+CORS_ALLOW_HEADERS = [
+    'accept',
+    'accept-encoding',
+    'authorization',
+    'content-type',
+    'dnt',
+    'origin',
+    'user-agent',
+    'x-csrftoken',
+    'x-requested-with',
+]
 
 # Add Render.com and Vercel to allowed hosts
 ALLOWED_HOSTS = ['*']  # Allow all hosts for testing
@@ -153,29 +176,6 @@ if not DEBUG:
     SECURE_SSL_REDIRECT = False
     SESSION_COOKIE_SECURE = False
     CSRF_COOKIE_SECURE = False
-
-# Add CORS configuration for production
-if not DEBUG:
-    CORS_ALLOW_METHODS = [
-        "DELETE",
-        "GET",
-        "OPTIONS",
-        "PATCH",
-        "POST",
-        "PUT",
-    ]
-    
-    CORS_ALLOW_HEADERS = [
-        "accept",
-        "accept-encoding",
-        "authorization",
-        "content-type",
-        "dnt",
-        "origin",
-        "user-agent",
-        "x-csrftoken",
-        "x-requested-with",
-    ]
 
 # XSS protection settings
 SECURE_BROWSER_XSS_FILTER = True

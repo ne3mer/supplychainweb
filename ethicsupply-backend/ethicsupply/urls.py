@@ -5,15 +5,20 @@ from django.http import JsonResponse, HttpResponse
 
 # Simple health check endpoint
 def health_check(request):
-    return JsonResponse({
+    response = JsonResponse({
         "status": "ok",
         "message": "Backend service is running",
         "version": "1.0.0"
     })
+    # Manually add CORS headers for maximum compatibility
+    response["Access-Control-Allow-Origin"] = "*"
+    response["Access-Control-Allow-Methods"] = "GET, OPTIONS"
+    response["Access-Control-Allow-Headers"] = "Content-Type, Authorization"
+    return response
 
 # Root URL handler
 def root_view(request):
-    return HttpResponse("""
+    response = HttpResponse("""
     <html>
         <head>
             <title>EthicSupply Backend API</title>
@@ -35,6 +40,9 @@ def root_view(request):
         </body>
     </html>
     """, content_type="text/html")
+    # Manually add CORS headers
+    response["Access-Control-Allow-Origin"] = "*"
+    return response
 
 urlpatterns = [
     path('', root_view, name='root'),
