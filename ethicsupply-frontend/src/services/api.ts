@@ -1811,7 +1811,22 @@ function getMockMLStatus(): MLStatus {
 // Export a function to check if the API is available
 export const checkApiConnection = async (): Promise<boolean> => {
   try {
-    // Use the test endpoint we created for CORS debugging
+    // Try the simple test endpoint with manual CORS headers first
+    const simpleResponse = await fetch(`${API_BASE_URL}/simple-test/`, {
+      method: "GET",
+      headers: {
+        Accept: "application/json",
+      },
+      cache: "no-cache",
+    });
+
+    if (simpleResponse.ok) {
+      const data = await simpleResponse.json();
+      console.log("API connection successful (simple):", data);
+      return true;
+    }
+
+    // Fall back to regular test endpoint if simple one fails
     const response = await fetch(`${API_BASE_URL}/test/`, {
       method: "GET",
       headers: {
