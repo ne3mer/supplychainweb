@@ -31,10 +31,18 @@ function App() {
           ? apiBaseUrl.slice(0, -5) // Remove /api/
           : apiBaseUrl;
 
-        console.log("Testing connection to:", { apiUrl: apiBaseUrl, baseUrl });
+        // Remove trailing slash if present
+        const normalizedBaseUrl = baseUrl.endsWith("/")
+          ? baseUrl.slice(0, -1)
+          : baseUrl;
+
+        console.log("Testing connection to:", {
+          apiUrl: apiBaseUrl,
+          baseUrl: normalizedBaseUrl,
+        });
 
         // Try the health endpoint first
-        const healthResponse = await fetch(`${baseUrl}/health/`, {
+        const healthResponse = await fetch(`${normalizedBaseUrl}/health/`, {
           method: "GET",
           headers: { Accept: "application/json" },
           cache: "no-cache",
@@ -51,7 +59,7 @@ function App() {
         }
 
         // Ensure apiUrl has the correct format with /api/
-        const apiUrl = baseUrl + "/api";
+        const apiUrl = normalizedBaseUrl + "/api";
 
         // Try the simple test endpoint next
         const simpleResponse = await fetch(`${apiUrl}/simple-test/`, {

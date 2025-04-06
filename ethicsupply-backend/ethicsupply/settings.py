@@ -144,9 +144,12 @@ REST_FRAMEWORK = {
 # CORS settings
 CORS_ALLOW_ALL_ORIGINS = True
 CORS_ALLOW_CREDENTIALS = True
-CORS_EXPOSE_HEADERS = ['Content-Type', 'X-CSRFToken', 'Authorization']
+CORS_EXPOSE_HEADERS = [
+    'Content-Type',
+    'X-CSRFToken',
+    'Authorization',
+]
 
-# Add these to ensure CORS headers are properly included
 CORS_ALLOW_METHODS = [
     'DELETE',
     'GET',
@@ -168,8 +171,8 @@ CORS_ALLOW_HEADERS = [
     'x-requested-with',
 ]
 
-# Add Render.com and Vercel to allowed hosts
-ALLOWED_HOSTS = ['*']  # Allow all hosts for testing
+# Allow all hosts for now during testing
+ALLOWED_HOSTS = ['*']
 
 # Disable SSL redirect in production for Vercel
 if not DEBUG:
