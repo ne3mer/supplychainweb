@@ -1,6 +1,11 @@
 import { useState, useEffect } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
-import { getSuppliers } from "../../services/api";
+import {
+  getSuppliers,
+  evaluateSupplier,
+  SupplierEvaluation,
+  EvaluationResult,
+} from "../../services/api";
 import {
   BuildingOfficeIcon,
   GlobeAltIcon,
@@ -257,89 +262,63 @@ const SupplierAssessment = () => {
 
     try {
       console.log("Submitting assessment data:", formData);
-      // TODO: Implement the enhanced evaluation API call
-      // const evaluation = await evaluateSupplier(dataToSubmit);
 
-      // For now, use mock data
-      const mockEvaluation = {
-        id: Math.floor(Math.random() * 1000) + 100,
+      // Convert form data to proper SupplierEvaluation format
+      const evaluationData: SupplierEvaluation = {
+        // Basic Information
         name: formData.name,
-        ethical_score: 78.5,
-        environmental_score: 72.3,
-        social_score: 81.7,
-        governance_score: 76.2,
-        supply_chain_score: 83.9,
-        risk_score: 42.5,
-        assessment: {
-          strengths: [
-            "Strong commitment to renewable energy",
-            "Excellent worker safety record",
-            "Above-average supply chain transparency",
-          ],
-          weaknesses: [
-            "Water usage efficiency below industry standard",
-            "Limited community engagement initiatives",
-          ],
-          opportunities: [
-            "Implement water recycling systems",
-            "Expand supplier diversity program",
-          ],
-          threats: [
-            "Exposure to climate risk in key operating regions",
-            "Increasing regulatory pressure in Europe",
-          ],
-        },
-        recommendation:
-          "This supplier meets most ethical standards but has room for improvement in environmental practices.",
-        suggestions: [
-          "Implement water conservation program",
-          "Enhance community engagement initiatives",
-          "Improve board diversity",
-        ],
-        risk_factors: [
-          {
-            factor: "Climate Change Impact",
-            severity: "Medium",
-            probability: "High",
-            mitigation:
-              "Develop climate adaptation strategy for vulnerable sites",
-          },
-          {
-            factor: "Supply Chain Disruption",
-            severity: "High",
-            probability: "Medium",
-            mitigation:
-              "Diversify supplier base and increase inventory buffers",
-          },
-        ],
-        compliance: {
-          status: "Partially Compliant",
-          standards_met: [
-            "ISO 14001 Environmental Management",
-            "UN Global Compact Principles",
-          ],
-          certifications: ["ISO 9001 Quality Management"],
-          gaps: [
-            "Water conservation requirements not fulfilled",
-            "Insufficient disclosure of supply chain information",
-          ],
-        },
-        industry_comparison: {
-          percentile: 72,
-          average_score: 68.5,
-          top_performer_score: 94.2,
-        },
-        isMockData: true,
+        country: formData.country,
+        industry: formData.industry || "Manufacturing",
+
+        // Environmental Metrics
+        co2_emissions: formData.co2_emissions,
+        water_usage: formData.water_usage,
+        energy_efficiency: formData.energy_efficiency,
+        waste_management_score: formData.waste_management_score,
+        renewable_energy_percent: formData.renewable_energy_percent,
+        pollution_control: formData.pollution_control,
+
+        // Social Metrics
+        wage_fairness: formData.wage_fairness,
+        human_rights_index: formData.human_rights_index,
+        diversity_inclusion_score: formData.diversity_inclusion_score,
+        community_engagement: formData.community_engagement,
+        worker_safety: formData.worker_safety,
+
+        // Governance Metrics
+        transparency_score: formData.transparency_score,
+        corruption_risk: formData.corruption_risk,
+        board_diversity: formData.board_diversity,
+        ethics_program: formData.ethics_program,
+        compliance_systems: formData.compliance_systems,
+
+        // Supply Chain Metrics
+        delivery_efficiency: formData.delivery_efficiency,
+        quality_control_score: formData.quality_control_score,
+        supplier_diversity: formData.supplier_diversity,
+        traceability: formData.traceability,
+
+        // Risk Factors
+        geopolitical_risk: formData.geopolitical_risk,
+        climate_risk: formData.climate_risk,
+        labor_dispute_risk: formData.labor_dispute_risk,
       };
 
-      console.log("Assessment result:", mockEvaluation);
-      setResult(mockEvaluation);
+      // Call the API function to evaluate the supplier
+      const evaluation = await evaluateSupplier(evaluationData);
+
+      console.log("Assessment result:", evaluation);
+      setResult(evaluation);
       setError(null);
       setActiveTab("results");
-      setUsingMockData(true);
+      setUsingMockData(evaluation.isMockData === true);
     } catch (err) {
       console.error("Error during assessment:", err);
-      setError("Failed to assess supplier. Please try again.");
+      setError(
+        `Failed to assess supplier: ${
+          err.message || "Unknown error"
+        }. Please try again.`
+      );
       setResult(null);
     } finally {
       setIsSubmitting(false);

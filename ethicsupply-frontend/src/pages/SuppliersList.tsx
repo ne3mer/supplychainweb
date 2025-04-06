@@ -392,22 +392,16 @@ const SuppliersList = () => {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                       <Link
-                        to={`/evaluate-supplier?id=${supplier.id}`}
-                        className="text-primary-600 hover:text-primary-900 mr-4"
-                        onClick={(e) => e.stopPropagation()}
-                      >
-                        Evaluate
-                      </Link>
-                      <Link
                         to={`/supplier-assessment?id=${supplier.id}`}
-                        className="text-emerald-600 hover:text-emerald-900 mr-4"
+                        className="inline-flex items-center px-2 py-1 border border-transparent text-sm font-medium rounded text-white bg-emerald-600 hover:bg-emerald-700"
                         onClick={(e) => e.stopPropagation()}
                       >
+                        <ClipboardDocumentCheckIcon className="h-4 w-4 mr-1" />
                         Assess
                       </Link>
                       <Link
                         to={`/suppliers/${supplier.id}`}
-                        className="text-primary-600 hover:text-primary-900"
+                        className="text-primary-600 hover:text-primary-900 ml-4"
                         onClick={(e) => e.stopPropagation()}
                       >
                         Details
@@ -586,12 +580,6 @@ const SuppliersList = () => {
                 </div>
 
                 <div className="mt-6 flex flex-col space-y-2">
-                  <Link
-                    to={`/evaluate-supplier?id=${selectedSupplier.id}`}
-                    className="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
-                  >
-                    <CheckCircleIcon className="h-4 w-4 mr-1" /> Evaluate
-                  </Link>
                   <Link
                     to={`/supplier-assessment?id=${selectedSupplier.id}`}
                     className="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-emerald-600 hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500"

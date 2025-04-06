@@ -16,12 +16,7 @@ const NavigationBar = () => {
     { name: "Dashboard", href: "/dashboard", icon: ChartBarIcon },
     { name: "Suppliers", href: "/suppliers", icon: UserGroupIcon },
     {
-      name: "Evaluate",
-      href: "/evaluate-supplier",
-      icon: ClipboardDocumentCheckIcon,
-    },
-    {
-      name: "Assess",
+      name: "Assessment",
       href: "/supplier-assessment",
       icon: DocumentMagnifyingGlassIcon,
     },
