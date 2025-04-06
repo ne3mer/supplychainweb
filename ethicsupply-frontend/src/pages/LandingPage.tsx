@@ -9,6 +9,7 @@ import {
   UserGroupIcon,
   ShieldCheckIcon,
   BuildingOfficeIcon,
+  TruckIcon,
 } from "@heroicons/react/24/outline";
 
 const LandingPage = () => {
@@ -110,51 +111,88 @@ const LandingPage = () => {
 
   return (
     <div className="bg-neutral-50 min-h-screen">
-      {/* Hero Section */}
-      <div className="relative isolate px-4 sm:px-6 pt-14 lg:px-8">
-        <div
-          className="absolute inset-x-0 -top-40 -z-10 transform-gpu overflow-hidden blur-3xl sm:-top-80"
-          aria-hidden="true"
-        >
-          <div className="relative left-[calc(50%-11rem)] aspect-[1155/678] w-[36.125rem] -translate-x-1/2 rotate-[30deg] bg-gradient-to-tr from-emerald-200 to-teal-400 opacity-20 sm:left-[calc(50%-30rem)] sm:w-[72.1875rem] clip-path-hero"></div>
+      {/* Hero Section - Exact match to the image */}
+      <div className="relative min-h-screen flex flex-col">
+        {/* Top Brand Name */}
+        <div className="p-4 pt-8 sm:p-6 sm:pt-12 lg:p-8 lg:pt-16">
+          <h2 className="text-2xl sm:text-3xl font-bold text-gray-900">
+            EthicSupply
+          </h2>
         </div>
-        <div className="mx-auto max-w-7xl py-16 sm:py-24 lg:py-32">
-          <div className="text-center">
-            <h1 className="gradient-text text-4xl font-bold tracking-tight sm:text-6xl mb-6">
-              Ethical AI for Smarter Supply Chains
+
+        {/* Main Hero Content */}
+        <div className="flex-grow flex">
+          <div className="w-full lg:w-1/2 flex flex-col justify-center p-4 sm:p-6 lg:p-8">
+            <h1 className="text-5xl sm:text-6xl lg:text-7xl font-bold leading-tight tracking-tight text-gray-900 mb-8">
+              Ethical AI for <br />
+              Smarter Supply <br />
+              Chains
             </h1>
-            <p className="mt-6 text-lg leading-8 text-gray-600 max-w-3xl mx-auto">
-              Make sustainable decisions with AI-powered supplier evaluation and
-              recommendations. Transform your supply chain with data-driven
-              insights and ethical considerations.
+            <p className="text-xl leading-relaxed text-gray-600 max-w-xl mb-10">
+              Optimize supplier selection with AI that balances efficiency,
+              sustainability, and ethics.
             </p>
-            <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-x-6">
+            <div>
               <Link
                 to="/dashboard"
-                className="w-full sm:w-auto btn btn-primary btn-lg"
+                className="inline-flex items-center px-6 py-3 bg-emerald-700 hover:bg-emerald-800 transition-colors rounded-md text-white font-medium text-lg shadow-md"
               >
-                <ChartBarIcon className="h-5 w-5 mr-2" />
-                Get started
-              </Link>
-              <Link
-                to="/supplier-assessment"
-                className="w-full sm:w-auto btn btn-outline btn-lg"
-              >
-                <ClipboardDocumentCheckIcon className="h-5 w-5 mr-2" />
-                Evaluate a supplier
+                Get Started
               </Link>
             </div>
           </div>
-        </div>
-        <div
-          className="absolute inset-x-0 top-[calc(100%-13rem)] -z-10 transform-gpu overflow-hidden blur-3xl sm:top-[calc(100%-30rem)]"
-          aria-hidden="true"
-        >
-          <div className="relative left-[calc(50%+3rem)] aspect-[1155/678] w-[36.125rem] -translate-x-1/2 bg-gradient-to-tr from-emerald-300 to-teal-500 opacity-20 sm:left-[calc(50%+36rem)] sm:w-[72.1875rem] clip-path-hero"></div>
+
+          {/* Hero Image */}
+          <div className="hidden lg:flex w-1/2 items-center justify-center p-8">
+            <div className="relative">
+              <div className="w-[450px] h-[450px] rounded-full bg-emerald-100"></div>
+              <img
+                src="/supply-chain-illustration.svg"
+                alt="Supply Chain Illustration"
+                className="absolute top-0 left-0 w-full h-full object-contain"
+                onError={(e) => {
+                  e.currentTarget.style.display = "none";
+                  // Fallback illustration when image is not found
+                  document
+                    .getElementById("fallback-illustration")
+                    ?.classList.remove("hidden");
+                }}
+              />
+              <div
+                id="fallback-illustration"
+                className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 hidden"
+              >
+                <div className="relative">
+                  {/* Warehouse */}
+                  <div className="absolute top-[-120px] left-[-60px] w-[120px] h-[100px] bg-gray-300 rounded-sm">
+                    <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-[40px] h-[40px] bg-gray-500"></div>
+                    <div className="absolute top-0 w-full h-[20px] bg-gray-400"></div>
+                  </div>
+
+                  {/* Ground with tree */}
+                  <div className="absolute top-0 left-0 w-[300px] h-[150px] bg-emerald-200 rounded-full">
+                    <div className="absolute top-[-90px] left-[210px]">
+                      <div className="w-[20px] h-[60px] bg-emerald-800 rounded-full"></div>
+                      <div className="absolute top-[-60px] left-[-30px] w-[80px] h-[80px] bg-emerald-500 rounded-full"></div>
+                    </div>
+
+                    {/* Delivery truck */}
+                    <div className="absolute top-[40px] left-[50px]">
+                      <div className="w-[100px] h-[40px] bg-white rounded-sm">
+                        <div className="absolute top-[10px] left-[-20px] w-[40px] h-[20px] bg-blue-400 rounded-l-md"></div>
+                      </div>
+                      <div className="absolute bottom-[-10px] left-[10px] w-[15px] h-[15px] rounded-full bg-gray-700"></div>
+                      <div className="absolute bottom-[-10px] left-[75px] w-[15px] h-[15px] rounded-full bg-gray-700"></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
-      {/* Tree of Life 3D Animation */}
+      {/* Updated Tree of Life Animation - Modern Design */}
       <div
         ref={treeContainerRef}
         className="py-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-b from-neutral-50 to-emerald-50 overflow-hidden relative"
@@ -170,173 +208,96 @@ const LandingPage = () => {
           </p>
         </div>
 
-        {/* Tree Container */}
+        {/* Tree Container - Modern Style */}
         <div className="h-[600px] w-full relative mx-auto max-w-7xl">
-          {/* Roots */}
+          {/* Ground */}
           <div
-            className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-full max-w-md transition-all duration-1000"
+            className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-[400px] h-[120px] bg-emerald-100 rounded-[50%] transition-opacity duration-1000"
             style={{
               opacity: treeGrowth > 0 ? 1 : 0,
-              transform: `translate(-50%, ${treeGrowth > 0 ? "0" : "50px"})`,
             }}
-          >
-            <svg viewBox="0 0 500 200" className="w-full">
-              <path
-                d="M250,0 C250,0 220,50 180,80 C140,110 100,120 80,150 C60,180 60,200 60,200"
-                fill="none"
-                stroke="#5f4e37"
-                strokeWidth="8"
-                strokeLinecap="round"
-                style={{
-                  strokeDasharray: 1000,
-                  strokeDashoffset: 1000 - 1000 * Math.min(0.5, treeGrowth) * 2,
-                }}
-              />
-              <path
-                d="M250,0 C250,0 280,50 320,80 C360,110 400,120 420,150 C440,180 440,200 440,200"
-                fill="none"
-                stroke="#5f4e37"
-                strokeWidth="8"
-                strokeLinecap="round"
-                style={{
-                  strokeDasharray: 1000,
-                  strokeDashoffset: 1000 - 1000 * Math.min(0.5, treeGrowth) * 2,
-                }}
-              />
-              <path
-                d="M250,0 C250,0 250,60 250,100 C250,140 250,180 250,200"
-                fill="none"
-                stroke="#5f4e37"
-                strokeWidth="12"
-                strokeLinecap="round"
-                style={{
-                  strokeDasharray: 1000,
-                  strokeDashoffset: 1000 - 1000 * Math.min(0.5, treeGrowth) * 2,
-                }}
-              />
-            </svg>
-          </div>
+          ></div>
 
-          {/* Trunk */}
+          {/* Tree Trunk */}
           <div
-            className="absolute bottom-[200px] left-1/2 transform -translate-x-1/2 transition-all duration-1000"
+            className="absolute bottom-[60px] left-1/2 transform -translate-x-1/2 transition-all duration-1000"
             style={{
-              height: `${treeGrowth * 300}px`,
-              width: "30px",
-              backgroundColor: "#5f4e37",
-              borderRadius: "15px",
-              opacity: treeGrowth > 0.3 ? 1 : 0,
+              height: `${treeGrowth * 240}px`,
+              width: "20px",
+              backgroundColor: "#10b981",
+              borderRadius: "10px",
+              opacity: treeGrowth > 0.2 ? 1 : 0,
               transformOrigin: "bottom",
             }}
           ></div>
 
-          {/* Branches */}
+          {/* Tree Leaves - Modern Style */}
           <div
-            className="absolute bottom-[350px] left-1/2 transform -translate-x-1/2 w-full max-w-md transition-all duration-1000"
+            className="absolute bottom-[250px] left-1/2 transform -translate-x-1/2 transition-all duration-1000"
             style={{
-              opacity: treeGrowth > 0.5 ? 1 : 0,
-              transform: `translate(-50%, ${treeGrowth > 0.5 ? "0" : "50px"})`,
-            }}
-          >
-            <svg viewBox="0 0 500 200" className="w-full">
-              <path
-                d="M250,200 C250,200 220,150 180,120 C140,90 100,80 80,50 C60,20 60,0 60,0"
-                fill="none"
-                stroke="#5f4e37"
-                strokeWidth="6"
-                strokeLinecap="round"
-                style={{
-                  strokeDasharray: 1000,
-                  strokeDashoffset:
-                    1000 - 1000 * Math.min(1, (treeGrowth - 0.5) * 2),
-                }}
-              />
-              <path
-                d="M250,200 C250,200 280,150 320,120 C360,90 400,80 420,50 C440,20 440,0 440,0"
-                fill="none"
-                stroke="#5f4e37"
-                strokeWidth="6"
-                strokeLinecap="round"
-                style={{
-                  strokeDasharray: 1000,
-                  strokeDashoffset:
-                    1000 - 1000 * Math.min(1, (treeGrowth - 0.5) * 2),
-                }}
-              />
-            </svg>
-          </div>
-
-          {/* Leaves */}
-          <div
-            className="absolute bottom-[400px] left-1/2 transform -translate-x-1/2 transition-all duration-1000"
-            style={{
-              opacity: treeGrowth > 0.75 ? 1 : 0,
+              opacity: treeGrowth > 0.6 ? 1 : 0,
               transform: `translate(-50%, ${
-                treeGrowth > 0.75 ? "0" : "30px"
-              }) scale(${Math.max(0, (treeGrowth - 0.75) * 4)})`,
-              width: "500px",
-              height: "300px",
-              filter: `blur(${Math.max(0, 1 - treeGrowth) * 10}px)`,
+                treeGrowth > 0.6 ? "0" : "30px"
+              }) scale(${Math.max(0, (treeGrowth - 0.6) * 2.5)})`,
             }}
           >
-            <div className="absolute w-48 h-48 bg-emerald-500 rounded-full opacity-70 top-20 left-10 transform -rotate-12"></div>
-            <div className="absolute w-56 h-56 bg-emerald-600 rounded-full opacity-70 top-0 left-1/2 transform -translate-x-1/2"></div>
-            <div className="absolute w-48 h-48 bg-emerald-500 rounded-full opacity-70 top-20 right-10 transform rotate-12"></div>
-            <div className="absolute w-40 h-40 bg-emerald-700 rounded-full opacity-70 top-40 left-20 transform -rotate-6"></div>
-            <div className="absolute w-40 h-40 bg-emerald-700 rounded-full opacity-70 top-40 right-20 transform rotate-6"></div>
+            {/* A more modern, clean tree design */}
+            <div className="relative">
+              <div className="absolute w-40 h-40 bg-emerald-400 rounded-full opacity-90 top-[-60px] left-[-80px]"></div>
+              <div className="absolute w-48 h-48 bg-emerald-500 rounded-full opacity-90 top-[-100px] left-[-40px]"></div>
+              <div className="absolute w-40 h-40 bg-emerald-600 rounded-full opacity-90 top-[-60px] left-[40px]"></div>
+              <div className="absolute w-32 h-32 bg-emerald-500 rounded-full opacity-90 top-[-140px] left-[-20px]"></div>
+              <div className="absolute w-36 h-36 bg-emerald-400 rounded-full opacity-90 top-[-20px] left-[0px]"></div>
+            </div>
           </div>
 
-          {/* Floating Elements */}
+          {/* Floating Elements - More subtle and modern */}
           {treeGrowth > 0.8 && (
             <>
-              <div className="absolute animate-float-slow w-8 h-8 bg-emerald-200 rounded-full opacity-70 top-1/4 left-1/4"></div>
-              <div className="absolute animate-float-medium w-6 h-6 bg-emerald-300 rounded-full opacity-70 top-1/3 right-1/3"></div>
-              <div className="absolute animate-float-fast w-5 h-5 bg-emerald-400 rounded-full opacity-70 top-1/2 left-1/3"></div>
-              <div className="absolute animate-float-medium w-7 h-7 bg-emerald-300 rounded-full opacity-70 top-1/3 left-2/3"></div>
-              <div className="absolute animate-float-slow w-4 h-4 bg-emerald-200 rounded-full opacity-70 top-1/4 right-1/4"></div>
+              <div className="absolute animate-float-slow w-6 h-6 bg-white/30 rounded-full top-1/3 left-1/3"></div>
+              <div className="absolute animate-float-medium w-4 h-4 bg-white/30 rounded-full top-1/4 right-1/3"></div>
+              <div className="absolute animate-float-fast w-3 h-3 bg-white/30 rounded-full top-2/5 left-2/5"></div>
             </>
           )}
 
-          {/* Values Text */}
+          {/* Value Cards - More modern styling */}
           <div
-            className="absolute top-20 left-1/4 transform -translate-x-1/2 transition-all duration-1000"
+            className="absolute top-[100px] left-1/4 transform -translate-x-1/2 transition-all duration-1000"
             style={{
               opacity: treeGrowth > 0.85 ? 1 : 0,
               transform: `translate(-50%, ${treeGrowth > 0.85 ? "0" : "20px"})`,
             }}
           >
-            <div className="bg-white/80 backdrop-blur-sm p-3 rounded-xl shadow-lg">
-              <span className="font-semibold text-emerald-700">
+            <div className="bg-white shadow-lg p-4 rounded-lg">
+              <span className="font-medium text-emerald-700">
                 Sustainability
               </span>
             </div>
           </div>
 
           <div
-            className="absolute top-40 right-1/4 transform translate-x-1/2 transition-all duration-1000"
+            className="absolute top-[150px] right-1/4 transform translate-x-1/2 transition-all duration-1000"
             style={{
               opacity: treeGrowth > 0.9 ? 1 : 0,
               transform: `translate(50%, ${treeGrowth > 0.9 ? "0" : "20px"})`,
             }}
           >
-            <div className="bg-white/80 backdrop-blur-sm p-3 rounded-xl shadow-lg">
-              <span className="font-semibold text-emerald-700">
+            <div className="bg-white shadow-lg p-4 rounded-lg">
+              <span className="font-medium text-emerald-700">
                 Ethical Business
               </span>
             </div>
           </div>
 
           <div
-            className="absolute top-60 left-1/3 transform -translate-x-1/2 transition-all duration-1000"
+            className="absolute top-[200px] left-1/3 transform -translate-x-1/2 transition-all duration-1000"
             style={{
               opacity: treeGrowth > 0.95 ? 1 : 0,
               transform: `translate(-50%, ${treeGrowth > 0.95 ? "0" : "20px"})`,
             }}
           >
-            <div className="bg-white/80 backdrop-blur-sm p-3 rounded-xl shadow-lg">
-              <span className="font-semibold text-emerald-700">
-                Transparency
-              </span>
+            <div className="bg-white shadow-lg p-4 rounded-lg">
+              <span className="font-medium text-emerald-700">Transparency</span>
             </div>
           </div>
         </div>
