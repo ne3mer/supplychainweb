@@ -5,6 +5,7 @@ import {
   ClipboardDocumentCheckIcon,
   LightBulbIcon,
   UserGroupIcon,
+  DocumentMagnifyingGlassIcon,
 } from "@heroicons/react/24/outline";
 
 const NavigationBar = () => {
@@ -14,7 +15,16 @@ const NavigationBar = () => {
     { name: "Home", href: "/", icon: HomeIcon },
     { name: "Dashboard", href: "/dashboard", icon: ChartBarIcon },
     { name: "Suppliers", href: "/suppliers", icon: UserGroupIcon },
-    { name: "Evaluate", href: "/evaluate", icon: ClipboardDocumentCheckIcon },
+    {
+      name: "Evaluate",
+      href: "/evaluate-supplier",
+      icon: ClipboardDocumentCheckIcon,
+    },
+    {
+      name: "Assess",
+      href: "/supplier-assessment",
+      icon: DocumentMagnifyingGlassIcon,
+    },
     { name: "Recommendations", href: "/recommendations", icon: LightBulbIcon },
   ];
 

@@ -13,6 +13,7 @@ import {
   ChartBarIcon,
   PlusCircleIcon,
   DocumentMagnifyingGlassIcon,
+  ClipboardDocumentCheckIcon,
 } from "@heroicons/react/24/outline";
 
 const SuppliersList = () => {
@@ -391,11 +392,18 @@ const SuppliersList = () => {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                       <Link
-                        to={`/evaluate?id=${supplier.id}`}
+                        to={`/evaluate-supplier?id=${supplier.id}`}
                         className="text-primary-600 hover:text-primary-900 mr-4"
                         onClick={(e) => e.stopPropagation()}
                       >
                         Evaluate
+                      </Link>
+                      <Link
+                        to={`/supplier-assessment?id=${supplier.id}`}
+                        className="text-emerald-600 hover:text-emerald-900 mr-4"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        Assess
                       </Link>
                       <Link
                         to={`/suppliers/${supplier.id}`}
@@ -579,10 +587,17 @@ const SuppliersList = () => {
 
                 <div className="mt-6 flex flex-col space-y-2">
                   <Link
-                    to={`/evaluate?id=${selectedSupplier.id}`}
+                    to={`/evaluate-supplier?id=${selectedSupplier.id}`}
                     className="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
                   >
                     <CheckCircleIcon className="h-4 w-4 mr-1" /> Evaluate
+                  </Link>
+                  <Link
+                    to={`/supplier-assessment?id=${selectedSupplier.id}`}
+                    className="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-emerald-600 hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500"
+                  >
+                    <ClipboardDocumentCheckIcon className="h-4 w-4 mr-1" />{" "}
+                    Comprehensive Assessment
                   </Link>
                   <Link
                     to={`/supplier-analytics/${selectedSupplier.id}`}

@@ -9,6 +9,7 @@ import SupplierDetails from "./pages/SupplierDetails";
 import SupplierScorecard from "./pages/SupplierScorecard";
 import AddSupplier from "./pages/AddSupplier";
 import SupplierAnalytics from "./pages/SupplierAnalytics";
+import SupplierAssessment from "./pages/enhanced/SupplierAssessment";
 
 function App() {
   return (
@@ -19,18 +20,22 @@ function App() {
           <Routes>
             <Route path="/" element={<LandingPage />} />
             <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/evaluate" element={<EvaluateSupplier />} />
-            <Route path="/recommendations" element={<Recommendations />} />
             <Route path="/suppliers" element={<SuppliersList />} />
-            <Route path="/suppliers/:id" element={<SupplierDetails />} />
+            <Route path="/supplier-details/:id" element={<SupplierDetails />} />
+            <Route path="/evaluate-supplier" element={<EvaluateSupplier />} />
+            <Route path="/recommendations" element={<Recommendations />} />
             <Route
-              path="/suppliers/:id/scorecard"
+              path="/supplier-scorecard/:id?"
               element={<SupplierScorecard />}
             />
-            <Route path="/add-supplier" element={<AddSupplier />} />
             <Route
               path="/supplier-analytics/:id?"
               element={<SupplierAnalytics />}
+            />
+            <Route path="/add-supplier" element={<AddSupplier />} />
+            <Route
+              path="/supplier-assessment"
+              element={<SupplierAssessment />}
             />
           </Routes>
         </main>
