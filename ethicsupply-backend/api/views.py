@@ -877,4 +877,123 @@ class MLStatusView(APIView):
             }
         }
         
-        return Response(ml_status) 
+        return Response(ml_status)
+
+@api_view(['GET'])
+def supply_chain_graph_view(request):
+    """Generate a supply chain relationship graph showing connections between suppliers and other entities."""
+    try:
+        # Get all suppliers from the database
+        suppliers = list(Supplier.objects.all().values())
+        
+        # Initialize the graph data
+        nodes = []
+        links = []
+        
+        # Create nodes for each supplier
+        for supplier in suppliers:
+            nodes.append({
+                'id': f's{supplier["id"]}',
+                'name': supplier['name'],
+                'type': 'supplier',
+                'country': supplier['country'],
+                'ethical_score': supplier.get('ethical_score', 50),
+                'level': 2  # Suppliers are at level 2
+            })
+        
+        # Create sample raw materials (in a real implementation, these would come from a database)
+        raw_materials = [
+            {'id': 'rm1', 'name': 'Cotton', 'type': 'rawMaterial', 'level': 1, 'ethical_score': 85, 'country': 'India'},
+            {'id': 'rm2', 'name': 'Aluminum', 'type': 'rawMaterial', 'level': 1, 'ethical_score': 60, 'country': 'Australia'},
+            {'id': 'rm3', 'name': 'Timber', 'type': 'rawMaterial', 'level': 1, 'ethical_score': 75, 'country': 'Brazil'},
+            {'id': 'rm4', 'name': 'Rare Earth Minerals', 'type': 'rawMaterial', 'level': 1, 'ethical_score': 30, 'country': 'China'},
+            {'id': 'rm5', 'name': 'Crude Oil', 'type': 'rawMaterial', 'level': 1, 'ethical_score': 40, 'country': 'Saudi Arabia'},
+        ]
+        nodes.extend(raw_materials)
+        
+        # Create sample manufacturers, wholesalers, and retailers
+        # In a real implementation, these would be retrieved from a database
+        manufacturers = [
+            {'id': 'm1', 'name': 'EcoApparel', 'type': 'manufacturer', 'level': 3, 'ethical_score': 88, 'country': 'Portugal'},
+            {'id': 'm2', 'name': 'TechBuild Inc', 'type': 'manufacturer', 'level': 3, 'ethical_score': 72, 'country': 'Taiwan'},
+            {'id': 'm3', 'name': 'FurniturePlus', 'type': 'manufacturer', 'level': 3, 'ethical_score': 83, 'country': 'Sweden'},
+        ]
+        nodes.extend(manufacturers)
+        
+        wholesalers = [
+            {'id': 'w1', 'name': 'Fashion Distributors', 'type': 'wholesaler', 'level': 4, 'ethical_score': 78, 'country': 'France'},
+            {'id': 'w2', 'name': 'Tech Wholesale Group', 'type': 'wholesaler', 'level': 4, 'ethical_score': 60, 'country': 'United States'},
+            {'id': 'w3', 'name': 'Home Solutions', 'type': 'wholesaler', 'level': 4, 'ethical_score': 75, 'country': 'Denmark'},
+        ]
+        nodes.extend(wholesalers)
+        
+        retailers = [
+            {'id': 'r1', 'name': 'Eco Clothes', 'type': 'retailer', 'level': 5, 'ethical_score': 85, 'country': 'United Kingdom'},
+            {'id': 'r2', 'name': 'TechShop', 'type': 'retailer', 'level': 5, 'ethical_score': 68, 'country': 'United States'},
+            {'id': 'r3', 'name': 'Design Home', 'type': 'retailer', 'level': 5, 'ethical_score': 80, 'country': 'Italy'},
+        ]
+        nodes.extend(retailers)
+        
+        # For each supplier, create links to raw materials and manufacturers
+        # This is where we'd use real relationships from a database in a production system
+        # For now, we'll create semi-random connections based on supplier properties
+        for supplier in suppliers:
+            supplier_id = f's{supplier["id"]}'
+            
+            # Link to raw materials based on industry
+            industry = supplier.get('industry', '').lower()
+            ethical_score = supplier.get('ethical_score', 50)
+            
+            # Default to ethical unless score is low
+            is_ethical_source = ethical_score >= 60
+            
+            # Connect suppliers to appropriate raw materials based on industry
+            if 'textile' in industry or 'apparel' in industry:
+                links.append({'source': 'rm1', 'target': supplier_id, 'ethical': is_ethical_source})
+            elif 'tech' in industry or 'electronic' in industry:
+                links.append({'source': 'rm4', 'target': supplier_id, 'ethical': is_ethical_source})
+            elif 'metal' in industry or 'manufacturing' in industry:
+                links.append({'source': 'rm2', 'target': supplier_id, 'ethical': is_ethical_source})
+            elif 'wood' in industry or 'furniture' in industry:
+                links.append({'source': 'rm3', 'target': supplier_id, 'ethical': is_ethical_source})
+            elif 'chemical' in industry or 'energy' in industry:
+                links.append({'source': 'rm5', 'target': supplier_id, 'ethical': is_ethical_source})
+            else:
+                # If no specific industry match, connect to a random raw material
+                random_rm = random.choice(raw_materials)
+                links.append({'source': random_rm['id'], 'target': supplier_id, 'ethical': is_ethical_source})
+            
+            # Connect suppliers to manufacturers
+            # Here we'll make somewhat logical connections based on supplier ethical score and industry
+            if ethical_score >= 75:  # High ethical score goes to eco-friendly manufacturer
+                links.append({'source': supplier_id, 'target': 'm1', 'ethical': True})
+            elif 'tech' in industry or 'electronic' in industry:
+                links.append({'source': supplier_id, 'target': 'm2', 'ethical': is_ethical_source})
+            elif 'wood' in industry or 'furniture' in industry:
+                links.append({'source': supplier_id, 'target': 'm3', 'ethical': is_ethical_source})
+            else:
+                # Random manufacturer connection for other industries
+                random_manufacturer = random.choice(manufacturers)
+                links.append({'source': supplier_id, 'target': random_manufacturer['id'], 'ethical': is_ethical_source})
+        
+        # Create links from manufacturers to wholesalers
+        links.append({'source': 'm1', 'target': 'w1', 'ethical': True})
+        links.append({'source': 'm2', 'target': 'w2', 'ethical': True})
+        links.append({'source': 'm3', 'target': 'w3', 'ethical': True})
+        
+        # Create links from wholesalers to retailers
+        links.append({'source': 'w1', 'target': 'r1', 'ethical': True})
+        links.append({'source': 'w2', 'target': 'r2', 'ethical': True})
+        links.append({'source': 'w3', 'target': 'r3', 'ethical': True})
+        
+        return Response({
+            'nodes': nodes,
+            'links': links
+        })
+        
+    except Exception as e:
+        print(f"Error generating supply chain graph: {str(e)}")
+        return Response(
+            {"error": "Failed to generate supply chain graph data"},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        ) 

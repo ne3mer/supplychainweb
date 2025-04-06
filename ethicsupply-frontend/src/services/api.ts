@@ -1,7 +1,8 @@
 import axios from "axios";
 
-// Change back to the default port 8000
-const API_BASE_URL = "http://localhost:8000/api";
+// Define the API URL in one place for easy updates
+// Using port 8001 as the Django server is now running on that port
+const API_BASE_URL = "http://localhost:8001/api";
 
 export interface Supplier {
   id: number;
@@ -1848,7 +1849,7 @@ export const getSupplyChainGraphData = async (): Promise<GraphData> => {
 
   if (isConnected) {
     try {
-      const response = await fetch(`${API_BASE_URL}/supply-chain-graph`);
+      const response = await fetch(`${API_BASE_URL}/supply-chain-graph/`);
 
       if (!response.ok) {
         console.warn(
@@ -1857,7 +1858,11 @@ export const getSupplyChainGraphData = async (): Promise<GraphData> => {
         return getMockSupplyChainGraphData();
       }
 
-      return await response.json();
+      const data = await response.json();
+      return {
+        nodes: data.nodes,
+        links: data.links,
+      };
     } catch (error) {
       console.error("Error fetching supply chain graph data:", error);
       return getMockSupplyChainGraphData();
