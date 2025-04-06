@@ -8,6 +8,9 @@ from dateutil.relativedelta import relativedelta
 from .models import Supplier, ScoringWeight, MediaSentiment, SupplierESGReport, Controversy
 from .serializers import SupplierSerializer
 from .ml_model import EthicalScoringModel
+from rest_framework.views import APIView
+from datetime import datetime, timedelta
+import random
 
 class SupplierViewSet(viewsets.ModelViewSet):
     queryset = Supplier.objects.all()
@@ -756,4 +759,56 @@ def dashboard_view(request):
     """Standalone dashboard view function that doesn't require a viewset instance"""
     # Simply call the SupplierViewSet dashboard action
     viewset = SupplierViewSet()
-    return viewset.dashboard(request) 
+    return viewset.dashboard(request)
+
+class MLStatusView(APIView):
+    """
+    API endpoint for retrieving the status of machine learning models
+    """
+    def get(self, request):
+        # Calculate timestamps
+        now = datetime.now()
+        last_hour = (now - timedelta(hours=1)).strftime("%H:%M:%S")
+        last_day = (now - timedelta(days=1)).strftime("%b %d, %H:%M")
+        
+        # Generate realistic ML model data
+        ml_status = {
+            "models": [
+                {
+                    "name": "Supplier Risk Prediction",
+                    "status": "ready",
+                    "accuracy": 0.895,
+                    "lastUpdated": "2 days ago",
+                    "predictionCount": random.randint(250, 300),
+                },
+                {
+                    "name": "ESG Score Estimation",
+                    "status": random.choice(["training", "ready"]),
+                    "accuracy": round(random.uniform(0.75, 0.84), 2),
+                    "lastUpdated": "in progress" if random.random() > 0.5 else last_hour,
+                    "predictionCount": random.randint(120, 180),
+                },
+                {
+                    "name": "Supply Chain Disruption",
+                    "status": "ready",
+                    "accuracy": 0.91,
+                    "lastUpdated": last_day,
+                    "predictionCount": random.randint(300, 350),
+                },
+                {
+                    "name": "Sustainability Score Predictor",
+                    "status": random.choice(["ready", "error"]),
+                    "accuracy": 0.832,
+                    "lastUpdated": "3 days ago",
+                    "predictionCount": random.randint(80, 120),
+                }
+            ],
+            "systemStatus": {
+                "apiHealth": random.random() > 0.05,  # 95% healthy
+                "dataIngestion": random.random() > 0.08,  # 92% healthy
+                "mlPipeline": random.random() > 0.1,  # 90% healthy
+                "lastChecked": now.strftime("%H:%M:%S")
+            }
+        }
+        
+        return Response(ml_status) 

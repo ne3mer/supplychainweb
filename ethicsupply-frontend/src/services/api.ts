@@ -1745,3 +1745,81 @@ function getMockSupplierAnalytics(supplierId: number): SupplierAnalytics {
     },
   };
 }
+
+// ML Status Interfaces
+export interface MLModelStatus {
+  name: string;
+  status: "training" | "ready" | "error";
+  accuracy: number;
+  lastUpdated: string;
+  predictionCount: number;
+}
+
+export interface MLSystemStatus {
+  apiHealth: boolean;
+  dataIngestion: boolean;
+  mlPipeline: boolean;
+  lastChecked: string;
+}
+
+export interface MLStatus {
+  models: MLModelStatus[];
+  systemStatus: MLSystemStatus;
+}
+
+// Get Machine Learning Status from the API
+export const getMLStatus = async (): Promise<MLStatus> => {
+  try {
+    console.log("Fetching ML status from API...");
+    const response = await fetch(`${API_BASE_URL}/ml/status/`);
+
+    if (!response.ok) {
+      console.warn(
+        `ML Status API returned status ${response.status}. Using mock data.`
+      );
+      return getMockMLStatus();
+    }
+
+    const data = await response.json();
+    console.log("ML Status API response:", data);
+    return data;
+  } catch (error) {
+    console.error("Error fetching ML status:", error);
+    return getMockMLStatus();
+  }
+};
+
+// Helper function to get mock ML status
+function getMockMLStatus(): MLStatus {
+  return {
+    models: [
+      {
+        name: "Supplier Risk Prediction",
+        status: "ready",
+        accuracy: 0.89,
+        lastUpdated: "2 hours ago",
+        predictionCount: 287,
+      },
+      {
+        name: "ESG Score Estimation",
+        status: "training",
+        accuracy: 0.75,
+        lastUpdated: "in progress",
+        predictionCount: 143,
+      },
+      {
+        name: "Supply Chain Disruption",
+        status: "ready",
+        accuracy: 0.91,
+        lastUpdated: "30 minutes ago",
+        predictionCount: 321,
+      },
+    ],
+    systemStatus: {
+      apiHealth: true,
+      dataIngestion: true,
+      mlPipeline: true,
+      lastChecked: new Date().toLocaleTimeString(),
+    },
+  };
+}
