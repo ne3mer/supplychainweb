@@ -1,79 +1,163 @@
-import { useEffect, useState } from "react";
-import { getDashboardData, checkApiConnection } from "../services/api";
+import React, { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
 import {
-  GlobeAltIcon,
-  ScaleIcon,
-  UserGroupIcon,
-  ExclamationCircleIcon,
   ArrowTrendingUpIcon,
-  LightBulbIcon,
+  ExclamationCircleIcon,
+  ArrowPathIcon,
+  ArrowRightIcon,
+  ShieldExclamationIcon,
+  GlobeAltIcon,
+  InformationCircleIcon,
+  UsersIcon,
+  ScaleIcon,
   CloudIcon,
   SparklesIcon,
-  ArrowPathIcon,
+  LightBulbIcon,
   CheckCircleIcon,
 } from "@heroicons/react/24/outline";
 import {
+  ResponsiveContainer,
   BarChart,
   Bar,
   XAxis,
   YAxis,
   CartesianGrid,
   Tooltip,
-  ResponsiveContainer,
+  Legend,
+  Cell,
   PieChart,
   Pie,
-  Cell,
-  Legend,
-  Line,
-  Area,
   AreaChart,
+  Area,
+  ComposedChart,
+  Line,
   RadarChart,
   PolarGrid,
   PolarAngleAxis,
   PolarRadiusAxis,
   Radar,
-  ComposedChart,
   ReferenceLine,
 } from "recharts";
-
-// Import our custom tooltip components and chart info overlay
+import { fetchWithTimeout } from "../utils/api";
 import {
-  EthicalScoreTooltip,
-  CO2EmissionsTooltip,
-  WaterUsageTooltip,
-  RenewableEnergyTooltip,
-  SustainablePracticesTooltip,
-  SustainabilityMetricsTooltip,
-} from "../components/ChartTooltips";
-import ChartInfoOverlay, {
-  chartInfoContent,
-} from "../components/ChartInfoOverlay";
+  getDashboardData,
+  checkApiConnection,
+} from "../services/dashboardService";
+import MachineLearningStatus from "../components/MachineLearningStatus";
+import EthicalScoreDistributionChart from "../components/EthicalScoreDistributionChart";
+import CO2EmissionsChart from "../components/CO2EmissionsChart";
+import SupplierGeoChart from "../components/SupplierGeoChart";
+import RecentSuppliersList from "../components/RecentSuppliersList";
+import EthicalScoreTooltip from "../components/tooltips/EthicalScoreTooltip";
+import CO2EmissionsTooltip from "../components/tooltips/CO2EmissionsTooltip";
+import WaterUsageTooltip from "../components/tooltips/WaterUsageTooltip";
+import RenewableEnergyTooltip from "../components/tooltips/RenewableEnergyTooltip";
+import SustainablePracticesTooltip from "../components/tooltips/SustainablePracticesTooltip";
+import SustainabilityMetricsTooltip from "../components/tooltips/SustainabilityMetricsTooltip";
+import ChartInfoOverlay from "../components/ChartInfoOverlay";
 import ChartMetricsExplainer from "../components/ChartMetricsExplainer";
 import InsightsPanel, { chartInsights } from "../components/InsightsPanel";
-import MachineLearningStatus from "../components/MachineLearningStatus";
+
+// Define chart info content
+const chartInfoContent = {
+  ethicalScore: {
+    title: "Ethical Score Distribution",
+    description:
+      "Distribution of suppliers across ethical score ranges from 0-100.",
+  },
+  co2Emissions: {
+    title: "CO₂ Emissions by Industry",
+    description:
+      "Carbon emissions breakdown by industry sector in your supply chain.",
+  },
+  waterUsage: {
+    title: "Water Usage Trend",
+    description: "Monthly water consumption per production unit over time.",
+  },
+  renewableEnergy: {
+    title: "Renewable Energy Adoption",
+    description: "Breakdown of energy sources used across your supply chain.",
+  },
+  sustainablePractices: {
+    title: "Sustainable Practices Adoption",
+    description:
+      "Current adoption rates versus target goals for key sustainable practices.",
+  },
+  sustainabilityMetrics: {
+    title: "Sustainability Performance",
+    description: "Your sustainability metrics compared to industry averages.",
+  },
+};
+
+// Define colors for charts
+const COLORS = [
+  "#10B981",
+  "#3B82F6",
+  "#8B5CF6",
+  "#EC4899",
+  "#F59E0B",
+  "#EF4444",
+];
+
+// Sample data for sustainable practices
+const sustainablePracticesData = [
+  { practice: "Recycling", adoption: 92, target: 95 },
+  { practice: "Emissions Reduction", adoption: 68, target: 80 },
+  { practice: "Water Conservation", adoption: 76, target: 85 },
+  { practice: "Renewable Energy", adoption: 83, target: 90 },
+  { practice: "Zero Waste", adoption: 54, target: 75 },
+];
+
+// Sample data for water usage trend
+const waterUsageTrendData = [
+  { month: "Jan", usage: 135 },
+  { month: "Feb", usage: 128 },
+  { month: "Mar", usage: 124 },
+  { month: "Apr", usage: 118 },
+  { month: "May", usage: 113 },
+  { month: "Jun", usage: 108 },
+  { month: "Jul", usage: 102 },
+  { month: "Aug", usage: 94 },
+  { month: "Sep", usage: 89 },
+  { month: "Oct", usage: 86 },
+  { month: "Nov", usage: 82 },
+  { month: "Dec", usage: 79 },
+];
+
+// Sample data for renewable energy adoption
+const renewableEnergyData = [
+  { name: "Solar", value: 38 },
+  { name: "Wind", value: 27 },
+  { name: "Hydro", value: 12 },
+  { name: "Biomass", value: 6 },
+  { name: "Traditional", value: 17 },
+];
+
+// Sample data for sustainability metrics
+const sustainabilityMetricsData = [
+  { metric: "Carbon Footprint", current: 82, industry: 68 },
+  { metric: "Water Usage", current: 76, industry: 62 },
+  { metric: "Waste Reduction", current: 91, industry: 59 },
+  { metric: "Energy Efficiency", current: 84, industry: 71 },
+  { metric: "Social Impact", current: 70, industry: 58 },
+];
 
 // Define the dashboard data interface to fix type errors
-interface EthicalScoreData {
-  range: string;
-  count: number;
-}
-
-interface CO2EmissionData {
-  name: string;
-  value: number;
-}
-
 interface DashboardData {
   total_suppliers: number;
   avg_ethical_score: number;
   avg_co2_emissions: number;
   suppliers_by_country: Record<string, number>;
-  ethical_score_distribution: EthicalScoreData[];
-  co2_emissions_by_industry: CO2EmissionData[];
+  ethical_score_distribution: Array<{ range: string; count: number }>;
+  co2_emissions_by_industry: Array<{ name: string; value: number }>;
   isMockData?: boolean;
 }
 
+const apiEndpoint = "/api/dashboard/";
+
 const Dashboard = () => {
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
   const [data, setData] = useState<DashboardData>({
     total_suppliers: 0,
     avg_ethical_score: 0,
@@ -82,10 +166,58 @@ const Dashboard = () => {
     ethical_score_distribution: [],
     co2_emissions_by_industry: [],
   });
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [usingMockData, setUsingMockData] = useState(false);
+  const [usingMockData, setUsingMockData] = useState<boolean>(false);
   const [apiConnected, setApiConnected] = useState<boolean | null>(null);
+
+  // Function to get text description based on ethical score
+  const getEthicalScoreText = () => {
+    const score = data?.avg_ethical_score || 0;
+    if (score >= 80) return "excellent ethical performance";
+    if (score >= 60) return "good ethical standards";
+    if (score >= 40) return "moderate ethical practices";
+    if (score >= 20) return "needs significant improvement";
+    return "critical ethical concerns";
+  };
+
+  // Stats data for the dashboard
+  const stats = [
+    {
+      name: "Total Suppliers",
+      value: data?.total_suppliers || 0,
+      icon: UsersIcon,
+      change: "+12.5%",
+      changeType: "positive",
+      bgColor: "bg-blue-50",
+      iconBg: "bg-blue-500",
+    },
+    {
+      name: "Avg. Ethical Score",
+      value: `${(data?.avg_ethical_score || 0).toFixed(1)}%`,
+      icon: ScaleIcon,
+      change: "+4.2%",
+      changeType: "positive",
+      bgColor: "bg-emerald-50",
+      iconBg: "bg-emerald-500",
+    },
+    {
+      name: "CO₂ Emissions",
+      value: `${(data?.avg_co2_emissions || 0).toFixed(1)}t`,
+      icon: CloudIcon,
+      change: "-8.1%",
+      changeType: "positive",
+      bgColor: "bg-teal-50",
+      iconBg: "bg-teal-500",
+    },
+    {
+      name: "Risk Score",
+      value: "Medium",
+      icon: ShieldExclamationIcon,
+      change: "-2.3%",
+      changeType: "positive",
+      bgColor: "bg-amber-50",
+      iconBg: "bg-amber-500",
+    },
+  ];
 
   // Check API connection status
   const checkConnection = async () => {
@@ -135,102 +267,6 @@ const Dashboard = () => {
 
     fetchData();
   }, []);
-
-  const stats = [
-    {
-      name: "Total Suppliers",
-      value: data.total_suppliers,
-      icon: UserGroupIcon,
-      change: "+4.75%",
-      changeType: "positive",
-      bgColor: "bg-emerald-100",
-      iconBg: "bg-emerald-500",
-    },
-    {
-      name: "Average Ethical Score",
-      value: `${
-        data.avg_ethical_score && data.avg_ethical_score.toFixed
-          ? data.avg_ethical_score.toFixed(1)
-          : "0"
-      }%`,
-      icon: ScaleIcon,
-      change: "+2.3%",
-      changeType: "positive",
-      bgColor: "bg-teal-100",
-      iconBg: "bg-teal-500",
-    },
-    {
-      name: "Average CO₂ Emissions",
-      value: `${
-        data.avg_co2_emissions && data.avg_co2_emissions.toFixed
-          ? data.avg_co2_emissions.toFixed(1)
-          : "0"
-      } t`,
-      icon: CloudIcon,
-      change: "-1.8%",
-      changeType: "negative",
-      bgColor: "bg-blue-100",
-      iconBg: "bg-blue-500",
-    },
-    {
-      name: "Countries",
-      value: Object.keys(data.suppliers_by_country || {}).length,
-      icon: GlobeAltIcon,
-      change: "+2",
-      changeType: "positive",
-      bgColor: "bg-green-100",
-      iconBg: "bg-green-500",
-    },
-  ];
-
-  const COLORS = [
-    "#10b981", // emerald-500
-    "#0ea5e9", // sky-500
-    "#14b8a6", // teal-500
-    "#22c55e", // green-500
-    "#84cc16", // lime-500
-    "#06b6d4", // cyan-500
-  ];
-
-  // Water usage trend data
-  const waterUsageTrendData = [
-    { month: "Jan", usage: 132 },
-    { month: "Feb", usage: 125 },
-    { month: "Mar", usage: 116 },
-    { month: "Apr", usage: 107 },
-    { month: "May", usage: 102 },
-    { month: "Jun", usage: 95 },
-    { month: "Jul", usage: 90 },
-    { month: "Aug", usage: 88 },
-    { month: "Sep", usage: 86 },
-  ];
-
-  // Renewable energy adoption
-  const renewableEnergyData = [
-    { name: "Solar", value: 35 },
-    { name: "Wind", value: 28 },
-    { name: "Hydro", value: 12 },
-    { name: "Biomass", value: 8 },
-    { name: "Traditional", value: 17 },
-  ];
-
-  // Sustainable practices adoption data
-  const sustainablePracticesData = [
-    { practice: "Recycling", adoption: 78, target: 95 },
-    { practice: "Waste Reduction", adoption: 65, target: 90 },
-    { practice: "Green Packaging", adoption: 52, target: 85 },
-    { practice: "Carbon Offsets", adoption: 45, target: 75 },
-    { practice: "Circularity", adoption: 38, target: 80 },
-  ];
-
-  // Sustainability metrics radar chart data
-  const sustainabilityMetricsData = [
-    { metric: "CO₂ Reduction", current: 65, industry: 48 },
-    { metric: "Water Conservation", current: 72, industry: 53 },
-    { metric: "Waste Management", current: 58, industry: 45 },
-    { metric: "Renewable Energy", current: 83, industry: 62 },
-    { metric: "Social Impact", current: 70, industry: 58 },
-  ];
 
   if (loading) {
     return (

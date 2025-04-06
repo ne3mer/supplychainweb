@@ -1,6 +1,8 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from .views import SupplierViewSet, dashboard_view, supply_chain_graph_view
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
 
 router = DefaultRouter()
 router.register(r'suppliers', SupplierViewSet)
@@ -19,8 +21,13 @@ router.register(r'suppliers', SupplierViewSet)
 # GET /suppliers/scorecard_settings/
 # POST /suppliers/create_scorecard_settings/
 
+@api_view(['GET'])
+def health_check(request):
+    return Response({"status": "healthy"})
+
 urlpatterns = [
     path('', include(router.urls)),
     path('dashboard/', dashboard_view, name='dashboard'),
     path('supply-chain-graph/', supply_chain_graph_view, name='supply_chain_graph'),
+    path('health-check/', health_check, name='health_check'),
 ] 

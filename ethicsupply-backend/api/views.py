@@ -635,6 +635,272 @@ class SupplierViewSet(viewsets.ModelViewSet):
                 {"error": f"Failed to simulate changes: {str(e)}"}, 
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
+            
+    @action(detail=True, methods=['get'])
+    def analytics(self, request, pk=None):
+        """Get advanced analytics for a supplier"""
+        try:
+            supplier = self.get_object()
+            
+            # Get similar suppliers
+            industry = getattr(supplier, 'industry', 'Manufacturing')
+            similar_suppliers = Supplier.objects.filter(industry=industry).exclude(id=supplier.id)[:5]
+            similar_suppliers_serialized = SupplierSerializer(similar_suppliers, many=True).data
+            
+            # Calculate industry averages
+            industry_suppliers = Supplier.objects.filter(industry=industry)
+            industry_average = {}
+            
+            # Get average for each field
+            for field in [
+                'ethical_score', 'environmental_score', 'social_score', 'governance_score',
+                'co2_emissions', 'water_usage'
+            ]:
+                avg = industry_suppliers.aggregate(Avg(field))[f'{field}__avg'] or 0
+                industry_average[field] = round(avg, 2)
+                
+            # Add overall_score as a copy of ethical_score for the frontend
+            industry_average['overall_score'] = industry_average['ethical_score']
+                
+            # Get average for normalized fields (0-1 range)
+            for field in [
+                'energy_efficiency', 'waste_management_score', 'wage_fairness',
+                'human_rights_index', 'diversity_inclusion_score', 'community_engagement',
+                'transparency_score', 'corruption_risk', 'delivery_efficiency',
+                'quality_control_score'
+            ]:
+                avg = industry_suppliers.aggregate(Avg(field))[f'{field}__avg'] or 0.5
+                industry_average[field] = round(avg, 2)
+            
+            # Initialize ML model
+            ml_model = EthicalScoringModel()
+            
+            # Create supplier dict for ML model
+            supplier_dict = {
+                'co2_emissions': getattr(supplier, 'co2_emissions', 50),
+                'water_usage': getattr(supplier, 'water_usage', 50),
+                'energy_efficiency': getattr(supplier, 'energy_efficiency', 0.5),
+                'waste_management_score': getattr(supplier, 'waste_management_score', 0.5),
+                'wage_fairness': getattr(supplier, 'wage_fairness', 0.5),
+                'human_rights_index': getattr(supplier, 'human_rights_index', 0.5),
+                'diversity_inclusion_score': getattr(supplier, 'diversity_inclusion_score', 0.5),
+                'community_engagement': getattr(supplier, 'community_engagement', 0.5),
+                'transparency_score': getattr(supplier, 'transparency_score', 0.5),
+                'corruption_risk': getattr(supplier, 'corruption_risk', 0.5),
+                'industry': getattr(supplier, 'industry', 'Manufacturing'),
+                'country': getattr(supplier, 'country', 'Unknown'),
+                'social_media_sentiment': getattr(supplier, 'social_media_sentiment', 0),
+                'news_sentiment': getattr(supplier, 'news_sentiment', 0),
+                'worker_satisfaction': getattr(supplier, 'worker_satisfaction', 3)
+            }
+            
+            # Generate recommendations
+            all_suppliers = list(Supplier.objects.values())
+            recommendations = ml_model.generate_recommendations(supplier_dict, all_suppliers)
+            
+            # Generate improvement potential data
+            environmental_score = getattr(supplier, 'environmental_score', 0)
+            if environmental_score is None:
+                environmental_score = 0
+                
+            social_score = getattr(supplier, 'social_score', 0)
+            if social_score is None:
+                social_score = 0
+                
+            governance_score = getattr(supplier, 'governance_score', 0)
+            if governance_score is None:
+                governance_score = 0
+                
+            ethical_score = getattr(supplier, 'ethical_score', 0)
+            if ethical_score is None:
+                ethical_score = 0
+                
+            improvement_potential = {
+                'environmental': 100 - environmental_score,
+                'social': 100 - social_score,
+                'governance': 100 - governance_score,
+                'overall': 100 - ethical_score
+            }
+            
+            # Generate mock risk factors (in a real application, this would come from a risk assessment model)
+            risk_factors = [
+                {
+                    'factor': 'Climate Change Impact',
+                    'severity': 'Medium',
+                    'probability': 'High',
+                    'description': 'Rising temperatures and extreme weather events may disrupt operations.'
+                },
+                {
+                    'factor': 'Labor Relations',
+                    'severity': 'Low',
+                    'probability': 'Medium',
+                    'description': 'Potential for labor disputes based on regional history.'
+                },
+                {
+                    'factor': 'Regulatory Changes',
+                    'severity': 'High',
+                    'probability': 'Medium',
+                    'description': 'Expected changes in environmental regulations could impact compliance costs.'
+                }
+            ]
+            
+            # Generate mock cluster information (in a real application, this would come from clustering algorithms)
+            cluster_info = {
+                'cluster_id': 2,
+                'size': 12,
+                'avg_ethical_score': 72,
+                'avg_environmental_score': 68,
+                'avg_social_score': 74,
+                'avg_governance_score': 70,
+                'description': 'Medium-performing suppliers with balanced ESG profiles'
+            }
+            
+            # Generate mock prediction (in a real application, this would come from a predictive model)
+            prediction = {
+                'next_quarter_score': min(getattr(supplier, 'ethical_score', 50) + 2, 100),
+                'confidence': 0.75,
+                'factors': [
+                    {'factor': 'Improving industry trends', 'impact': 1.5},
+                    {'factor': 'Recent policy changes', 'impact': 0.5}
+                ]
+            }
+            
+            # Get supplier ESG reports
+            try:
+                esg_reports = []
+                for report in SupplierESGReport.objects.filter(supplier=supplier).order_by('-report_date')[:3]:
+                    esg_reports.append({
+                        'year': report.report_date.year,
+                        'environmental': report.environmental_score / 100,
+                        'social': report.social_score / 100,
+                        'governance': report.governance_score / 100
+                    })
+            except:
+                # Mock ESG reports if not available
+                esg_reports = [
+                    {'year': 2021, 'environmental': 0.65, 'social': 0.78, 'governance': 0.7},
+                    {'year': 2022, 'environmental': 0.68, 'social': 0.8, 'governance': 0.73},
+                    {'year': 2023, 'environmental': 0.72, 'social': 0.82, 'governance': 0.76}
+                ]
+                
+            # Get supplier media sentiment
+            try:
+                media_sentiment = []
+                for item in MediaSentiment.objects.filter(supplier=supplier).order_by('-date')[:3]:
+                    media_sentiment.append({
+                        'source': item.source,
+                        'date': item.date.strftime('%Y-%m-%d'),
+                        'score': item.sentiment_score / 100,
+                        'headline': item.summary
+                    })
+            except:
+                # Mock media sentiment if not available
+                media_sentiment = [
+                    {
+                        'source': 'Industry News',
+                        'date': '2023-10-15',
+                        'score': 0.8,
+                        'headline': f'{supplier.name} Leads in Sustainable Manufacturing'
+                    },
+                    {
+                        'source': 'Financial Times',
+                        'date': '2023-09-08',
+                        'score': 0.6,
+                        'headline': f'Mixed Results for {supplier.name}\'s Q3 Performance'
+                    },
+                    {
+                        'source': 'Twitter',
+                        'date': '2023-11-20',
+                        'score': -0.2,
+                        'headline': f'Customers Report Delays in {supplier.name}\'s Supply Chain'
+                    }
+                ]
+                
+            # Get supplier controversies
+            try:
+                controversies = []
+                for item in Controversy.objects.filter(supplier=supplier).order_by('-date')[:2]:
+                    controversies.append({
+                        'issue': item.title,
+                        'date': item.date.strftime('%Y-%m-%d'),
+                        'severity': item.severity,
+                        'status': item.resolution_status
+                    })
+            except:
+                # Mock controversies if not available
+                controversies = [
+                    {
+                        'issue': 'Employee Complaint',
+                        'date': '2023-07-12',
+                        'severity': 'Low',
+                        'status': 'Resolved'
+                    },
+                    {
+                        'issue': 'Environmental Fine',
+                        'date': '2022-05-18',
+                        'severity': 'Medium',
+                        'status': 'Resolved'
+                    }
+                ]
+            
+            # Create the complete response
+            supplier_data = {
+                'id': supplier.id,
+                'name': getattr(supplier, 'name', 'Unknown Supplier'),
+                'country': getattr(supplier, 'country', 'Unknown'),
+                'industry': getattr(supplier, 'industry', 'Manufacturing'),
+                'ethical_score': ethical_score,
+                'environmental_score': environmental_score,
+                'social_score': social_score,
+                'governance_score': governance_score,
+                'risk_level': getattr(supplier, 'risk_level', 'medium'),
+                'co2_emissions': getattr(supplier, 'co2_emissions', 50) or 50,
+                'water_usage': getattr(supplier, 'water_usage', 50) or 50,
+                'energy_efficiency': getattr(supplier, 'energy_efficiency', 0.5) or 0.5,
+                'waste_management_score': getattr(supplier, 'waste_management_score', 0.5) or 0.5,
+                'wage_fairness': getattr(supplier, 'wage_fairness', 0.5) or 0.5,
+                'human_rights_index': getattr(supplier, 'human_rights_index', 0.5) or 0.5,
+                'diversity_inclusion_score': getattr(supplier, 'diversity_inclusion_score', 0.5) or 0.5,
+                'community_engagement': getattr(supplier, 'community_engagement', 0.5) or 0.5,
+                'transparency_score': getattr(supplier, 'transparency_score', 0.5) or 0.5,
+                'corruption_risk': getattr(supplier, 'corruption_risk', 0.5) or 0.5,
+                'delivery_efficiency': getattr(supplier, 'delivery_efficiency', 0.8) or 0.8,
+                'quality_control_score': getattr(supplier, 'quality_control_score', 0.8) or 0.8,
+                'esg_reports': esg_reports,
+                'media_sentiment': media_sentiment,
+                'controversies': controversies
+            }
+            
+            # Add overall_score as a copy of ethical_score for the frontend
+            supplier_data['overall_score'] = supplier_data['ethical_score']
+            
+            response_data = {
+                'supplier': supplier_data,
+                'industry_average': industry_average,
+                'similar_suppliers': similar_suppliers_serialized,
+                'recommendations': recommendations,
+                'improvement_potential': improvement_potential,
+                'risk_factors': risk_factors,
+                'cluster_info': cluster_info,
+                'prediction': prediction
+            }
+            
+            return Response(response_data)
+            
+        except Supplier.DoesNotExist:
+            return Response(
+                {'detail': 'Supplier not found'}, 
+                status=status.HTTP_404_NOT_FOUND
+            )
+        except Exception as e:
+            # Log the error
+            import logging
+            logger = logging.getLogger(__name__)
+            logger.error(f"Analytics error for supplier {pk}: {str(e)}")
+            return Response(
+                {'detail': 'Failed to generate analytics', 'error': str(e)}, 
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
     
     @action(detail=False, methods=['get'])
     def scorecard_settings(self, request):

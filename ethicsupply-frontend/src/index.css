@@ -29,3 +29,13 @@
     @apply w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500;
   }
 }
+
+/* Page header styling */
+.page-header {
+  @apply bg-gradient-to-r from-emerald-700 to-teal-600 py-8 px-4 sm:px-6 rounded-lg shadow-md mb-8;
+}
+
+/* Stat card styling */
+.stat-card {
+  @apply bg-white rounded-lg shadow-md p-5 transition-transform duration-300 hover:shadow-lg;
+}
