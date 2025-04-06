@@ -106,6 +106,7 @@ const Dashboard = () => {
           setError(
             "Cannot connect to the backend server. Please make sure the Django server is running at http://localhost:8000"
           );
+          // Don't automatically set mock data, let the user decide
           return;
         }
 
@@ -113,12 +114,17 @@ const Dashboard = () => {
         console.log("Dashboard data received:", dashboardData);
         setData(dashboardData);
 
-        // Real data is being used
-        setUsingMockData(false);
+        // Check if we're using mock data based on the API indicator
+        setUsingMockData(!!dashboardData.isMockData);
+
+        // If using mock data due to API error, show a specific error
+        if (dashboardData.isMockData) {
+          setError("The API returned an error. Using mock data instead.");
+        }
       } catch (error) {
         console.error("Error fetching dashboard data:", error);
         setError(
-          "Failed to fetch data from API. Please make sure the backend server is running at http://localhost:8000"
+          "Failed to fetch data from API. Please make sure the backend server is running correctly."
         );
         // Don't automatically fall back to mock data
         setUsingMockData(false);

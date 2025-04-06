@@ -1,7 +1,7 @@
 import axios from "axios";
 
-// Change from the Heroku API back to your local development server
-const API_BASE_URL = "http://localhost:8000/api";
+// Change from the default port to port 8001
+const API_BASE_URL = "http://localhost:8001/api";
 
 export interface Supplier {
   id: number;
@@ -1041,7 +1041,10 @@ export const getDashboardData = async (): Promise<DashboardData> => {
     const response = await fetch(`${API_BASE_URL}/dashboard/`);
 
     if (!response.ok) {
-      throw new Error(`API returned status ${response.status}`);
+      console.warn(
+        `Dashboard API returned status ${response.status}. Using mock data.`
+      );
+      return getMockDashboardData();
     }
 
     const data = await response.json();
@@ -1053,37 +1056,41 @@ export const getDashboardData = async (): Promise<DashboardData> => {
     };
   } catch (error) {
     console.error("Error fetching dashboard data:", error);
-    throw error;
+    // Return mock data in case of error
+    return getMockDashboardData();
   }
 };
 
-// Extract mock dashboard data to a function for reuse
+// Mock dashboard data
 const getMockDashboardData = (): DashboardData => {
+  console.log("Using mock dashboard data");
   return {
-    total_suppliers: 42,
-    avg_ethical_score: 73.5,
-    avg_co2_emissions: 35.8,
+    total_suppliers: 12,
+    avg_ethical_score: 75.3,
+    avg_co2_emissions: 23.9,
     suppliers_by_country: {
-      "United States": 12,
-      China: 8,
-      Germany: 6,
-      Japan: 5,
-      India: 4,
-      Brazil: 3,
-      Other: 4,
+      "United States": 4,
+      "United Kingdom": 1,
+      Taiwan: 1,
+      "South Korea": 1,
+      Switzerland: 1,
+      "Hong Kong": 1,
+      France: 1,
+      China: 1,
     },
     ethical_score_distribution: [
-      { range: "0-20", count: 2 },
-      { range: "21-40", count: 5 },
-      { range: "41-60", count: 8 },
-      { range: "61-80", count: 15 },
-      { range: "81-100", count: 12 },
+      { range: "0-20", count: 0 },
+      { range: "21-40", count: 0 },
+      { range: "41-60", count: 2 },
+      { range: "61-80", count: 7 },
+      { range: "81-100", count: 3 },
     ],
     co2_emissions_by_industry: [
-      { name: "Manufacturing", value: 35 },
-      { name: "Technology", value: 20 },
-      { name: "Retail", value: 15 },
-      { name: "Agriculture", value: 30 },
+      { name: "Consumer Goods", value: 4.3 },
+      { name: "Electronics", value: 20.4 },
+      { name: "Food & Beverage", value: 128.7 },
+      { name: "Apparel", value: 2.5 },
+      { name: "Home Appliances", value: 18.5 },
     ],
     isMockData: true,
   };
@@ -1737,7 +1744,10 @@ export const getMLStatus = async (): Promise<MLStatus> => {
     const response = await fetch(`${API_BASE_URL}/ml/status/`);
 
     if (!response.ok) {
-      throw new Error(`ML Status API returned status ${response.status}`);
+      console.warn(
+        `ML Status API returned status ${response.status}. Using mock data.`
+      );
+      return getMockMLStatus();
     }
 
     const data = await response.json();
@@ -1748,7 +1758,7 @@ export const getMLStatus = async (): Promise<MLStatus> => {
     };
   } catch (error) {
     console.error("Error fetching ML status:", error);
-    throw error;
+    return getMockMLStatus();
   }
 };
 

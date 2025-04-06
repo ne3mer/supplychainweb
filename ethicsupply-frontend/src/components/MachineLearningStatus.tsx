@@ -58,6 +58,7 @@ const MachineLearningStatus: React.FC<MachineLearningStatusProps> = ({
         setError(
           "Cannot connect to backend server. Please ensure the server is running."
         );
+        // Let user manually choose to use mock data
         return;
       }
 
@@ -66,11 +67,19 @@ const MachineLearningStatus: React.FC<MachineLearningStatusProps> = ({
       setSystemStatus(mlStatus.systemStatus);
       setLastRefreshed(new Date().toLocaleTimeString());
       setUsingMockData(!!mlStatus.isMockData);
+
+      // If using mock data due to API error, show a specific error
+      if (mlStatus.isMockData) {
+        setError(
+          "The ML Status API returned an error. Using mock data instead."
+        );
+      }
     } catch (error) {
       console.error("Error fetching ML status:", error);
       setError(
         "Failed to connect to ML API. Please ensure the backend server is running."
       );
+      // Don't automatically fall back to mock data
       setUsingMockData(false);
     } finally {
       setLoading(false);

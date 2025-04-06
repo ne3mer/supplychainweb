@@ -757,9 +757,75 @@ class SupplierViewSet(viewsets.ModelViewSet):
 @api_view(['GET'])
 def dashboard_view(request):
     """Standalone dashboard view function that doesn't require a viewset instance"""
-    # Simply call the SupplierViewSet dashboard action
-    viewset = SupplierViewSet()
-    return viewset.dashboard(request)
+    try:
+        # Get suppliers
+        suppliers = Supplier.objects.all()
+        
+        # Calculate stats
+        total_suppliers = suppliers.count()
+        
+        if total_suppliers == 0:
+            # Return empty stats if no suppliers
+            return Response({
+                'total_suppliers': 0,
+                'avg_ethical_score': 0,
+                'avg_co2_emissions': 0,
+                'suppliers_by_country': {},
+                'ethical_score_distribution': [],
+                'co2_emissions_by_industry': []
+            })
+            
+        # Calculate averages, handling NULL values
+        avg_ethical_score = suppliers.filter(ethical_score__isnull=False).aggregate(Avg('ethical_score'))['ethical_score__avg'] or 0
+        avg_co2_emissions = suppliers.filter(co2_emissions__isnull=False).aggregate(Avg('co2_emissions'))['co2_emissions__avg'] or 0
+        
+        # Group by country
+        suppliers_by_country = {}
+        for supplier in suppliers:
+            country = supplier.country or 'Unknown'
+            suppliers_by_country[country] = suppliers_by_country.get(country, 0) + 1
+            
+        # Create ethical score distribution
+        ranges = ["0-20", "21-40", "41-60", "61-80", "81-100"]
+        ethical_score_distribution = []
+        
+        for range_str in ranges:
+            lower, upper = map(int, range_str.split('-'))
+            count = suppliers.filter(
+                ethical_score__isnull=False,
+                ethical_score__gte=lower,
+                ethical_score__lte=upper
+            ).count()
+            ethical_score_distribution.append({'range': range_str, 'count': count})
+            
+        # Create CO2 emissions by industry
+        co2_emissions_by_industry = []
+        industries = {}
+        
+        for supplier in suppliers:
+            industry = supplier.industry or 'Other'
+            if supplier.co2_emissions is not None:
+                industries[industry] = industries.get(industry, 0) + supplier.co2_emissions
+                
+        for industry, total in industries.items():
+            co2_emissions_by_industry.append({'name': industry, 'value': total})
+            
+        # Build and return response
+        return Response({
+            'total_suppliers': total_suppliers,
+            'avg_ethical_score': avg_ethical_score,
+            'avg_co2_emissions': avg_co2_emissions,
+            'suppliers_by_country': suppliers_by_country,
+            'ethical_score_distribution': ethical_score_distribution,
+            'co2_emissions_by_industry': co2_emissions_by_industry
+        })
+        
+    except Exception as e:
+        # Log the error and return a 500 response
+        import logging
+        logger = logging.getLogger(__name__)
+        logger.error(f"Dashboard view error: {str(e)}")
+        return Response({"error": "Failed to generate dashboard data"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 class MLStatusView(APIView):
     """
