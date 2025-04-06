@@ -1,8 +1,8 @@
 import axios from "axios";
 
 // Define the API URL in one place for easy updates
-// Using port 8001 as the Django server is now running on that port
-const API_BASE_URL = "http://localhost:8001/api";
+// Using port 8000 as the Django server is running on this port
+const API_BASE_URL = "http://localhost:8000/api";
 
 export interface Supplier {
   id: number;
@@ -1740,6 +1740,13 @@ export interface MLStatus {
 
 // Get Machine Learning Status from the API
 export const getMLStatus = async (): Promise<MLStatus> => {
+  // Always return mock data since we rolled back to a version without this endpoint
+  console.log(
+    "Using mock ML status data since endpoint doesn't exist in this version"
+  );
+  return getMockMLStatus();
+
+  /* Original code commented out:
   try {
     console.log("Fetching ML status from API...");
     const response = await fetch(`${API_BASE_URL}/ml/status/`);
@@ -1761,6 +1768,7 @@ export const getMLStatus = async (): Promise<MLStatus> => {
     console.error("Error fetching ML status:", error);
     return getMockMLStatus();
   }
+  */
 };
 
 // Helper function to get mock ML status
@@ -1802,7 +1810,8 @@ function getMockMLStatus(): MLStatus {
 // Export a function to check if the API is available
 export const checkApiConnection = async (): Promise<boolean> => {
   try {
-    const response = await fetch(`${API_BASE_URL}/ml/status/`, {
+    // Use the health endpoint instead of ml/status
+    const response = await fetch(`http://localhost:8000/health/`, {
       method: "HEAD",
       cache: "no-cache",
     });
