@@ -1,41 +1,17 @@
-import { useState, useEffect, useRef } from "react";
-import {
-  MapContainer,
-  TileLayer,
-  Marker,
-  Popup,
-  CircleMarker,
-  useMap,
-} from "react-leaflet";
-import { getSuppliers, Supplier } from "../services/api";
-import "leaflet/dist/leaflet.css";
-import L from "leaflet";
+import { useState, useEffect } from "react";
 import {
   GlobeAltIcon,
-  BuildingOfficeIcon,
   ExclamationTriangleIcon,
   InformationCircleIcon,
   ArrowPathIcon,
   BellIcon,
-  BellAlertIcon,
   ShieldExclamationIcon,
   FireIcon,
   CloudIcon,
   ScaleIcon,
   UserGroupIcon,
 } from "@heroicons/react/24/outline";
-
-// Fix for default marker icons
-// @ts-ignore
-delete L.Icon.Default.prototype._getIconUrl;
-L.Icon.Default.mergeOptions({
-  iconRetinaUrl:
-    "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png",
-  iconUrl:
-    "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png",
-  shadowUrl:
-    "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png",
-});
+import { getSuppliers } from "../services/api";
 
 // Risk categories with their color and icon
 const riskTypes = {
@@ -72,77 +48,6 @@ const riskTypes = {
     description:
       "Recent or upcoming regulatory changes affecting business operations",
   },
-};
-
-// Mock country-specific risk data
-const countryRiskData = {
-  China: ["political", "socialEthical"],
-  "United States": ["regulatory"],
-  India: ["environmental", "socialEthical"],
-  Russia: ["political", "conflict", "regulatory"],
-  Brazil: ["environmental", "political"],
-  Mexico: ["conflict", "socialEthical"],
-  Ukraine: ["conflict", "political"],
-  Bangladesh: ["environmental", "socialEthical"],
-  Vietnam: ["political", "socialEthical"],
-  Thailand: ["political", "environmental"],
-  Egypt: ["political", "conflict"],
-  "South Africa": ["environmental", "socialEthical"],
-  Indonesia: ["environmental", "political"],
-  Turkey: ["political", "regulatory"],
-  Philippines: ["environmental", "conflict"],
-  Pakistan: ["political", "conflict", "environmental"],
-  Nigeria: ["conflict", "political", "environmental"],
-};
-
-// Mock geocoding data (country name -> lat/lng)
-const countryCoordinates = {
-  "United States": [38.89511, -77.03637],
-  China: [39.90571, 116.39127],
-  India: [28.61389, 77.209],
-  Germany: [52.52437, 13.41053],
-  "United Kingdom": [51.50853, -0.12574],
-  France: [48.85661, 2.35222],
-  Brazil: [-15.77972, -47.92972],
-  Italy: [41.89193, 12.51133],
-  Canada: [45.42351, -75.69989],
-  Japan: [35.6895, 139.69171],
-  "South Korea": [37.56639, 126.99977],
-  Australia: [-35.28092, 149.13],
-  Spain: [40.4167, -3.70332],
-  Mexico: [19.42847, -99.12766],
-  Indonesia: [-6.1744, 106.8294],
-  Netherlands: [52.37022, 4.89517],
-  "Saudi Arabia": [24.68859, 46.72204],
-  Turkey: [39.93353, 32.85972],
-  Switzerland: [46.94799, 7.44744],
-  Poland: [52.22977, 21.01178],
-  Thailand: [13.75249, 100.49351],
-  Sweden: [59.33258, 18.06489],
-  Belgium: [50.85034, 4.35171],
-  Nigeria: [9.07648, 7.39859],
-  Austria: [48.2082, 16.3738],
-  Norway: [59.91603, 10.73874],
-  "United Arab Emirates": [24.45385, 54.37729],
-  Israel: [31.769, 35.21633],
-  Ireland: [53.34976, -6.26026],
-  Singapore: [1.35208, 103.81984],
-  Vietnam: [21.02776, 105.83416],
-  Malaysia: [3.13898, 101.68689],
-  Denmark: [55.67592, 12.56553],
-  Philippines: [14.59951, 120.98422],
-  Pakistan: [33.69296, 73.0545],
-  Colombia: [4.60971, -74.08175],
-  Chile: [-33.44901, -70.66927],
-  Finland: [60.16749, 24.94278],
-  Bangladesh: [23.81032, 90.41249],
-  Egypt: [30.04443, 31.23571],
-  "South Africa": [-25.74787, 28.22932],
-  "New Zealand": [-41.28874, 174.77721],
-  Argentina: [-34.60368, -58.38157],
-  Russia: [55.75045, 37.61742],
-  Ukraine: [50.4501, 30.5234],
-  Other: [0, 0],
 };
 
 // Mock recent alerts
@@ -199,36 +104,6 @@ const initialAlerts = [
   },
 ];
 
-// Risk overlay component
-interface RiskOverlayProps {
-  country: string;
-  riskTypes: string[];
-}
-
-const RiskOverlay: React.FC<RiskOverlayProps> = ({ country, riskTypes }) => {
-  const coordinates = countryCoordinates[country] || [0, 0];
-
-  if (coordinates[0] === 0 && coordinates[1] === 0) return null;
-
-  return (
-    <>
-      {riskTypes.map((riskType, index) => (
-        <CircleMarker
-          key={`${country}-${riskType}-${index}`}
-          center={[coordinates[0], coordinates[1]]}
-          radius={15 + index * 5}
-          pathOptions={{
-            color: riskTypes[riskType]?.color || "#000",
-            fillColor: riskTypes[riskType]?.color || "#000",
-            fillOpacity: 0.2,
-            weight: 1,
-          }}
-        />
-      ))}
-    </>
-  );
-};
-
 interface Alert {
   id: number;
   date: string;
@@ -240,7 +115,6 @@ interface Alert {
 }
 
 const GeoRiskMapping = () => {
-  const [suppliers, setSuppliers] = useState<Supplier[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [activeRiskTypes, setActiveRiskTypes] = useState<string[]>(
@@ -248,30 +122,22 @@ const GeoRiskMapping = () => {
   );
   const [alerts, setAlerts] = useState<Alert[]>(initialAlerts);
   const [showAlerts, setShowAlerts] = useState<boolean>(false);
-  const [highlightedCountry, setHighlightedCountry] = useState<string | null>(
-    null
-  );
-  const [showTutorial, setShowTutorial] = useState<boolean>(false);
 
-  // Fetch suppliers
   useEffect(() => {
     async function fetchData() {
       try {
         setLoading(true);
-        const suppliersData = await getSuppliers();
-        setSuppliers(suppliersData);
+        await getSuppliers(); // Just to simulate API call
+        setLoading(false);
       } catch (err) {
-        console.error("Error fetching suppliers for map:", err);
+        console.error("Error fetching supplier data:", err);
         setError("Failed to load supplier data. Please try again later.");
-      } finally {
         setLoading(false);
       }
     }
-
     fetchData();
   }, []);
 
-  // Mark an alert as read
   const markAlertAsRead = (alertId: number) => {
     setAlerts(
       alerts.map((alert) =>
@@ -280,410 +146,183 @@ const GeoRiskMapping = () => {
     );
   };
 
-  // Toggle risk type visibility
   const toggleRiskType = (riskType: string) => {
-    if (activeRiskTypes.includes(riskType)) {
-      setActiveRiskTypes(activeRiskTypes.filter((type) => type !== riskType));
-    } else {
-      setActiveRiskTypes([...activeRiskTypes, riskType]);
-    }
+    setActiveRiskTypes(
+      activeRiskTypes.includes(riskType)
+        ? activeRiskTypes.filter((type) => type !== riskType)
+        : [...activeRiskTypes, riskType]
+    );
   };
 
-  // Filter suppliers by country with active risks
-  const getCountriesWithActiveRisks = () => {
-    return Object.entries(countryRiskData)
-      .filter(([_, risks]) =>
-        risks.some((risk) => activeRiskTypes.includes(risk))
-      )
-      .map(([country]) => country);
-  };
-
-  // Count unread alerts
-  const unreadAlertsCount = alerts.filter((alert) => !alert.read).length;
+  const unreadAlerts = alerts.filter((alert) => !alert.read).length;
 
   return (
     <div className="container mx-auto py-6 px-4">
       <div className="flex flex-col md:flex-row justify-between items-start mb-6">
         <div>
           <h1 className="text-2xl font-bold text-gray-900 flex items-center">
-            <GlobeAltIcon className="h-6 w-6 text-blue-600 mr-2" />
-            Geo-AI Risk Mapping
+            <GlobeAltIcon className="h-6 w-6 text-indigo-600 mr-2" />
+            Geopolitical Risk Mapping
           </h1>
           <p className="text-gray-600 mt-1">
-            Visualize suppliers and global risk factors in real-time
+            Monitor and analyze global supply chain risks across regions
           </p>
         </div>
 
-        <div className="flex space-x-2 mt-4 md:mt-0">
-          <button
-            onClick={() => setShowTutorial(true)}
-            className="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-          >
-            <InformationCircleIcon className="h-5 w-5 mr-1 text-blue-500" />
-            Help
-          </button>
-
+        {/* Alert button */}
+        <div className="mt-4 md:mt-0">
           <button
             onClick={() => setShowAlerts(!showAlerts)}
-            className="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 relative"
+            className="relative inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
           >
-            {unreadAlertsCount > 0 ? (
-              <BellAlertIcon className="h-5 w-5 mr-1 text-red-500" />
+            {unreadAlerts > 0 ? (
+              <>
+                <BellIcon className="h-5 w-5 mr-2 animate-pulse" />
+                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">
+                  {unreadAlerts}
+                </span>
+              </>
             ) : (
-              <BellIcon className="h-5 w-5 mr-1 text-gray-500" />
+              <BellIcon className="h-5 w-5 mr-2" />
             )}
             Alerts
-            {unreadAlertsCount > 0 && (
-              <span className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs">
-                {unreadAlertsCount}
-              </span>
-            )}
           </button>
         </div>
       </div>
 
-      {/* Risk Type Filters */}
+      {/* Filter options */}
       <div className="bg-white p-4 rounded-lg shadow mb-4">
-        <h2 className="text-lg font-semibold mb-3">Risk Overlays</h2>
+        <h2 className="text-sm font-medium text-gray-700 mb-2">
+          Filter Risk Types
+        </h2>
         <div className="flex flex-wrap gap-2">
-          {Object.entries(riskTypes).map(([key, { name, color, icon }]) => (
+          {Object.entries(riskTypes).map(([key, risk]) => (
             <button
               key={key}
               onClick={() => toggleRiskType(key)}
-              className={`inline-flex items-center px-3 py-2 rounded-full text-sm font-medium ${
+              className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${
                 activeRiskTypes.includes(key)
-                  ? "bg-gray-800 text-white"
-                  : "bg-gray-100 text-gray-700"
+                  ? `bg-${risk.color.substring(1)} text-white`
+                  : "bg-gray-100 text-gray-800"
               }`}
               style={{
-                borderLeft: activeRiskTypes.includes(key)
-                  ? `4px solid ${color}`
-                  : undefined,
+                backgroundColor: activeRiskTypes.includes(key)
+                  ? risk.color
+                  : "#f3f4f6",
+                color: activeRiskTypes.includes(key) ? "white" : "#1f2937",
               }}
             >
-              <span className="mr-2">{icon}</span>
-              {name}
+              <span className="mr-1">{risk.icon}</span>
+              {risk.name}
             </button>
           ))}
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        {/* Map container */}
-        <div className="md:col-span-3 bg-white rounded-lg shadow">
-          <div className="p-4 border-b">
-            <h2 className="text-lg font-semibold">Supplier Risk Map</h2>
-            <p className="text-sm text-gray-500">
-              {loading
-                ? "Loading supplier locations..."
-                : `Showing ${suppliers.length} suppliers with active risk overlays`}
-            </p>
+      {/* Main content */}
+      <div className="bg-white rounded-lg shadow overflow-hidden">
+        {loading ? (
+          <div className="p-12 text-center">
+            <ArrowPathIcon className="h-12 w-12 text-gray-400 animate-spin mx-auto" />
+            <p className="mt-4 text-gray-600">Loading risk data...</p>
           </div>
-
-          {error ? (
-            <div className="p-8 text-center">
-              <ExclamationTriangleIcon className="h-12 w-12 text-red-500 mx-auto mb-4" />
-              <p className="text-red-500">{error}</p>
-              <button
-                onClick={() => window.location.reload()}
-                className="mt-4 inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-              >
-                <ArrowPathIcon className="h-4 w-4 mr-2" />
-                Retry
-              </button>
-            </div>
-          ) : (
-            <div className="h-[600px] w-full">
-              <MapContainer
-                center={[20, 0]}
-                zoom={2}
-                style={{ height: "100%", width: "100%" }}
-                scrollWheelZoom={true}
-              >
-                <TileLayer
-                  attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-                  url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                />
-
-                {/* Risk Overlays */}
-                {Object.entries(countryRiskData).map(([country, risks]) => {
-                  const activeRisks = risks.filter((risk) =>
-                    activeRiskTypes.includes(risk)
-                  );
-
-                  if (activeRisks.length === 0) return null;
-
-                  return (
-                    <RiskOverlay
-                      key={country}
-                      country={country}
-                      riskTypes={activeRisks}
-                    />
-                  );
-                })}
-
-                {/* Supplier Markers */}
-                {!loading &&
-                  suppliers.map((supplier) => {
-                    const coordinates = countryCoordinates[
-                      supplier.country
-                    ] || [0, 0];
-
-                    if (coordinates[0] === 0 && coordinates[1] === 0)
-                      return null;
-
-                    const hasRisks = countryRiskData[supplier.country]?.some(
-                      (risk) => activeRiskTypes.includes(risk)
-                    );
-
-                    return (
-                      <Marker
-                        key={supplier.id}
-                        position={[coordinates[0], coordinates[1]]}
-                        icon={L.divIcon({
-                          className: "custom-div-icon",
-                          html: `<div style="background-color: ${
-                            hasRisks ? "#ef4444" : "#3b82f6"
-                          }; width: 10px; height: 10px; border-radius: 50%; border: 2px solid white;"></div>`,
-                          iconSize: [12, 12],
-                          iconAnchor: [6, 6],
-                        })}
-                      >
-                        <Popup>
-                          <div className="p-2">
-                            <h3 className="font-bold">{supplier.name}</h3>
-                            <p className="text-sm">
-                              <span className="font-semibold">Country:</span>{" "}
-                              {supplier.country}
-                            </p>
-                            <p className="text-sm">
-                              <span className="font-semibold">Industry:</span>{" "}
-                              {supplier.industry || "N/A"}
-                            </p>
-                            <p className="text-sm">
-                              <span className="font-semibold">
-                                Ethical Score:
-                              </span>{" "}
-                              <span
-                                className={
-                                  (supplier.ethical_score || 0) > 75
-                                    ? "text-green-600"
-                                    : (supplier.ethical_score || 0) > 50
-                                    ? "text-yellow-600"
-                                    : "text-red-600"
-                                }
-                              >
-                                {supplier.ethical_score || "N/A"}
-                              </span>
-                            </p>
-
-                            {/* Risk warnings if any */}
-                            {countryRiskData[supplier.country] && (
-                              <div className="mt-2 pt-2 border-t">
-                                <p className="text-sm font-semibold text-red-600 flex items-center">
-                                  <ExclamationTriangleIcon className="h-4 w-4 mr-1" />
-                                  Risk Factors:
-                                </p>
-                                <ul className="text-xs mt-1">
-                                  {countryRiskData[supplier.country]
-                                    .filter((risk) =>
-                                      activeRiskTypes.includes(risk)
-                                    )
-                                    .map((risk) => (
-                                      <li
-                                        key={risk}
-                                        className="flex items-center mt-1"
-                                        style={{ color: riskTypes[risk].color }}
-                                      >
-                                        {riskTypes[risk].icon}
-                                        <span className="ml-1">
-                                          {riskTypes[risk].name}
-                                        </span>
-                                      </li>
-                                    ))}
-                                </ul>
-                              </div>
-                            )}
-                          </div>
-                        </Popup>
-                      </Marker>
-                    );
-                  })}
-              </MapContainer>
-            </div>
-          )}
-        </div>
-
-        {/* Alerts panel */}
-        <div
-          className={`bg-white rounded-lg shadow ${
-            showAlerts ? "block" : "hidden md:block"
-          }`}
-        >
-          <div className="p-4 border-b flex justify-between items-center">
-            <h2 className="text-lg font-semibold">Recent Alerts</h2>
-            {unreadAlertsCount > 0 && (
-              <span className="bg-red-100 text-red-800 text-xs font-semibold px-2.5 py-0.5 rounded-full">
-                {unreadAlertsCount} New
-              </span>
-            )}
+        ) : error ? (
+          <div className="p-12 text-center">
+            <ExclamationTriangleIcon className="h-12 w-12 text-red-500 mx-auto" />
+            <p className="mt-4 text-red-500">{error}</p>
+            <button
+              onClick={() => window.location.reload()}
+              className="mt-4 px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700"
+            >
+              Try Again
+            </button>
           </div>
-
-          <div className="p-2 max-h-[550px] overflow-y-auto">
-            {alerts.length > 0 ? (
-              <div className="divide-y divide-gray-200">
-                {alerts.map((alert) => (
-                  <div
-                    key={alert.id}
-                    className={`p-3 hover:bg-gray-50 cursor-pointer transition-all ${
-                      !alert.read ? "bg-blue-50" : ""
-                    }`}
-                    onClick={() => markAlertAsRead(alert.id)}
-                  >
-                    <div className="flex justify-between">
-                      <p
-                        className="text-sm font-semibold"
-                        style={{ color: riskTypes[alert.type]?.color }}
-                      >
-                        {alert.title}
-                      </p>
-                      {!alert.read && (
-                        <span className="bg-blue-100 text-blue-800 text-xs px-1.5 py-0.5 rounded-full">
-                          New
-                        </span>
-                      )}
-                    </div>
-                    <p className="text-xs text-gray-500 mt-1">{alert.date}</p>
-                    <p className="text-sm mt-1">{alert.description}</p>
-                    <div className="flex mt-2">
-                      <span
-                        className="text-xs px-2 py-1 rounded-full"
-                        style={{
-                          backgroundColor: `${riskTypes[alert.type]?.color}20`,
-                          color: riskTypes[alert.type]?.color,
-                        }}
-                      >
-                        {riskTypes[alert.type]?.name}
-                      </span>
-                      <span className="text-xs px-2 py-1 rounded-full bg-gray-100 text-gray-800 ml-2">
-                        {alert.country}
-                      </span>
-                    </div>
+        ) : (
+          <div className="p-12 text-center">
+            <div className="mb-8">
+              <h2 className="text-xl font-semibold text-gray-800 mb-4">
+                Interactive Risk Map
+              </h2>
+              <p className="text-gray-600 mb-6">
+                The interactive geopolitical risk map is currently being
+                upgraded to improve performance. Please check back soon for the
+                full visualization.
+              </p>
+              <div className="bg-blue-50 p-4 rounded-lg inline-block">
+                <div className="flex items-start">
+                  <InformationCircleIcon className="h-5 w-5 text-blue-500 mr-2 mt-0.5" />
+                  <div className="text-left">
+                    <p className="text-blue-700 text-sm font-medium">
+                      Supply chain risk data is available
+                    </p>
+                    <p className="text-blue-600 text-xs mt-1">
+                      You can still view and manage risk alerts below while the
+                      map visualization is being updated.
+                    </p>
                   </div>
-                ))}
-              </div>
-            ) : (
-              <div className="p-4 text-center text-gray-500">
-                <BellIcon className="h-8 w-8 mx-auto mb-2 text-gray-400" />
-                <p>No recent alerts</p>
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
-
-      {/* Help/Tutorial Modal */}
-      {showTutorial && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="p-6">
-              <div className="flex justify-between items-center mb-4">
-                <h2 className="text-xl font-bold">How to Use the Risk Map</h2>
-                <button
-                  onClick={() => setShowTutorial(false)}
-                  className="text-gray-500 hover:text-gray-700"
-                >
-                  <svg
-                    className="w-6 h-6"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M6 18L18 6M6 6l12 12"
-                    />
-                  </svg>
-                </button>
-              </div>
-
-              <div className="space-y-4">
-                <div>
-                  <h3 className="font-semibold text-lg">Map Overview</h3>
-                  <p className="text-gray-600">
-                    The Geo-AI Risk Map visualizes your suppliers on a world
-                    map, overlaid with various risk factors that might affect
-                    your supply chain.
-                  </p>
                 </div>
+              </div>
+            </div>
 
-                <div>
-                  <h3 className="font-semibold text-lg">Risk Overlays</h3>
-                  <p className="text-gray-600 mb-2">
-                    Each colored overlay represents a different type of risk.
-                    You can toggle them on/off using the buttons above the map.
-                  </p>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                    {Object.entries(riskTypes).map(
-                      ([key, { name, color, icon, description }]) => (
-                        <div
-                          key={key}
-                          className="flex p-3 rounded-lg"
-                          style={{
-                            backgroundColor: `${color}10`,
-                            borderLeft: `4px solid ${color}`,
-                          }}
-                        >
-                          <div className="mr-3">{icon}</div>
-                          <div>
-                            <h4 className="font-semibold" style={{ color }}>
-                              {name}
-                            </h4>
-                            <p className="text-xs text-gray-600">
-                              {description}
-                            </p>
-                          </div>
+            {/* Alerts panel */}
+            {showAlerts && (
+              <div className="mt-6 bg-white rounded-lg shadow-lg border border-gray-200 p-4 max-w-2xl mx-auto">
+                <div className="flex justify-between items-center mb-4">
+                  <h3 className="font-semibold text-gray-900">Recent Alerts</h3>
+                  <span className="text-xs text-gray-500">
+                    {unreadAlerts} unread
+                  </span>
+                </div>
+                <div className="space-y-3 max-h-96 overflow-y-auto">
+                  {alerts.map((alert) => (
+                    <div
+                      key={alert.id}
+                      className={`p-3 rounded-lg border ${
+                        alert.read
+                          ? "border-gray-200 bg-white"
+                          : "border-indigo-200 bg-indigo-50"
+                      }`}
+                    >
+                      <div className="flex justify-between">
+                        <div className="flex items-center">
+                          <span
+                            className="w-2 h-2 rounded-full mr-2"
+                            style={{
+                              backgroundColor:
+                                riskTypes[alert.type as keyof typeof riskTypes]
+                                  ?.color || "#000",
+                            }}
+                          ></span>
+                          <h4 className="font-medium text-sm">{alert.title}</h4>
                         </div>
-                      )
-                    )}
-                  </div>
-                </div>
-
-                <div>
-                  <h3 className="font-semibold text-lg">Alerts System</h3>
-                  <p className="text-gray-600">
-                    The alerts panel shows real-time notifications about
-                    emerging risks that could affect your suppliers. Click on an
-                    alert to mark it as read.
-                  </p>
-                </div>
-
-                <div>
-                  <h3 className="font-semibold text-lg">Supplier Markers</h3>
-                  <p className="text-gray-600">
-                    Each dot on the map represents a supplier. Red markers
-                    indicate suppliers in high-risk regions. Click on a marker
-                    to see detailed information and specific risks affecting
-                    that supplier.
-                  </p>
+                        <span className="text-xs text-gray-500">
+                          {alert.date}
+                        </span>
+                      </div>
+                      <p className="text-sm text-gray-600 mt-1">
+                        {alert.description}
+                      </p>
+                      <div className="flex justify-between items-center mt-2">
+                        <span className="text-xs text-gray-500">
+                          {alert.country}
+                        </span>
+                        {!alert.read && (
+                          <button
+                            onClick={() => markAlertAsRead(alert.id)}
+                            className="text-xs text-indigo-600 hover:text-indigo-800"
+                          >
+                            Mark as read
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  ))}
                 </div>
               </div>
-
-              <div className="mt-6 pt-4 border-t">
-                <button
-                  onClick={() => setShowTutorial(false)}
-                  className="w-full inline-flex justify-center items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-                >
-                  Got it
-                </button>
-              </div>
-            </div>
+            )}
           </div>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 };
