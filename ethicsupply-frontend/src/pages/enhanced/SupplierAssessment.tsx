@@ -1406,14 +1406,14 @@ const SupplierAssessment = () => {
                       </span>
                       <div
                         className={`text-2xl font-bold mt-1 ${
-                          result.ethical_score >= 80
+                          (result.ethical_score || 0) >= 80
                             ? "text-green-600"
-                            : result.ethical_score >= 60
+                            : (result.ethical_score || 0) >= 60
                             ? "text-yellow-600"
                             : "text-red-600"
                         }`}
                       >
-                        {result.ethical_score}
+                        {result.ethical_score?.toFixed(1) || "N/A"}
                       </div>
                     </div>
                     <div className="bg-gradient-to-br from-green-50 to-green-100 p-4 rounded-lg text-center">
@@ -1422,14 +1422,14 @@ const SupplierAssessment = () => {
                       </span>
                       <div
                         className={`text-2xl font-bold mt-1 ${
-                          result.environmental_score >= 80
+                          (result.environmental_score || 0) >= 80
                             ? "text-green-600"
-                            : result.environmental_score >= 60
+                            : (result.environmental_score || 0) >= 60
                             ? "text-yellow-600"
                             : "text-red-600"
                         }`}
                       >
-                        {result.environmental_score}
+                        {result.environmental_score?.toFixed(1) || "N/A"}
                       </div>
                     </div>
                     <div className="bg-gradient-to-br from-purple-50 to-purple-100 p-4 rounded-lg text-center">
@@ -1438,14 +1438,14 @@ const SupplierAssessment = () => {
                       </span>
                       <div
                         className={`text-2xl font-bold mt-1 ${
-                          result.social_score >= 80
+                          (result.social_score || 0) >= 80
                             ? "text-green-600"
-                            : result.social_score >= 60
+                            : (result.social_score || 0) >= 60
                             ? "text-yellow-600"
                             : "text-red-600"
                         }`}
                       >
-                        {result.social_score}
+                        {result.social_score?.toFixed(1) || "N/A"}
                       </div>
                     </div>
                     <div className="bg-gradient-to-br from-yellow-50 to-yellow-100 p-4 rounded-lg text-center">
@@ -1454,14 +1454,14 @@ const SupplierAssessment = () => {
                       </span>
                       <div
                         className={`text-2xl font-bold mt-1 ${
-                          result.governance_score >= 80
+                          (result.governance_score || 0) >= 80
                             ? "text-green-600"
-                            : result.governance_score >= 60
+                            : (result.governance_score || 0) >= 60
                             ? "text-yellow-600"
                             : "text-red-600"
                         }`}
                       >
-                        {result.governance_score}
+                        {result.governance_score?.toFixed(1) || "N/A"}
                       </div>
                     </div>
                     <div className="bg-gradient-to-br from-indigo-50 to-indigo-100 p-4 rounded-lg text-center">
@@ -1470,14 +1470,14 @@ const SupplierAssessment = () => {
                       </span>
                       <div
                         className={`text-2xl font-bold mt-1 ${
-                          result.supply_chain_score >= 80
+                          (result.supply_chain_score || 0) >= 80
                             ? "text-green-600"
-                            : result.supply_chain_score >= 60
+                            : (result.supply_chain_score || 0) >= 60
                             ? "text-yellow-600"
                             : "text-red-600"
                         }`}
                       >
-                        {result.supply_chain_score}
+                        {result.supply_chain_score?.toFixed(1) || "N/A"}
                       </div>
                     </div>
                     <div className="bg-gradient-to-br from-red-50 to-red-100 p-4 rounded-lg text-center">
@@ -1486,14 +1486,14 @@ const SupplierAssessment = () => {
                       </span>
                       <div
                         className={`text-2xl font-bold mt-1 ${
-                          result.risk_score <= 30
+                          (result.risk_score || 100) <= 30
                             ? "text-green-600"
-                            : result.risk_score <= 60
+                            : (result.risk_score || 100) <= 60
                             ? "text-yellow-600"
                             : "text-red-600"
                         }`}
                       >
-                        {result.risk_score}
+                        {result.risk_score?.toFixed(1) || "N/A"}
                       </div>
                     </div>
                   </div>
@@ -1514,12 +1514,20 @@ const SupplierAssessment = () => {
                         Strengths
                       </h4>
                       <ul className="space-y-1 text-sm text-gray-600">
-                        {result.assessment.strengths.map((strength, index) => (
-                          <li key={index} className="flex items-start">
-                            <span className="text-green-500 mr-2">•</span>
-                            {strength}
+                        {(result.assessment?.strengths || []).map(
+                          (strength, index) => (
+                            <li key={index} className="flex items-start">
+                              <span className="text-green-500 mr-2">•</span>
+                              {strength}
+                            </li>
+                          )
+                        )}
+                        {(!result.assessment?.strengths ||
+                          result.assessment.strengths.length === 0) && (
+                          <li className="text-gray-500 italic">
+                            No specific strengths identified
                           </li>
-                        ))}
+                        )}
                       </ul>
                     </div>
                     <div className="p-4 sm:p-6">
@@ -1528,12 +1536,20 @@ const SupplierAssessment = () => {
                         Weaknesses
                       </h4>
                       <ul className="space-y-1 text-sm text-gray-600">
-                        {result.assessment.weaknesses.map((weakness, index) => (
-                          <li key={index} className="flex items-start">
-                            <span className="text-red-500 mr-2">•</span>
-                            {weakness}
+                        {(result.assessment?.weaknesses || []).map(
+                          (weakness, index) => (
+                            <li key={index} className="flex items-start">
+                              <span className="text-red-500 mr-2">•</span>
+                              {weakness}
+                            </li>
+                          )
+                        )}
+                        {(!result.assessment?.weaknesses ||
+                          result.assessment.weaknesses.length === 0) && (
+                          <li className="text-gray-500 italic">
+                            No specific weaknesses identified
                           </li>
-                        ))}
+                        )}
                       </ul>
                     </div>
                     <div className="p-4 sm:p-6">
@@ -1542,13 +1558,19 @@ const SupplierAssessment = () => {
                         Opportunities
                       </h4>
                       <ul className="space-y-1 text-sm text-gray-600">
-                        {result.assessment.opportunities.map(
+                        {(result.assessment?.opportunities || []).map(
                           (opportunity, index) => (
                             <li key={index} className="flex items-start">
                               <span className="text-blue-500 mr-2">•</span>
                               {opportunity}
                             </li>
                           )
+                        )}
+                        {(!result.assessment?.opportunities ||
+                          result.assessment.opportunities.length === 0) && (
+                          <li className="text-gray-500 italic">
+                            No specific opportunities identified
+                          </li>
                         )}
                       </ul>
                     </div>
@@ -1558,12 +1580,20 @@ const SupplierAssessment = () => {
                         Threats
                       </h4>
                       <ul className="space-y-1 text-sm text-gray-600">
-                        {result.assessment.threats.map((threat, index) => (
-                          <li key={index} className="flex items-start">
-                            <span className="text-yellow-500 mr-2">•</span>
-                            {threat}
+                        {(result.assessment?.threats || []).map(
+                          (threat, index) => (
+                            <li key={index} className="flex items-start">
+                              <span className="text-yellow-500 mr-2">•</span>
+                              {threat}
+                            </li>
+                          )
+                        )}
+                        {(!result.assessment?.threats ||
+                          result.assessment.threats.length === 0) && (
+                          <li className="text-gray-500 italic">
+                            No specific threats identified
                           </li>
-                        ))}
+                        )}
                       </ul>
                     </div>
                   </div>
@@ -1577,13 +1607,16 @@ const SupplierAssessment = () => {
                   </h3>
                 </div>
                 <div className="border-t border-gray-200 px-4 py-5 sm:p-6">
-                  <p className="text-gray-700">{result.recommendation}</p>
+                  <p className="text-gray-700">
+                    {result.recommendation ||
+                      "No specific recommendations available."}
+                  </p>
 
                   <h4 className="mt-6 text-base font-medium text-gray-900">
                     Suggested Improvements
                   </h4>
                   <ul className="mt-3 space-y-2">
-                    {result.suggestions.map((suggestion, index) => (
+                    {(result.suggestions || []).map((suggestion, index) => (
                       <li key={index} className="flex items-start">
                         <div className="flex-shrink-0">
                           <SparklesIcon className="h-5 w-5 text-blue-500" />
@@ -1593,6 +1626,17 @@ const SupplierAssessment = () => {
                         </p>
                       </li>
                     ))}
+                    {(!result.suggestions ||
+                      result.suggestions.length === 0) && (
+                      <li className="flex items-start">
+                        <div className="flex-shrink-0">
+                          <SparklesIcon className="h-5 w-5 text-blue-500" />
+                        </div>
+                        <p className="ml-3 text-sm text-gray-500 italic">
+                          No specific improvement suggestions available
+                        </p>
+                      </li>
+                    )}
                   </ul>
                 </div>
               </div>
@@ -1636,7 +1680,7 @@ const SupplierAssessment = () => {
                         </tr>
                       </thead>
                       <tbody className="bg-white divide-y divide-gray-200">
-                        {result.risk_factors.map((risk, index) => (
+                        {(result.risk_factors || []).map((risk, index) => (
                           <tr key={index}>
                             <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                               {risk.factor}
@@ -1672,6 +1716,17 @@ const SupplierAssessment = () => {
                             </td>
                           </tr>
                         ))}
+                        {(!result.risk_factors ||
+                          result.risk_factors.length === 0) && (
+                          <tr>
+                            <td
+                              colSpan={4}
+                              className="px-6 py-4 text-sm text-center text-gray-500 italic"
+                            >
+                              No specific risk factors identified
+                            </td>
+                          </tr>
+                        )}
                       </tbody>
                     </table>
                   </div>
@@ -1686,38 +1741,46 @@ const SupplierAssessment = () => {
                   </h3>
                 </div>
                 <div className="border-t border-gray-200 px-4 py-5 sm:p-6">
-                  <div className="text-center">
-                    <p className="text-sm text-gray-500 mb-2">
-                      Percentile Ranking
-                    </p>
-                    <div className="text-3xl font-bold text-blue-600">
-                      {result.industry_comparison.percentile}%
-                    </div>
-                    <p className="mt-1 text-sm text-gray-500">
-                      This supplier ranks better than{" "}
-                      {result.industry_comparison.percentile}% of suppliers in
-                      the industry
-                    </p>
-                  </div>
+                  {result.industry_comparison ? (
+                    <>
+                      <div className="text-center">
+                        <p className="text-sm text-gray-500 mb-2">
+                          Percentile Ranking
+                        </p>
+                        <div className="text-3xl font-bold text-blue-600">
+                          {result.industry_comparison.percentile}%
+                        </div>
+                        <p className="mt-1 text-sm text-gray-500">
+                          This supplier ranks better than{" "}
+                          {result.industry_comparison.percentile}% of suppliers
+                          in the industry
+                        </p>
+                      </div>
 
-                  <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2">
-                    <div className="border border-gray-200 rounded-md p-4">
-                      <span className="text-sm font-medium text-gray-500">
-                        Industry Average
-                      </span>
-                      <div className="mt-1 text-2xl font-bold">
-                        {result.industry_comparison.average_score}
+                      <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2">
+                        <div className="border border-gray-200 rounded-md p-4">
+                          <span className="text-sm font-medium text-gray-500">
+                            Industry Average
+                          </span>
+                          <div className="mt-1 text-2xl font-bold">
+                            {result.industry_comparison.average_score}
+                          </div>
+                        </div>
+                        <div className="border border-gray-200 rounded-md p-4">
+                          <span className="text-sm font-medium text-gray-500">
+                            Top Performer
+                          </span>
+                          <div className="mt-1 text-2xl font-bold">
+                            {result.industry_comparison.top_performer_score}
+                          </div>
+                        </div>
                       </div>
-                    </div>
-                    <div className="border border-gray-200 rounded-md p-4">
-                      <span className="text-sm font-medium text-gray-500">
-                        Top Performer
-                      </span>
-                      <div className="mt-1 text-2xl font-bold">
-                        {result.industry_comparison.top_performer_score}
-                      </div>
-                    </div>
-                  </div>
+                    </>
+                  ) : (
+                    <p className="text-center text-gray-500 italic">
+                      Industry comparison data not available
+                    </p>
+                  )}
                 </div>
               </div>
 
