@@ -6,12 +6,20 @@ export interface Supplier {
   id: number;
   name: string;
   country: string;
+  industry?: string;
   co2_emissions: number;
   delivery_efficiency: number;
   wage_fairness: number;
   human_rights_index: number;
   waste_management_score: number;
   ethical_score: number | null;
+
+  // Additional fields for enhanced data
+  environmental_score?: number;
+  social_score?: number;
+  governance_score?: number;
+  risk_level?: string;
+
   created_at: string;
   updated_at: string;
   isMockData?: boolean;
@@ -43,6 +51,56 @@ export interface DashboardData {
   suppliers_by_country: Record<string, number>;
   ethical_score_distribution: Array<{ range: string; count: number }>;
   co2_emissions_by_industry: Array<{ name: string; value: number }>;
+  isMockData?: boolean;
+}
+
+export interface Recommendation {
+  action: string;
+  impact: string;
+  difficulty: string;
+  timeframe: string;
+  details: string;
+}
+
+export interface ImprovementScenario {
+  name: string;
+  description: string;
+  changes: Record<string, number>;
+  impact: {
+    current_scores: any;
+    predicted_scores: any;
+    improvements: Record<string, number>;
+  };
+}
+
+export interface DetailedAnalysis {
+  id: number;
+  name: string;
+  country: string;
+  industry: string;
+  scores: {
+    overall: number;
+    environmental: number;
+    social: number;
+    governance: number;
+    risk_level: string;
+  };
+  industry_benchmarks: {
+    avg_ethical_score: number;
+    avg_environmental_score: number;
+    avg_social_score: number;
+    avg_governance_score: number;
+    best_ethical_score: number;
+    worst_ethical_score: number;
+  };
+  percentiles: {
+    overall: number;
+    environmental: number;
+    social: number;
+    governance: number;
+  };
+  recommendations: Recommendation[];
+  improvement_scenarios: ImprovementScenario[];
   isMockData?: boolean;
 }
 
@@ -475,3 +533,434 @@ function generateMockSuggestions(data: any): string[] {
 
   return suggestions;
 }
+
+export const getDetailedAnalysis = async (
+  supplierId: number
+): Promise<DetailedAnalysis> => {
+  try {
+    console.log(`Fetching detailed analysis for supplier ${supplierId}...`);
+    const response = await fetch(
+      `${API_BASE_URL}/suppliers/${supplierId}/detailed_analysis/`
+    );
+
+    if (!response.ok) {
+      console.warn(
+        `Detailed analysis API returned status ${response.status}. Using mock data.`
+      );
+      return getMockDetailedAnalysis(supplierId);
+    }
+
+    const data = await response.json();
+    console.log("Detailed analysis API response:", data);
+    return data;
+  } catch (error) {
+    console.error("Error fetching detailed analysis:", error);
+    return getMockDetailedAnalysis(supplierId);
+  }
+};
+
+export const simulateChanges = async (
+  supplierId: number,
+  changes: Record<string, number>
+): Promise<any> => {
+  try {
+    console.log(`Simulating changes for supplier ${supplierId}:`, changes);
+    const response = await fetch(
+      `${API_BASE_URL}/suppliers/${supplierId}/simulate_changes/`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ changes }),
+      }
+    );
+
+    if (!response.ok) {
+      console.warn(
+        `Simulation API returned status ${response.status}. Using mock data.`
+      );
+      return getMockSimulationResult(supplierId, changes);
+    }
+
+    const data = await response.json();
+    console.log("Simulation API response:", data);
+    return data;
+  } catch (error) {
+    console.error("Error simulating changes:", error);
+    return getMockSimulationResult(supplierId, changes);
+  }
+};
+
+// Mock data generators for the new endpoints
+function getMockDetailedAnalysis(supplierId: number): DetailedAnalysis {
+  const supplier =
+    mockSuppliers.find((s) => s.id === supplierId) || mockSuppliers[0];
+  const score = supplier.ethical_score || 75;
+
+  return {
+    id: supplier.id,
+    name: supplier.name,
+    country: supplier.country,
+    industry: "Manufacturing",
+    scores: {
+      overall: score,
+      environmental: score - 5 + Math.random() * 10,
+      social: score - 5 + Math.random() * 10,
+      governance: score - 5 + Math.random() * 10,
+      risk_level:
+        score > 80
+          ? "low"
+          : score > 60
+          ? "medium"
+          : score > 40
+          ? "high"
+          : "critical",
+    },
+    industry_benchmarks: {
+      avg_ethical_score: 72.5,
+      avg_environmental_score: 68.2,
+      avg_social_score: 71.8,
+      avg_governance_score: 74.3,
+      best_ethical_score: 91.2,
+      worst_ethical_score: 48.7,
+    },
+    percentiles: {
+      overall: 65,
+      environmental: 58,
+      social: 72,
+      governance: 61,
+    },
+    recommendations: [
+      {
+        action:
+          "Reduce carbon emissions by implementing energy efficiency measures",
+        impact: "high",
+        difficulty: "medium",
+        timeframe: "long-term",
+        details:
+          "Current emissions are at 35.2. Aim to reduce by 15% over the next year.",
+      },
+      {
+        action: "Implement water conservation and recycling systems",
+        impact: "medium",
+        difficulty: "medium",
+        timeframe: "medium-term",
+        details:
+          "Current water usage is at 42.3. Aim to reduce by 20% within 6 months.",
+      },
+      {
+        action: "Invest in renewable energy sources and efficiency upgrades",
+        impact: "high",
+        difficulty: "high",
+        timeframe: "long-term",
+        details: "Current efficiency score is 62.5%. Target 25% improvement.",
+      },
+    ],
+    improvement_scenarios: [
+      {
+        name: "Environmental Focus",
+        description: "Improve environmental metrics by 20%",
+        changes: {
+          co2_emissions: supplier.co2_emissions * 0.8,
+          waste_management_score: supplier.waste_management_score * 1.2,
+        },
+        impact: {
+          current_scores: {
+            overall_score: score,
+            environmental_score: score - 5 + Math.random() * 10,
+            social_score: score - 5 + Math.random() * 10,
+            governance_score: score - 5 + Math.random() * 10,
+          },
+          predicted_scores: {
+            overall_score: score + 8.5,
+            environmental_score: score - 5 + Math.random() * 10 + 15.2,
+            social_score: score - 5 + Math.random() * 10,
+            governance_score: score - 5 + Math.random() * 10,
+          },
+          improvements: {
+            overall_score: 11.3,
+            environmental_score: 22.4,
+            social_score: 0,
+            governance_score: 0,
+          },
+        },
+      },
+      {
+        name: "Social Responsibility Focus",
+        description: "Improve social metrics by 20%",
+        changes: {
+          wage_fairness: supplier.wage_fairness * 1.2,
+          human_rights_index: supplier.human_rights_index * 1.2,
+        },
+        impact: {
+          current_scores: {
+            overall_score: score,
+            environmental_score: score - 5 + Math.random() * 10,
+            social_score: score - 5 + Math.random() * 10,
+            governance_score: score - 5 + Math.random() * 10,
+          },
+          predicted_scores: {
+            overall_score: score + 7.2,
+            environmental_score: score - 5 + Math.random() * 10,
+            social_score: score - 5 + Math.random() * 10 + 18.5,
+            governance_score: score - 5 + Math.random() * 10,
+          },
+          improvements: {
+            overall_score: 9.6,
+            environmental_score: 0,
+            social_score: 25.8,
+            governance_score: 0,
+          },
+        },
+      },
+    ],
+    isMockData: true,
+  };
+}
+
+function getMockSimulationResult(
+  supplierId: number,
+  changes: Record<string, number>
+): any {
+  const supplier =
+    mockSuppliers.find((s) => s.id === supplierId) || mockSuppliers[0];
+  const currentScore = supplier.ethical_score || 75;
+
+  // Calculate a simple impact based on changes
+  let improvement = 0;
+  if (changes.co2_emissions && changes.co2_emissions < supplier.co2_emissions) {
+    improvement += 3;
+  }
+  if (changes.wage_fairness && changes.wage_fairness > supplier.wage_fairness) {
+    improvement += 3;
+  }
+  if (
+    changes.human_rights_index &&
+    changes.human_rights_index > supplier.human_rights_index
+  ) {
+    improvement += 3;
+  }
+  if (
+    changes.waste_management_score &&
+    changes.waste_management_score > supplier.waste_management_score
+  ) {
+    improvement += 3;
+  }
+
+  const newScore = Math.min(100, currentScore + improvement);
+  const percentChange = ((newScore - currentScore) / currentScore) * 100;
+
+  return {
+    current_scores: {
+      overall_score: currentScore,
+      environmental_score: currentScore - 5 + Math.random() * 10,
+      social_score: currentScore - 5 + Math.random() * 10,
+      governance_score: currentScore - 5 + Math.random() * 10,
+    },
+    predicted_scores: {
+      overall_score: newScore,
+      environmental_score:
+        currentScore -
+        5 +
+        Math.random() * 10 +
+        (changes.co2_emissions ? 5 : 0) +
+        (changes.waste_management_score ? 5 : 0),
+      social_score:
+        currentScore -
+        5 +
+        Math.random() * 10 +
+        (changes.wage_fairness ? 5 : 0) +
+        (changes.human_rights_index ? 5 : 0),
+      governance_score: currentScore - 5 + Math.random() * 10,
+    },
+    improvements: {
+      overall_score: percentChange.toFixed(2),
+      environmental_score:
+        changes.co2_emissions || changes.waste_management_score
+          ? (5 + Math.random() * 5).toFixed(2)
+          : "0.00",
+      social_score:
+        changes.wage_fairness || changes.human_rights_index
+          ? (5 + Math.random() * 5).toFixed(2)
+          : "0.00",
+      governance_score: "0.00",
+    },
+  };
+}
+
+// Add this new function to handle adding suppliers
+export const addSupplier = async (supplierData: any): Promise<Supplier> => {
+  try {
+    console.log("Adding new supplier to API:", supplierData);
+    const response = await fetch(`${API_BASE_URL}/suppliers/`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(supplierData),
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error(
+        "API error when adding supplier:",
+        response.status,
+        errorText
+      );
+
+      if (response.status === 404) {
+        console.warn(
+          "Add supplier API endpoint not available. Creating mock supplier."
+        );
+        // Create a mock supplier with a new ID higher than existing mock suppliers
+        const newId = Math.max(...mockSuppliers.map((s) => s.id)) + 1;
+        const mockSupplier: Supplier = {
+          id: newId,
+          name: supplierData.name,
+          country: supplierData.country,
+          industry: supplierData.industry || "Manufacturing",
+          co2_emissions: supplierData.co2_emissions || 50,
+          delivery_efficiency: supplierData.delivery_efficiency || 0.5,
+          wage_fairness: supplierData.wage_fairness || 0.5,
+          human_rights_index: supplierData.human_rights_index || 0.5,
+          waste_management_score: supplierData.waste_management_score || 0.5,
+          ethical_score: calculateMockEthicalScore(supplierData),
+          environmental_score: calculateMockEnvironmentalScore(supplierData),
+          social_score: calculateMockSocialScore(supplierData),
+          governance_score: calculateMockGovernanceScore(supplierData),
+          risk_level: calculateMockRiskLevel(supplierData),
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+          isMockData: true,
+        };
+
+        // Add this new supplier to the mockSuppliers array so it will show up in future getSuppliers calls
+        mockSuppliers.push(mockSupplier);
+        return mockSupplier;
+      }
+
+      throw new Error(
+        `Failed to add supplier: ${response.status} ${errorText}`
+      );
+    }
+
+    // Process the real API response
+    const data = await response.json();
+    console.log("Add supplier API response:", data);
+    return data;
+  } catch (error) {
+    console.error("Error in addSupplier:", error);
+
+    // If the error is related to the API not being available, create a mock supplier
+    if (
+      error.message?.includes("Failed to fetch") ||
+      error.message?.includes("NetworkError")
+    ) {
+      console.warn(
+        "Add supplier API endpoint not available. Creating mock supplier."
+      );
+      // Create a mock supplier with a new ID
+      const newId = Math.max(...mockSuppliers.map((s) => s.id)) + 1;
+      const mockSupplier: Supplier = {
+        id: newId,
+        name: supplierData.name,
+        country: supplierData.country,
+        industry: supplierData.industry || "Manufacturing",
+        co2_emissions: supplierData.co2_emissions || 50,
+        delivery_efficiency: supplierData.delivery_efficiency || 0.5,
+        wage_fairness: supplierData.wage_fairness || 0.5,
+        human_rights_index: supplierData.human_rights_index || 0.5,
+        waste_management_score: supplierData.waste_management_score || 0.5,
+        ethical_score: calculateMockEthicalScore(supplierData),
+        environmental_score: calculateMockEnvironmentalScore(supplierData),
+        social_score: calculateMockSocialScore(supplierData),
+        governance_score: calculateMockGovernanceScore(supplierData),
+        risk_level: calculateMockRiskLevel(supplierData),
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+        isMockData: true,
+      };
+
+      // Add this new supplier to the mockSuppliers array
+      mockSuppliers.push(mockSupplier);
+      return mockSupplier;
+    }
+
+    throw error;
+  }
+};
+
+// Helper functions for mock supplier creation
+const calculateMockEthicalScore = (data: any): number => {
+  // Simple algorithm to calculate a mock ethical score based on input data
+  const scores = [
+    data.co2_emissions ? Math.max(0, 100 - data.co2_emissions) / 100 : 0.5,
+    data.delivery_efficiency || 0.5,
+    data.wage_fairness || 0.5,
+    data.human_rights_index || 0.5,
+    data.waste_management_score || 0.5,
+    data.energy_efficiency || 0.5,
+    data.diversity_inclusion_score || 0.5,
+    data.transparency_score || 0.5,
+    1 - (data.corruption_risk || 0.5),
+    data.quality_control_score || 0.5,
+  ];
+
+  // Average score multiplied by 100
+  return (
+    Math.round(
+      (scores.reduce((sum, score) => sum + score, 0) / scores.length) * 100
+    ) / 100
+  );
+};
+
+const calculateMockEnvironmentalScore = (data: any): number => {
+  const scores = [
+    data.co2_emissions ? Math.max(0, 100 - data.co2_emissions) / 100 : 0.5,
+    data.waste_management_score || 0.5,
+    data.energy_efficiency || 0.5,
+    data.water_usage ? Math.max(0, 100 - data.water_usage) / 100 : 0.5,
+  ];
+
+  return (
+    Math.round(
+      (scores.reduce((sum, score) => sum + score, 0) / scores.length) * 100
+    ) / 100
+  );
+};
+
+const calculateMockSocialScore = (data: any): number => {
+  const scores = [
+    data.wage_fairness || 0.5,
+    data.human_rights_index || 0.5,
+    data.diversity_inclusion_score || 0.5,
+    data.community_engagement || 0.5,
+  ];
+
+  return (
+    Math.round(
+      (scores.reduce((sum, score) => sum + score, 0) / scores.length) * 100
+    ) / 100
+  );
+};
+
+const calculateMockGovernanceScore = (data: any): number => {
+  const scores = [
+    data.transparency_score || 0.5,
+    1 - (data.corruption_risk || 0.5),
+  ];
+
+  return (
+    Math.round(
+      (scores.reduce((sum, score) => sum + score, 0) / scores.length) * 100
+    ) / 100
+  );
+};
+
+const calculateMockRiskLevel = (data: any): string => {
+  const ethicalScore = calculateMockEthicalScore(data);
+  if (ethicalScore >= 0.8) return "Low";
+  if (ethicalScore >= 0.6) return "Medium";
+  return "High";
+};

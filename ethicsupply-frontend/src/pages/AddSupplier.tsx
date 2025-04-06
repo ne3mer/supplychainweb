@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
+import { addSupplier } from "../services/api";
 import {
   BuildingOfficeIcon,
   GlobeAltIcon,
@@ -22,8 +22,6 @@ import {
   InformationCircleIcon,
   ArrowPathIcon,
 } from "@heroicons/react/24/outline";
-
-const API_BASE_URL = "http://localhost:8000/api";
 
 const AddSupplier = () => {
   const navigate = useNavigate();
@@ -151,19 +149,20 @@ const AddSupplier = () => {
     setError("");
 
     try {
-      const response = await axios.post(`${API_BASE_URL}/suppliers/`, formData);
+      const response = await addSupplier(formData);
 
-      console.log("Supplier added successfully:", response.data);
+      console.log("Supplier added successfully:", response);
       setSuccess(true);
 
       // Redirect to the new supplier's page after 2 seconds
       setTimeout(() => {
-        navigate(`/suppliers/${response.data.id}`);
+        navigate(`/suppliers/${response.id}`);
       }, 2000);
     } catch (err) {
       console.error("Error adding supplier:", err);
       setError(
         err.response?.data?.detail ||
+          err.message ||
           "Failed to add supplier. Please check your input and try again."
       );
     } finally {
