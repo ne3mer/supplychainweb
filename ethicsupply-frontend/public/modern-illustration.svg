@@ -1,0 +1,112 @@
+<svg width="100%" height="100%" viewBox="0 0 1200 900" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
+  <rect width="1200" height="900" fill="#fdf6e3" />
+  
+  <!-- Ground shadows and hills -->
+  <ellipse cx="400" cy="800" rx="300" ry="60" fill="#d8e8c8" />
+  <ellipse cx="800" cy="750" rx="350" ry="80" fill="#d8e8c8" />
+  <ellipse cx="200" cy="780" rx="150" ry="50" fill="#d8e8c8" />
+  <ellipse cx="950" cy="830" rx="150" ry="50" fill="#d8e8c8" />
+  
+  <!-- Small tree on left -->
+  <g transform="translate(230, 640) scale(0.6)">
+    <ellipse cx="0" cy="0" rx="40" ry="20" fill="#90ba7c" />
+    <g transform="translate(0, -60)">
+      <path d="M-25,60 C-50,30 -25,-40 0,-50 C25,-40 50,30 25,60 Z" fill="#7cb36b" />
+      <rect x="-7" y="60" width="14" height="40" fill="#8d6e63" />
+    </g>
+  </g>
+  
+  <!-- Medium tree on right -->
+  <g transform="translate(950, 600) scale(0.9)">
+    <ellipse cx="0" cy="0" rx="60" ry="30" fill="#90ba7c" />
+    <g transform="translate(0, -100)">
+      <path d="M-40,100 C-80,50 -40,-60 0,-80 C40,-60 80,50 40,100 Z" fill="#7cb36b" />
+      <rect x="-10" y="100" width="20" height="60" fill="#8d6e63" />
+    </g>
+  </g>
+  
+  <!-- Small tree on right bottom -->
+  <g transform="translate(850, 690) scale(0.5)">
+    <ellipse cx="0" cy="0" rx="40" ry="20" fill="#90ba7c" />
+    <g transform="translate(0, -60)">
+      <path d="M-25,60 C-50,30 -25,-40 0,-50 C25,-40 50,30 25,60 Z" fill="#7cb36b" />
+      <rect x="-7" y="60" width="14" height="40" fill="#8d6e63" />
+    </g>
+  </g>
+  
+  <!-- Warehouse -->
+  <g transform="translate(350, 720)">
+    <!-- Shadow -->
+    <ellipse cx="0" cy="30" rx="100" ry="30" fill-opacity="0.1" fill="#000" />
+    
+    <!-- Base -->
+    <g transform="scale(0.8)">
+      <path d="M-80,0 L80,0 L80,-80 L-80,-80 Z" fill="#f1f1f1" />
+      <!-- Front side -->
+      <path d="M-80,0 L80,0 L50,-30 L-50,-30 Z" fill="#e0e0e0" />
+      <!-- Side -->
+      <path d="M80,0 L80,-80 L50,-110 L50,-30 Z" fill="#d0d0d0" />
+      <!-- Roof -->
+      <path d="M-50,-110 L50,-110 L80,-80 L-80,-80 Z" fill="#c0c0c0" />
+      <path d="M-50,-110 L-50,-30 L-80,-80 L-80,0 Z" fill="#e8e8e8" />
+      <path d="M-50,-110 L50,-110 L50,-30 L-50,-30 Z" fill="#d8d8d8" />
+      
+      <!-- Door -->
+      <rect x="-30" y="-30" width="40" height="30" fill="#90a4ae" />
+      <text x="-10" y="-10" font-family="Arial" font-size="12" fill="#333">Warehouse</text>
+      
+      <!-- Windows -->
+      <rect x="-60" y="-60" width="20" height="20" fill="#b3e5fc" />
+      <rect x="15" y="-60" width="20" height="20" fill="#b3e5fc" />
+    </g>
+  </g>
+  
+  <!-- Brain with circuits -->
+  <g transform="translate(600, 550)">
+    <!-- Shadow -->
+    <ellipse cx="0" cy="80" rx="80" ry="25" fill-opacity="0.1" fill="#000" />
+    
+    <!-- Brain -->
+    <g transform="scale(0.85)">
+      <!-- Brain shape -->
+      <path d="M0,-70 C70,-70 100,-20 100,20 C100,60 70,90 0,90 C-70,90 -100,60 -100,20 C-100,-20 -70,-70 0,-70" fill="#4a7ebb" />
+      
+      <!-- Brain fold details -->
+      <path d="M0,-70 C30,-70 50,-50 50,-30 C50,-10 30,0 0,0 C-30,0 -50,-10 -50,-30 C-50,-50 -30,-70 0,-70" fill="#3a6eab" />
+      <path d="M0,90 C30,90 50,70 50,50 C50,30 30,20 0,20 C-30,20 -50,30 -50,50 C-50,70 -30,90 0,90" fill="#3a6eab" />
+      
+      <!-- Circuit lines and nodes -->
+      <circle cx="40" cy="-20" r="5" fill="#59d2ff" />
+      <circle cx="-40" cy="-20" r="5" fill="#59d2ff" />
+      <circle cx="40" cy="40" r="5" fill="#59d2ff" />
+      <circle cx="-40" cy="40" r="5" fill="#59d2ff" />
+      <circle cx="0" cy="60" r="5" fill="#59d2ff" />
+      <circle cx="0" cy="-40" r="5" fill="#59d2ff" />
+      
+      <path d="M40,-20 L40,40 L0,60 L-40,40 L-40,-20 L0,-40 Z" stroke="#59d2ff" fill="none" stroke-width="2" />
+      <path d="M0,-40 L0,60" stroke="#59d2ff" fill="none" stroke-width="2" />
+      <path d="M-40,-20 L40,-20" stroke="#59d2ff" fill="none" stroke-width="2" />
+      <path d="M-40,40 L40,40" stroke="#59d2ff" fill="none" stroke-width="2" />
+      
+      <!-- Additional circuit nodes -->
+      <circle cx="20" cy="0" r="3" fill="#59d2ff" />
+      <circle cx="-20" cy="0" r="3" fill="#59d2ff" />
+      <circle cx="20" cy="20" r="3" fill="#59d2ff" />
+      <circle cx="-20" cy="20" r="3" fill="#59d2ff" />
+      
+      <!-- Connection lines (dotted) to warehouse -->
+      <path d="M-70,30 C-180,60 -250,90 -280,100" stroke="#fff" stroke-dasharray="5,5" stroke-width="3" fill="none" />
+    </g>
+  </g>
+  
+  <!-- ESG Badge -->
+  <g transform="translate(950, 200)">
+    <circle cx="0" cy="0" r="70" fill="#dcf3dc" stroke="#81C784" stroke-width="3" />
+    <text x="0" y="10" font-family="Arial" font-size="28" font-weight="bold" fill="#2e7d32" text-anchor="middle">ESG</text>
+  </g>
+  
+  <!-- Dotted path connecting elements -->
+  <path d="M400,700 C500,650 580,600 630,580" stroke="#fff" stroke-dasharray="5,5" stroke-width="3" fill="none" />
+  <path d="M650,580 C720,550 800,550 870,600" stroke="#fff" stroke-dasharray="5,5" stroke-width="3" fill="none" />
+</svg> 
