@@ -222,32 +222,16 @@ const EvaluateSupplier = () => {
   ];
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-semibold text-gray-900">
-          Evaluate Supplier
-        </h1>
-        <p className="mt-2 text-sm text-gray-700">
-          Evaluate a supplier's ethical and environmental performance
+    <div className="space-y-8 bg-neutral-50">
+      <div className="px-4 py-6 bg-gradient-to-r from-emerald-700 to-teal-700 rounded-lg shadow-md text-white">
+        <h1 className="text-3xl font-bold">Supplier Evaluation</h1>
+        <p className="mt-2 text-emerald-100">
+          Assess suppliers based on ethical and environmental criteria
         </p>
       </div>
 
-      {error && (
-        <div className="rounded-md bg-red-50 p-4">
-          <div className="flex">
-            <div className="flex-shrink-0">
-              <XCircleIcon className="h-5 w-5 text-red-400" />
-            </div>
-            <div className="ml-3">
-              <h3 className="text-sm font-medium text-red-800">Error</h3>
-              <div className="mt-2 text-sm text-red-700">{error}</div>
-            </div>
-          </div>
-        </div>
-      )}
-
       {usingMockData && (
-        <div className="rounded-md bg-blue-50 p-4">
+        <div className="rounded-md bg-blue-50 p-4 border-l-4 border-blue-400">
           <div className="flex">
             <div className="flex-shrink-0">
               <InformationCircleIcon className="h-5 w-5 text-blue-400" />
@@ -255,60 +239,57 @@ const EvaluateSupplier = () => {
             <div className="ml-3">
               <h3 className="text-sm font-medium text-blue-800">Demo Mode</h3>
               <div className="mt-2 text-sm text-blue-700">
-                Using simulated evaluation data. The API endpoint is not
-                available at this time, but the application will function as
-                expected with demo data.
+                You are viewing demo data. The API endpoint is not available at
+                this time. Evaluations will be performed with sample data.
               </div>
             </div>
           </div>
         </div>
       )}
 
-      {loadingSupplier ? (
-        <div className="bg-white shadow sm:rounded-lg">
-          <div className="px-4 py-5 sm:p-6">
-            <div className="flex justify-center items-center">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
-              <span className="ml-3 text-sm text-gray-500">
-                Loading supplier data...
-              </span>
+      {error && (
+        <div className="rounded-md bg-yellow-50 p-4 border-l-4 border-yellow-400">
+          <div className="flex">
+            <div className="flex-shrink-0">
+              <XCircleIcon className="h-5 w-5 text-yellow-400" />
+            </div>
+            <div className="ml-3">
+              <p className="text-sm text-yellow-700">{error}</p>
             </div>
           </div>
         </div>
-      ) : (
-        <div className="bg-white shadow sm:rounded-lg overflow-hidden">
-          <div className="border-b border-gray-200">
-            <nav className="-mb-px flex">
-              <button
-                onClick={() => setActiveTab("form")}
-                className={`${
-                  activeTab === "form"
-                    ? "border-primary-500 text-primary-600"
-                    : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
-                } whitespace-nowrap py-4 px-6 border-b-2 font-medium text-sm flex items-center`}
-              >
-                <ScaleIcon className="h-5 w-5 mr-2" />
-                Input Data
-              </button>
-              <button
-                onClick={() => setActiveTab("results")}
-                disabled={!result}
-                className={`${
-                  activeTab === "results"
-                    ? "border-primary-500 text-primary-600"
-                    : !result
-                    ? "border-transparent text-gray-300 cursor-not-allowed"
-                    : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
-                } whitespace-nowrap py-4 px-6 border-b-2 font-medium text-sm flex items-center`}
-              >
-                <SparklesIcon className="h-5 w-5 mr-2" />
-                View Results
-              </button>
-            </nav>
-          </div>
+      )}
 
-          {activeTab === "form" && (
-            <form onSubmit={handleSubmit} className="px-4 py-5 sm:p-6">
+      <div className="bg-white shadow-md rounded-lg overflow-hidden transition-shadow duration-300 hover:shadow-lg">
+        <div className="border-b border-gray-200">
+          <nav className="-mb-px flex" aria-label="Tabs">
+            <button
+              onClick={() => setActiveTab("form")}
+              className={`${
+                activeTab === "form"
+                  ? "border-emerald-500 text-emerald-600"
+                  : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+              } w-1/2 py-4 px-1 text-center border-b-2 font-medium text-sm sm:text-base transition-colors duration-200`}
+            >
+              Evaluation Form
+            </button>
+            <button
+              onClick={() => setActiveTab("results")}
+              className={`${
+                activeTab === "results"
+                  ? "border-emerald-500 text-emerald-600"
+                  : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+              } w-1/2 py-4 px-1 text-center border-b-2 font-medium text-sm sm:text-base transition-colors duration-200`}
+              disabled={!result}
+            >
+              Results
+            </button>
+          </nav>
+        </div>
+
+        <div className="p-4 sm:p-6">
+          {activeTab === "form" ? (
+            <form onSubmit={handleSubmit} className="space-y-6">
               <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 mb-8">
                 {textFields.map((field) => (
                   <div key={field.name}>
@@ -332,7 +313,7 @@ const EvaluateSupplier = () => {
                         value={formData[field.name]}
                         onChange={handleChange}
                         required
-                        className="focus:ring-primary-500 focus:border-primary-500 block w-full pl-10 sm:text-sm border-gray-300 rounded-md"
+                        className="focus:ring-emerald-500 focus:border-emerald-500 block w-full pl-10 sm:text-sm border-gray-300 rounded-md"
                       />
                     </div>
                   </div>
@@ -342,7 +323,7 @@ const EvaluateSupplier = () => {
               <div className="space-y-8">
                 <h3 className="text-lg font-medium text-gray-900 mb-4">
                   <span className="flex items-center">
-                    <SparklesIcon className="h-5 w-5 text-primary-500 mr-2" />
+                    <SparklesIcon className="h-5 w-5 text-emerald-500 mr-2" />
                     Sustainability Metrics
                   </span>
                 </h3>
@@ -399,14 +380,20 @@ const EvaluateSupplier = () => {
                 ))}
               </div>
 
-              <div className="mt-8 flex justify-end">
+              <div className="flex justify-end space-x-3">
+                <button
+                  type="reset"
+                  className="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 transition-colors duration-200"
+                >
+                  Reset
+                </button>
                 <button
                   type="submit"
+                  className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-emerald-600 hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 transition-colors duration-200"
                   disabled={isSubmitting}
-                  className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
                 >
                   {isSubmitting ? (
-                    <>
+                    <span className="flex items-center">
                       <svg
                         className="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
                         xmlns="http://www.w3.org/2000/svg"
@@ -428,12 +415,9 @@ const EvaluateSupplier = () => {
                         ></path>
                       </svg>
                       Evaluating...
-                    </>
+                    </span>
                   ) : (
-                    <>
-                      <CheckCircleIcon className="h-5 w-5 mr-2" />
-                      Evaluate Supplier
-                    </>
+                    "Evaluate Supplier"
                   )}
                 </button>
               </div>
@@ -495,11 +479,11 @@ const EvaluateSupplier = () => {
 
               <div className="mb-8">
                 <h4 className="text-base font-medium text-gray-900 mb-4 flex items-center">
-                  <SparklesIcon className="h-5 w-5 text-primary-500 mr-2" />
+                  <SparklesIcon className="h-5 w-5 text-emerald-500 mr-2" />
                   Recommendation
                 </h4>
-                <div className="bg-primary-50 rounded-lg p-4 border border-primary-200">
-                  <p className="text-sm text-primary-800">
+                <div className="bg-emerald-50 rounded-lg p-4 border border-emerald-200">
+                  <p className="text-sm text-emerald-800">
                     {result.recommendation || "No recommendation available."}
                   </p>
                 </div>
@@ -537,7 +521,7 @@ const EvaluateSupplier = () => {
             </div>
           )}
         </div>
-      )}
+      </div>
     </div>
   );
 };

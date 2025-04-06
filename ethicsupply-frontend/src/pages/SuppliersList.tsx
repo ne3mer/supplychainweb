@@ -162,16 +162,17 @@ const SuppliersList = () => {
   }
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-semibold text-gray-900">Suppliers</h1>
-        <p className="mt-2 text-sm text-gray-700">
-          View and analyze your supplier network
+    <div className="space-y-8 bg-neutral-50">
+      <div className="px-4 py-6 bg-gradient-to-r from-emerald-700 to-teal-700 rounded-lg shadow-md text-white">
+        <h1 className="text-3xl font-bold">Supplier Network</h1>
+        <p className="mt-2 text-emerald-100">
+          View and analyze your supplier network's ethical and sustainability
+          performance
         </p>
       </div>
 
       {usingMockData && (
-        <div className="rounded-md bg-blue-50 p-4">
+        <div className="rounded-md bg-blue-50 p-4 border-l-4 border-blue-400">
           <div className="flex">
             <div className="flex-shrink-0">
               <InformationCircleIcon className="h-5 w-5 text-blue-400" />
@@ -187,7 +188,20 @@ const SuppliersList = () => {
         </div>
       )}
 
-      <div className="bg-white shadow sm:rounded-lg overflow-hidden">
+      {error && (
+        <div className="rounded-md bg-yellow-50 p-4 border-l-4 border-yellow-400">
+          <div className="flex">
+            <div className="flex-shrink-0">
+              <XCircleIcon className="h-5 w-5 text-yellow-400" />
+            </div>
+            <div className="ml-3">
+              <p className="text-sm text-yellow-700">{error}</p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <div className="bg-white shadow-md rounded-lg overflow-hidden transition-shadow duration-300 hover:shadow-lg">
         <div className="border-b border-gray-200 bg-gray-50 px-4 py-4 sm:px-6">
           <div className="flex flex-wrap items-center justify-between">
             <div className="mt-2 sm:mt-0 relative rounded-md shadow-sm max-w-xs w-full sm:w-64">
@@ -201,7 +215,7 @@ const SuppliersList = () => {
                 type="text"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="focus:ring-primary-500 focus:border-primary-500 block w-full pl-10 sm:text-sm border-gray-300 rounded-md"
+                className="focus:ring-emerald-500 focus:border-emerald-500 block w-full pl-10 sm:text-sm border-gray-300 rounded-md"
                 placeholder="Search suppliers..."
               />
             </div>
@@ -211,7 +225,7 @@ const SuppliersList = () => {
                 <select
                   value={sortField}
                   onChange={(e) => handleSort(e.target.value)}
-                  className="focus:ring-primary-500 focus:border-primary-500 h-full py-0 pl-2 pr-7 border-transparent bg-transparent text-gray-700 sm:text-sm rounded-md"
+                  className="focus:ring-emerald-500 focus:border-emerald-500 h-full py-0 pl-2 pr-7 border-transparent bg-transparent text-gray-700 sm:text-sm rounded-md"
                 >
                   <option value="ethical_score">Ethical Score</option>
                   <option value="name">Name</option>
@@ -226,7 +240,7 @@ const SuppliersList = () => {
                 onClick={() =>
                   setSortDirection(sortDirection === "asc" ? "desc" : "asc")
                 }
-                className="ml-2 p-1 rounded-md hover:bg-gray-200"
+                className="ml-2 p-1 rounded-md hover:bg-gray-200 transition-colors duration-200"
               >
                 {sortDirection === "asc" ? "↑" : "↓"}
               </button>

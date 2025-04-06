@@ -76,17 +76,15 @@ const SupplierDetails = () => {
 
   if (loading) {
     return (
-      <div className="space-y-6">
-        <div>
-          <h1 className="text-2xl font-semibold text-gray-900">
-            Supplier Details
-          </h1>
-          <p className="mt-2 text-sm text-gray-700">Loading supplier data...</p>
+      <div className="space-y-8 bg-neutral-50">
+        <div className="px-4 py-6 bg-gradient-to-r from-emerald-700 to-teal-700 rounded-lg shadow-md text-white">
+          <h1 className="text-3xl font-bold">Supplier Details</h1>
+          <p className="mt-2 text-emerald-100">Loading supplier data...</p>
         </div>
-        <div className="bg-white shadow sm:rounded-lg">
+        <div className="bg-white shadow-md rounded-lg">
           <div className="px-4 py-5 sm:p-6">
             <div className="flex justify-center">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-600"></div>
             </div>
           </div>
         </div>
@@ -96,28 +94,25 @@ const SupplierDetails = () => {
 
   if (error) {
     return (
-      <div className="space-y-6">
-        <div>
-          <h1 className="text-2xl font-semibold text-gray-900">
-            Supplier Details
-          </h1>
-          <p className="mt-2 text-sm text-gray-700">Error loading supplier</p>
+      <div className="space-y-8 bg-neutral-50">
+        <div className="px-4 py-6 bg-gradient-to-r from-emerald-700 to-teal-700 rounded-lg shadow-md text-white">
+          <h1 className="text-3xl font-bold">Supplier Details</h1>
+          <p className="mt-2 text-emerald-100">Error loading supplier</p>
         </div>
-        <div className="rounded-md bg-red-50 p-4">
+        <div className="rounded-md bg-yellow-50 p-4 border-l-4 border-yellow-400">
           <div className="flex">
             <div className="flex-shrink-0">
-              <XCircleIcon className="h-5 w-5 text-red-400" />
+              <XCircleIcon className="h-5 w-5 text-yellow-400" />
             </div>
             <div className="ml-3">
-              <h3 className="text-sm font-medium text-red-800">Error</h3>
-              <div className="mt-2 text-sm text-red-700">{error}</div>
+              <p className="text-sm text-yellow-700">{error}</p>
             </div>
           </div>
         </div>
         <div className="mt-6">
           <Link
             to="/suppliers"
-            className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-primary-600 hover:bg-primary-700"
+            className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-emerald-600 hover:bg-emerald-700 transition-colors duration-200"
           >
             <ArrowLeftIcon className="h-5 w-5 mr-2" />
             Back to Suppliers
@@ -129,14 +124,12 @@ const SupplierDetails = () => {
 
   if (!supplier) {
     return (
-      <div className="space-y-6">
-        <div>
-          <h1 className="text-2xl font-semibold text-gray-900">
-            Supplier Details
-          </h1>
-          <p className="mt-2 text-sm text-gray-700">Supplier not found</p>
+      <div className="space-y-8 bg-neutral-50">
+        <div className="px-4 py-6 bg-gradient-to-r from-emerald-700 to-teal-700 rounded-lg shadow-md text-white">
+          <h1 className="text-3xl font-bold">Supplier Details</h1>
+          <p className="mt-2 text-emerald-100">Supplier not found</p>
         </div>
-        <div className="rounded-md bg-yellow-50 p-4">
+        <div className="rounded-md bg-yellow-50 p-4 border-l-4 border-yellow-400">
           <div className="flex">
             <div className="flex-shrink-0">
               <InformationCircleIcon className="h-5 w-5 text-yellow-400" />
@@ -152,7 +145,7 @@ const SupplierDetails = () => {
         <div className="mt-6">
           <Link
             to="/suppliers"
-            className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-primary-600 hover:bg-primary-700"
+            className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-emerald-600 hover:bg-emerald-700 transition-colors duration-200"
           >
             <ArrowLeftIcon className="h-5 w-5 mr-2" />
             Back to Suppliers
@@ -163,19 +156,17 @@ const SupplierDetails = () => {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
+    <div className="space-y-8 bg-neutral-50">
+      <div className="px-4 py-6 bg-gradient-to-r from-emerald-700 to-teal-700 rounded-lg shadow-md text-white flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-semibold text-gray-900">
-            Supplier Details
-          </h1>
-          <p className="mt-2 text-sm text-gray-700">
-            Detailed information about {supplier.name}
+          <h1 className="text-3xl font-bold">{supplier.name}</h1>
+          <p className="mt-2 text-emerald-100">
+            Detailed information and performance metrics
           </p>
         </div>
         <Link
           to="/suppliers"
-          className="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
+          className="inline-flex items-center px-3 py-2 border border-emerald-300 shadow-sm text-sm leading-4 font-medium rounded-md text-white bg-emerald-600 hover:bg-emerald-500 transition-colors duration-200"
         >
           <ArrowLeftIcon className="h-4 w-4 mr-2" />
           Back to Suppliers
@@ -183,7 +174,7 @@ const SupplierDetails = () => {
       </div>
 
       {usingMockData && (
-        <div className="rounded-md bg-blue-50 p-4">
+        <div className="rounded-md bg-blue-50 p-4 border-l-4 border-blue-400">
           <div className="flex">
             <div className="flex-shrink-0">
               <InformationCircleIcon className="h-5 w-5 text-blue-400" />
@@ -199,7 +190,7 @@ const SupplierDetails = () => {
         </div>
       )}
 
-      <div className="bg-white shadow overflow-hidden sm:rounded-lg">
+      <div className="bg-white shadow-md rounded-lg overflow-hidden transition-shadow duration-300 hover:shadow-lg">
         <div className="px-4 py-5 sm:px-6 flex items-center">
           <div className="flex-shrink-0 h-16 w-16 rounded-full bg-primary-100 flex items-center justify-center">
             <UserGroupIcon className="h-10 w-10 text-primary-600" />

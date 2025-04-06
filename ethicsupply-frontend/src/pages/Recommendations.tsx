@@ -59,19 +59,17 @@ const Recommendations = () => {
 
   if (loading) {
     return (
-      <div className="space-y-6">
-        <div>
-          <h1 className="text-2xl font-semibold text-gray-900">
-            Recommendations
-          </h1>
-          <p className="mt-2 text-sm text-gray-700">
+      <div className="space-y-8 bg-neutral-50">
+        <div className="px-4 py-6 bg-gradient-to-r from-emerald-700 to-teal-700 rounded-lg shadow-md text-white">
+          <h1 className="text-3xl font-bold">Recommendations</h1>
+          <p className="mt-2 text-emerald-100">
             Loading supplier recommendations...
           </p>
         </div>
-        <div className="bg-white shadow sm:rounded-lg">
+        <div className="bg-white shadow-md rounded-lg">
           <div className="px-4 py-5 sm:p-6">
             <div className="flex justify-center">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-600"></div>
             </div>
           </div>
         </div>
@@ -81,23 +79,18 @@ const Recommendations = () => {
 
   if (error && recommendations.length === 0) {
     return (
-      <div className="space-y-6">
-        <div>
-          <h1 className="text-2xl font-semibold text-gray-900">
-            Recommendations
-          </h1>
-          <p className="mt-2 text-sm text-gray-700">
-            Error loading recommendations
-          </p>
+      <div className="space-y-8 bg-neutral-50">
+        <div className="px-4 py-6 bg-gradient-to-r from-emerald-700 to-teal-700 rounded-lg shadow-md text-white">
+          <h1 className="text-3xl font-bold">Recommendations</h1>
+          <p className="mt-2 text-emerald-100">Error loading recommendations</p>
         </div>
-        <div className="rounded-md bg-red-50 p-4">
+        <div className="rounded-md bg-yellow-50 p-4 border-l-4 border-yellow-400">
           <div className="flex">
             <div className="flex-shrink-0">
-              <XCircleIcon className="h-5 w-5 text-red-400" />
+              <XCircleIcon className="h-5 w-5 text-yellow-400" />
             </div>
             <div className="ml-3">
-              <h3 className="text-sm font-medium text-red-800">Error</h3>
-              <div className="mt-2 text-sm text-red-700">{error}</div>
+              <p className="text-sm text-yellow-700">{error}</p>
             </div>
           </div>
         </div>
@@ -106,19 +99,17 @@ const Recommendations = () => {
   }
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-semibold text-gray-900">
-          Recommendations
-        </h1>
-        <p className="mt-2 text-sm text-gray-700">
+    <div className="space-y-8 bg-neutral-50">
+      <div className="px-4 py-6 bg-gradient-to-r from-emerald-700 to-teal-700 rounded-lg shadow-md text-white">
+        <h1 className="text-3xl font-bold">Recommendations</h1>
+        <p className="mt-2 text-emerald-100">
           AI-powered supplier recommendations based on ethical and environmental
           criteria
         </p>
       </div>
 
       {usingMockData && (
-        <div className="rounded-md bg-blue-50 p-4">
+        <div className="rounded-md bg-blue-50 p-4 border-l-4 border-blue-400">
           <div className="flex">
             <div className="flex-shrink-0">
               <InformationCircleIcon className="h-5 w-5 text-blue-400" />
@@ -134,7 +125,7 @@ const Recommendations = () => {
         </div>
       )}
 
-      <div className="bg-white shadow sm:rounded-lg">
+      <div className="bg-white shadow-md rounded-lg overflow-hidden transition-shadow duration-300 hover:shadow-lg">
         <div className="px-4 py-5 sm:p-6">
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-200">

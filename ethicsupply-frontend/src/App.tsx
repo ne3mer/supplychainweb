@@ -10,7 +10,7 @@ import SupplierDetails from "./pages/SupplierDetails";
 function App() {
   return (
     <Router>
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen bg-neutral-50">
         <NavigationBar />
         <main className="container mx-auto px-4 py-8">
           <Routes>
