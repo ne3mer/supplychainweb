@@ -142,25 +142,17 @@ REST_FRAMEWORK = {
 }
 
 # CORS settings
-CORS_ALLOW_ALL_ORIGINS = True  # Temporarily enable all origins for testing
+CORS_ALLOW_ALL_ORIGINS = True  # Allow all origins for testing
 CORS_ALLOW_CREDENTIALS = True
 
-# Keep specific origins for when we switch back to specific origins
-CORS_ALLOWED_ORIGINS = [
-    "http://localhost:5173",
-    "http://localhost:5174",
-    "http://localhost:5175",
-    "https://ethic-supply.vercel.app",
-    "https://supplychainweb.vercel.app",
-    "https://ethicsupply-frontend.vercel.app",
-    "https://backend-suppl.vercel.app"
-]
+# Add Render.com and Vercel to allowed hosts
+ALLOWED_HOSTS = ['*']  # Allow all hosts for testing
 
-# Expose these headers for CORS requests
-CORS_EXPOSE_HEADERS = ['Content-Type', 'X-CSRFToken']
-
-# Add Render.com to allowed hosts
-ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', 'localhost,127.0.0.1,ethicsupply-backend.onrender.com,.vercel.app').split(',')
+# Disable SSL redirect in production for Vercel
+if not DEBUG:
+    SECURE_SSL_REDIRECT = False
+    SESSION_COOKIE_SECURE = False
+    CSRF_COOKIE_SECURE = False
 
 # Add CORS configuration for production
 if not DEBUG:
@@ -185,9 +177,12 @@ if not DEBUG:
         "x-requested-with",
     ]
 
-# Production settings
-if not DEBUG:
-    SECURE_SSL_REDIRECT = True
-    SESSION_COOKIE_SECURE = True
-    CSRF_COOKIE_SECURE = True
-    SECURE_BROWSER_XSS_FILTER = True 
+# XSS protection settings
+SECURE_BROWSER_XSS_FILTER = True
+
+# Production settings - already handled above
+# if not DEBUG:
+#     SECURE_SSL_REDIRECT = True
+#     SESSION_COOKIE_SECURE = True
+#     CSRF_COOKIE_SECURE = True
+#     SECURE_BROWSER_XSS_FILTER = True 
