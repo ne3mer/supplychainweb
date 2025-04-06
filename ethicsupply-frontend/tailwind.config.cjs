@@ -153,10 +153,27 @@ module.exports = {
         "spin-slow": "spin 3s linear infinite",
         "pulse-slow": "pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite",
         "bounce-slow": "bounce 3s infinite",
+        "float-slow": "float-slow 5s ease-in-out infinite",
+        "float-medium": "float-medium 3.5s ease-in-out infinite",
+        "float-fast": "float-fast 2s ease-in-out infinite",
       },
       transitionDuration: {
         0: "0ms",
         2000: "2000ms",
+      },
+      keyframes: {
+        "float-slow": {
+          "0%, 100%": { transform: "translateY(0)" },
+          "50%": { transform: "translateY(-15px)" },
+        },
+        "float-medium": {
+          "0%, 100%": { transform: "translateY(0)" },
+          "50%": { transform: "translateY(-10px)" },
+        },
+        "float-fast": {
+          "0%, 100%": { transform: "translateY(0)" },
+          "50%": { transform: "translateY(-5px)" },
+        },
       },
     },
   },

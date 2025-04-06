@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import { useEffect, useRef, useState } from "react";
 import {
   ChartBarIcon,
   ClipboardDocumentCheckIcon,
@@ -11,6 +12,33 @@ import {
 } from "@heroicons/react/24/outline";
 
 const LandingPage = () => {
+  const treeContainerRef = useRef<HTMLDivElement>(null);
+  const [scrollPosition, setScrollPosition] = useState(0);
+  const [treeGrowth, setTreeGrowth] = useState(0);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      const position = window.scrollY;
+      setScrollPosition(position);
+
+      // Calculate tree growth based on scroll position
+      if (treeContainerRef.current) {
+        const { top, height } =
+          treeContainerRef.current.getBoundingClientRect();
+        const viewportHeight = window.innerHeight;
+
+        // Calculate how much of the tree section is visible
+        const visiblePortion = (viewportHeight - top) / height;
+        const growth = Math.max(0, Math.min(1, visiblePortion * 1.5));
+
+        setTreeGrowth(growth);
+      }
+    };
+
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
   const features = [
     {
       name: "Dashboard Analytics",
@@ -88,9 +116,7 @@ const LandingPage = () => {
           className="absolute inset-x-0 -top-40 -z-10 transform-gpu overflow-hidden blur-3xl sm:-top-80"
           aria-hidden="true"
         >
-          <div
-            className="relative left-[calc(50%-11rem)] aspect-[1155/678] w-[36.125rem] -translate-x-1/2 rotate-[30deg] bg-gradient-to-tr from-emerald-200 to-teal-400 opacity-20 sm:left-[calc(50%-30rem)] sm:w-[72.1875rem] clip-path-hero"
-          ></div>
+          <div className="relative left-[calc(50%-11rem)] aspect-[1155/678] w-[36.125rem] -translate-x-1/2 rotate-[30deg] bg-gradient-to-tr from-emerald-200 to-teal-400 opacity-20 sm:left-[calc(50%-30rem)] sm:w-[72.1875rem] clip-path-hero"></div>
         </div>
         <div className="mx-auto max-w-7xl py-16 sm:py-24 lg:py-32">
           <div className="text-center">
@@ -124,9 +150,195 @@ const LandingPage = () => {
           className="absolute inset-x-0 top-[calc(100%-13rem)] -z-10 transform-gpu overflow-hidden blur-3xl sm:top-[calc(100%-30rem)]"
           aria-hidden="true"
         >
+          <div className="relative left-[calc(50%+3rem)] aspect-[1155/678] w-[36.125rem] -translate-x-1/2 bg-gradient-to-tr from-emerald-300 to-teal-500 opacity-20 sm:left-[calc(50%+36rem)] sm:w-[72.1875rem] clip-path-hero"></div>
+        </div>
+      </div>
+
+      {/* Tree of Life 3D Animation */}
+      <div
+        ref={treeContainerRef}
+        className="py-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-b from-neutral-50 to-emerald-50 overflow-hidden relative"
+      >
+        <div className="mx-auto max-w-7xl text-center relative z-10">
+          <h2 className="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl mb-8">
+            Growing a Sustainable Future
+          </h2>
+          <p className="mt-4 text-lg text-gray-600 max-w-3xl mx-auto mb-12">
+            As our tree grows, so does our commitment to sustainability. Explore
+            how our ethical AI helps cultivate responsible supply chains that
+            nurture both business and the planet.
+          </p>
+        </div>
+
+        {/* Tree Container */}
+        <div className="h-[600px] w-full relative mx-auto max-w-7xl">
+          {/* Roots */}
           <div
-            className="relative left-[calc(50%+3rem)] aspect-[1155/678] w-[36.125rem] -translate-x-1/2 bg-gradient-to-tr from-emerald-300 to-teal-500 opacity-20 sm:left-[calc(50%+36rem)] sm:w-[72.1875rem] clip-path-hero"
+            className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-full max-w-md transition-all duration-1000"
+            style={{
+              opacity: treeGrowth > 0 ? 1 : 0,
+              transform: `translate(-50%, ${treeGrowth > 0 ? "0" : "50px"})`,
+            }}
+          >
+            <svg viewBox="0 0 500 200" className="w-full">
+              <path
+                d="M250,0 C250,0 220,50 180,80 C140,110 100,120 80,150 C60,180 60,200 60,200"
+                fill="none"
+                stroke="#5f4e37"
+                strokeWidth="8"
+                strokeLinecap="round"
+                style={{
+                  strokeDasharray: 1000,
+                  strokeDashoffset: 1000 - 1000 * Math.min(0.5, treeGrowth) * 2,
+                }}
+              />
+              <path
+                d="M250,0 C250,0 280,50 320,80 C360,110 400,120 420,150 C440,180 440,200 440,200"
+                fill="none"
+                stroke="#5f4e37"
+                strokeWidth="8"
+                strokeLinecap="round"
+                style={{
+                  strokeDasharray: 1000,
+                  strokeDashoffset: 1000 - 1000 * Math.min(0.5, treeGrowth) * 2,
+                }}
+              />
+              <path
+                d="M250,0 C250,0 250,60 250,100 C250,140 250,180 250,200"
+                fill="none"
+                stroke="#5f4e37"
+                strokeWidth="12"
+                strokeLinecap="round"
+                style={{
+                  strokeDasharray: 1000,
+                  strokeDashoffset: 1000 - 1000 * Math.min(0.5, treeGrowth) * 2,
+                }}
+              />
+            </svg>
+          </div>
+
+          {/* Trunk */}
+          <div
+            className="absolute bottom-[200px] left-1/2 transform -translate-x-1/2 transition-all duration-1000"
+            style={{
+              height: `${treeGrowth * 300}px`,
+              width: "30px",
+              backgroundColor: "#5f4e37",
+              borderRadius: "15px",
+              opacity: treeGrowth > 0.3 ? 1 : 0,
+              transformOrigin: "bottom",
+            }}
           ></div>
+
+          {/* Branches */}
+          <div
+            className="absolute bottom-[350px] left-1/2 transform -translate-x-1/2 w-full max-w-md transition-all duration-1000"
+            style={{
+              opacity: treeGrowth > 0.5 ? 1 : 0,
+              transform: `translate(-50%, ${treeGrowth > 0.5 ? "0" : "50px"})`,
+            }}
+          >
+            <svg viewBox="0 0 500 200" className="w-full">
+              <path
+                d="M250,200 C250,200 220,150 180,120 C140,90 100,80 80,50 C60,20 60,0 60,0"
+                fill="none"
+                stroke="#5f4e37"
+                strokeWidth="6"
+                strokeLinecap="round"
+                style={{
+                  strokeDasharray: 1000,
+                  strokeDashoffset:
+                    1000 - 1000 * Math.min(1, (treeGrowth - 0.5) * 2),
+                }}
+              />
+              <path
+                d="M250,200 C250,200 280,150 320,120 C360,90 400,80 420,50 C440,20 440,0 440,0"
+                fill="none"
+                stroke="#5f4e37"
+                strokeWidth="6"
+                strokeLinecap="round"
+                style={{
+                  strokeDasharray: 1000,
+                  strokeDashoffset:
+                    1000 - 1000 * Math.min(1, (treeGrowth - 0.5) * 2),
+                }}
+              />
+            </svg>
+          </div>
+
+          {/* Leaves */}
+          <div
+            className="absolute bottom-[400px] left-1/2 transform -translate-x-1/2 transition-all duration-1000"
+            style={{
+              opacity: treeGrowth > 0.75 ? 1 : 0,
+              transform: `translate(-50%, ${
+                treeGrowth > 0.75 ? "0" : "30px"
+              }) scale(${Math.max(0, (treeGrowth - 0.75) * 4)})`,
+              width: "500px",
+              height: "300px",
+              filter: `blur(${Math.max(0, 1 - treeGrowth) * 10}px)`,
+            }}
+          >
+            <div className="absolute w-48 h-48 bg-emerald-500 rounded-full opacity-70 top-20 left-10 transform -rotate-12"></div>
+            <div className="absolute w-56 h-56 bg-emerald-600 rounded-full opacity-70 top-0 left-1/2 transform -translate-x-1/2"></div>
+            <div className="absolute w-48 h-48 bg-emerald-500 rounded-full opacity-70 top-20 right-10 transform rotate-12"></div>
+            <div className="absolute w-40 h-40 bg-emerald-700 rounded-full opacity-70 top-40 left-20 transform -rotate-6"></div>
+            <div className="absolute w-40 h-40 bg-emerald-700 rounded-full opacity-70 top-40 right-20 transform rotate-6"></div>
+          </div>
+
+          {/* Floating Elements */}
+          {treeGrowth > 0.8 && (
+            <>
+              <div className="absolute animate-float-slow w-8 h-8 bg-emerald-200 rounded-full opacity-70 top-1/4 left-1/4"></div>
+              <div className="absolute animate-float-medium w-6 h-6 bg-emerald-300 rounded-full opacity-70 top-1/3 right-1/3"></div>
+              <div className="absolute animate-float-fast w-5 h-5 bg-emerald-400 rounded-full opacity-70 top-1/2 left-1/3"></div>
+              <div className="absolute animate-float-medium w-7 h-7 bg-emerald-300 rounded-full opacity-70 top-1/3 left-2/3"></div>
+              <div className="absolute animate-float-slow w-4 h-4 bg-emerald-200 rounded-full opacity-70 top-1/4 right-1/4"></div>
+            </>
+          )}
+
+          {/* Values Text */}
+          <div
+            className="absolute top-20 left-1/4 transform -translate-x-1/2 transition-all duration-1000"
+            style={{
+              opacity: treeGrowth > 0.85 ? 1 : 0,
+              transform: `translate(-50%, ${treeGrowth > 0.85 ? "0" : "20px"})`,
+            }}
+          >
+            <div className="bg-white/80 backdrop-blur-sm p-3 rounded-xl shadow-lg">
+              <span className="font-semibold text-emerald-700">
+                Sustainability
+              </span>
+            </div>
+          </div>
+
+          <div
+            className="absolute top-40 right-1/4 transform translate-x-1/2 transition-all duration-1000"
+            style={{
+              opacity: treeGrowth > 0.9 ? 1 : 0,
+              transform: `translate(50%, ${treeGrowth > 0.9 ? "0" : "20px"})`,
+            }}
+          >
+            <div className="bg-white/80 backdrop-blur-sm p-3 rounded-xl shadow-lg">
+              <span className="font-semibold text-emerald-700">
+                Ethical Business
+              </span>
+            </div>
+          </div>
+
+          <div
+            className="absolute top-60 left-1/3 transform -translate-x-1/2 transition-all duration-1000"
+            style={{
+              opacity: treeGrowth > 0.95 ? 1 : 0,
+              transform: `translate(-50%, ${treeGrowth > 0.95 ? "0" : "20px"})`,
+            }}
+          >
+            <div className="bg-white/80 backdrop-blur-sm p-3 rounded-xl shadow-lg">
+              <span className="font-semibold text-emerald-700">
+                Transparency
+              </span>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -200,7 +412,8 @@ const LandingPage = () => {
             Trusted by leading organizations
           </h2>
           <p className="mt-4 text-lg text-gray-600">
-            See how companies are transforming their supply chains with our platform
+            See how companies are transforming their supply chains with our
+            platform
           </p>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
@@ -215,10 +428,16 @@ const LandingPage = () => {
                 >
                   <path d="M9.352 4C4.456 7.456 1 13.12 1 19.36c0 5.088 3.072 8.064 6.624 8.064 3.36 0 5.856-2.688 5.856-5.856 0-3.168-2.208-5.472-5.088-5.472-.576 0-1.344.096-1.536.192.48-3.264 3.552-7.104 6.624-9.024L9.352 4zm16.512 0c-4.8 3.456-8.256 9.12-8.256 15.36 0 5.088 3.072 8.064 6.624 8.064 3.264 0 5.856-2.688 5.856-5.856 0-3.168-2.304-5.472-5.184-5.472-.576 0-1.248.096-1.44.192.48-3.264 3.456-7.104 6.528-9.024L25.864 4z" />
                 </svg>
-                <p className="text-lg text-gray-600 flex-grow">{testimonial.quote}</p>
+                <p className="text-lg text-gray-600 flex-grow">
+                  {testimonial.quote}
+                </p>
                 <div className="mt-6">
-                  <div className="font-semibold text-gray-900">{testimonial.author}</div>
-                  <div className="text-sm text-gray-600">{testimonial.title}, {testimonial.company}</div>
+                  <div className="font-semibold text-gray-900">
+                    {testimonial.author}
+                  </div>
+                  <div className="text-sm text-gray-600">
+                    {testimonial.title}, {testimonial.company}
+                  </div>
                 </div>
               </div>
             </div>
@@ -235,7 +454,8 @@ const LandingPage = () => {
                 Ready to transform your supply chain?
               </h2>
               <p className="mt-6 text-lg text-emerald-50 max-w-3xl mx-auto">
-                Join the growing number of companies using our platform to make their supply chains more ethical and sustainable.
+                Join the growing number of companies using our platform to make
+                their supply chains more ethical and sustainable.
               </p>
               <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-x-6">
                 <Link
