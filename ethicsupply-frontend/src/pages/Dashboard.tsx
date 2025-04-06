@@ -10,6 +10,7 @@ import {
   CloudIcon,
   SparklesIcon,
   ArrowPathIcon,
+  CheckCircleIcon,
 } from "@heroicons/react/24/outline";
 import {
   BarChart,
@@ -274,7 +275,7 @@ const Dashboard = () => {
         </div>
       ) : (
         <div className="space-y-8">
-          {usingMockData && (
+          {usingMockData ? (
             <div className="bg-blue-50 border-l-4 border-blue-400 p-4">
               <div className="flex">
                 <div className="flex-shrink-0">
@@ -284,6 +285,19 @@ const Dashboard = () => {
                   <p className="text-sm text-blue-700">
                     Using demo data. Connect to the API for real-time
                     information.
+                  </p>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div className="bg-green-50 border-l-4 border-green-400 p-4">
+              <div className="flex">
+                <div className="flex-shrink-0">
+                  <CheckCircleIcon className="h-5 w-5 text-green-400" />
+                </div>
+                <div className="ml-3">
+                  <p className="text-sm text-green-700">
+                    Connected to API. Displaying real-time information.
                   </p>
                 </div>
               </div>

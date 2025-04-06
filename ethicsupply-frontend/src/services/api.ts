@@ -1,6 +1,7 @@
 import axios from "axios";
 
-const API_BASE_URL = "http://localhost:8000/api";
+// Change from localhost to the real production API
+const API_BASE_URL = "https://ethicsupply-api.herokuapp.com/api";
 
 export interface Supplier {
   id: number;
@@ -1765,6 +1766,7 @@ export interface MLSystemStatus {
 export interface MLStatus {
   models: MLModelStatus[];
   systemStatus: MLSystemStatus;
+  isMockData?: boolean;
 }
 
 // Get Machine Learning Status from the API
@@ -1782,7 +1784,10 @@ export const getMLStatus = async (): Promise<MLStatus> => {
 
     const data = await response.json();
     console.log("ML Status API response:", data);
-    return data;
+    return {
+      ...data,
+      isMockData: false,
+    };
   } catch (error) {
     console.error("Error fetching ML status:", error);
     return getMockMLStatus();
@@ -1821,5 +1826,6 @@ function getMockMLStatus(): MLStatus {
       mlPipeline: true,
       lastChecked: new Date().toLocaleTimeString(),
     },
+    isMockData: true,
   };
 }

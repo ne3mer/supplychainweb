@@ -34,6 +34,7 @@ const MachineLearningStatus: React.FC<MachineLearningStatusProps> = ({
   const [lastRefreshed, setLastRefreshed] = useState<string>(
     new Date().toLocaleTimeString()
   );
+  const [usingMockData, setUsingMockData] = useState(false);
 
   // Fetch ML status from the API
   const fetchMLStatus = async () => {
@@ -43,10 +44,12 @@ const MachineLearningStatus: React.FC<MachineLearningStatusProps> = ({
       setModels(mlStatus.models);
       setSystemStatus(mlStatus.systemStatus);
       setLastRefreshed(new Date().toLocaleTimeString());
+      setUsingMockData(!!mlStatus.isMockData);
       setError(null);
     } catch (error) {
       console.error("Error fetching ML status:", error);
       setError("Failed to load ML status data");
+      setUsingMockData(true);
     } finally {
       setLoading(false);
     }
@@ -90,6 +93,11 @@ const MachineLearningStatus: React.FC<MachineLearningStatusProps> = ({
           {loading && <ArrowPathIcon className="h-4 w-4 ml-2 animate-spin" />}
         </div>
         <div className="flex items-center">
+          {usingMockData && (
+            <span className="text-xs bg-yellow-200 text-yellow-800 px-2 py-0.5 rounded mr-2">
+              Demo Data
+            </span>
+          )}
           <span className="text-xs mr-3 opacity-75">
             Last updated: {lastRefreshed}
           </span>
