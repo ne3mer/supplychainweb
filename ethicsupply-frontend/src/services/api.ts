@@ -26,22 +26,93 @@ export interface Supplier {
 }
 
 export interface SupplierEvaluation {
+  // Basic Information
   name: string;
   country: string;
-  co2_emissions: number;
-  delivery_efficiency: number;
-  wage_fairness: number;
-  human_rights_index: number;
-  waste_management_score: number;
+  industry: string;
+
+  // Environmental Metrics
+  co2_emissions: number; // Carbon emissions in tons
+  water_usage: number; // Water usage in cubic meters
+  energy_efficiency: number; // Energy efficiency score (0-1)
+  waste_management_score: number; // Waste management score (0-1)
+  renewable_energy_percent: number; // Percentage of renewable energy used
+  pollution_control: number; // Pollution control measures score (0-1)
+
+  // Social Metrics
+  wage_fairness: number; // Wage fairness score (0-1)
+  human_rights_index: number; // Human rights compliance score (0-1)
+  diversity_inclusion_score: number; // Diversity and inclusion score (0-1)
+  community_engagement: number; // Community engagement score (0-1)
+  worker_safety: number; // Worker safety score (0-1)
+
+  // Governance Metrics
+  transparency_score: number; // Transparency score (0-1)
+  corruption_risk: number; // Corruption risk score (0-1)
+  board_diversity: number; // Board diversity score (0-1)
+  ethics_program: number; // Ethics program strength score (0-1)
+  compliance_systems: number; // Compliance systems score (0-1)
+
+  // Supply Chain Metrics
+  delivery_efficiency: number; // Delivery efficiency score (0-1)
+  quality_control_score: number; // Quality control score (0-1)
+  supplier_diversity: number; // Supplier diversity score (0-1)
+  traceability: number; // Supply chain traceability score (0-1)
+
+  // Risk Factors
+  geopolitical_risk: number; // Geopolitical risk exposure (0-1)
+  climate_risk: number; // Climate risk exposure (0-1)
+  labor_dispute_risk: number; // Labor dispute risk (0-1)
 }
 
 export interface EvaluationResult {
   id: number;
   name: string;
-  ethical_score: number;
-  recommendation?: string;
-  suggestions: string[];
-  isMockData?: boolean;
+
+  // Overall Scores
+  ethical_score: number; // Overall ethical score
+  environmental_score: number; // Environmental category score
+  social_score: number; // Social category score
+  governance_score: number; // Governance category score
+  supply_chain_score: number; // Supply chain category score
+  risk_score: number; // Risk assessment score
+
+  // Detailed Assessment
+  assessment: {
+    strengths: string[]; // Key strengths identified
+    weaknesses: string[]; // Areas needing improvement
+    opportunities: string[]; // Opportunities for enhancement
+    threats: string[]; // Potential threats or risks
+  };
+
+  // Recommendations
+  recommendation: string; // Overall recommendation
+  suggestions: string[]; // Specific improvement suggestions
+
+  // Risk Assessment
+  risk_factors: {
+    factor: string; // Risk factor name
+    severity: string; // Severity level (Low, Medium, High)
+    probability: string; // Probability level (Low, Medium, High)
+    mitigation: string; // Suggested mitigation strategy
+  }[];
+
+  // Compliance Status
+  compliance: {
+    status: string; // Overall compliance status
+    standards_met: string[]; // Standards the supplier meets
+    certifications: string[]; // Current certifications
+    gaps: string[]; // Compliance gaps identified
+  };
+
+  // Comparison Data
+  industry_comparison: {
+    percentile: number; // Percentile ranking in industry
+    average_score: number; // Industry average score
+    top_performer_score: number; // Top performer score in industry
+  };
+
+  isMockData?: boolean; // Flag for mock data
 }
 
 export interface DashboardData {
@@ -196,81 +267,219 @@ const api = axios.create({
 const mockSuppliers: Supplier[] = [
   {
     id: 1,
-    name: "EcoTech Solutions",
+    name: "Procter & Gamble",
     country: "United States",
-    co2_emissions: 28.5,
-    delivery_efficiency: 0.85,
-    wage_fairness: 0.92,
-    human_rights_index: 0.88,
-    waste_management_score: 0.76,
-    ethical_score: 87.4,
-    created_at: "2023-09-15T10:30:00Z",
-    updated_at: "2023-12-05T14:45:00Z",
+    industry: "Consumer Goods",
+    co2_emissions: 2.4, // Million metric tons CO2e
+    delivery_efficiency: 0.92,
+    wage_fairness: 0.88,
+    human_rights_index: 0.85,
+    waste_management_score: 0.83,
+    ethical_score: 81.5,
+    environmental_score: 78,
+    social_score: 82,
+    governance_score: 85,
+    risk_level: "Low",
+    created_at: "2023-05-15T10:30:00Z",
+    updated_at: "2024-01-12T09:45:00Z",
   },
   {
     id: 2,
-    name: "Global Manufacturing Ltd",
-    country: "China",
-    co2_emissions: 65.2,
-    delivery_efficiency: 0.72,
-    wage_fairness: 0.58,
-    human_rights_index: 0.45,
-    waste_management_score: 0.52,
-    ethical_score: 59.8,
-    created_at: "2023-08-20T08:15:00Z",
-    updated_at: "2023-11-18T11:30:00Z",
+    name: "Foxconn Technology Group",
+    country: "Taiwan",
+    industry: "Electronics Manufacturing",
+    co2_emissions: 4.3, // Million metric tons CO2e
+    delivery_efficiency: 0.89,
+    wage_fairness: 0.61,
+    human_rights_index: 0.58,
+    waste_management_score: 0.75,
+    ethical_score: 67.4,
+    environmental_score: 70,
+    social_score: 59,
+    governance_score: 72,
+    risk_level: "Medium",
+    created_at: "2023-06-20T08:15:00Z",
+    updated_at: "2024-02-18T11:30:00Z",
   },
   {
     id: 3,
-    name: "Precision Parts GmbH",
-    country: "Germany",
-    co2_emissions: 32.7,
-    delivery_efficiency: 0.91,
-    wage_fairness: 0.88,
-    human_rights_index: 0.82,
-    waste_management_score: 0.79,
-    ethical_score: 83.2,
-    created_at: "2023-07-10T09:20:00Z",
-    updated_at: "2023-10-25T16:40:00Z",
+    name: "Unilever",
+    country: "United Kingdom",
+    industry: "Consumer Goods",
+    co2_emissions: 1.9, // Million metric tons CO2e
+    delivery_efficiency: 0.87,
+    wage_fairness: 0.84,
+    human_rights_index: 0.87,
+    waste_management_score: 0.89,
+    ethical_score: 84.2,
+    environmental_score: 85,
+    social_score: 83,
+    governance_score: 84,
+    risk_level: "Low",
+    created_at: "2023-04-10T09:20:00Z",
+    updated_at: "2024-01-25T16:40:00Z",
   },
   {
     id: 4,
-    name: "Tech Components Inc",
-    country: "Japan",
-    co2_emissions: 24.6,
-    delivery_efficiency: 0.89,
-    wage_fairness: 0.87,
-    human_rights_index: 0.86,
-    waste_management_score: 0.82,
-    ethical_score: 88.7,
-    created_at: "2023-09-05T11:45:00Z",
-    updated_at: "2023-12-01T13:20:00Z",
+    name: "Samsung Electronics",
+    country: "South Korea",
+    industry: "Electronics",
+    co2_emissions: 16.1, // Million metric tons CO2e
+    delivery_efficiency: 0.91,
+    wage_fairness: 0.82,
+    human_rights_index: 0.79,
+    waste_management_score: 0.81,
+    ethical_score: 77.8,
+    environmental_score: 75,
+    social_score: 78,
+    governance_score: 82,
+    risk_level: "Low",
+    created_at: "2023-07-05T11:45:00Z",
+    updated_at: "2024-02-01T13:20:00Z",
   },
   {
     id: 5,
-    name: "Textile Exports Ltd",
-    country: "India",
-    co2_emissions: 48.3,
-    delivery_efficiency: 0.68,
-    wage_fairness: 0.52,
-    human_rights_index: 0.48,
-    waste_management_score: 0.44,
-    ethical_score: 51.9,
-    created_at: "2023-06-18T07:30:00Z",
-    updated_at: "2023-11-10T10:15:00Z",
+    name: "Nestlé",
+    country: "Switzerland",
+    industry: "Food & Beverage",
+    co2_emissions: 92, // Million metric tons CO2e
+    delivery_efficiency: 0.84,
+    wage_fairness: 0.76,
+    human_rights_index: 0.73,
+    waste_management_score: 0.77,
+    ethical_score: 72.5,
+    environmental_score: 69,
+    social_score: 74,
+    governance_score: 80,
+    risk_level: "Medium",
+    created_at: "2023-03-18T07:30:00Z",
+    updated_at: "2024-02-10T10:15:00Z",
   },
   {
     id: 6,
-    name: "Sustainable Materials Co",
-    country: "Brazil",
-    co2_emissions: 21.8,
-    delivery_efficiency: 0.76,
-    wage_fairness: 0.71,
-    human_rights_index: 0.75,
-    waste_management_score: 0.84,
-    ethical_score: 78.5,
+    name: "Li & Fung",
+    country: "Hong Kong",
+    industry: "Supply Chain Management",
+    co2_emissions: 0.8, // Million metric tons CO2e
+    delivery_efficiency: 0.94,
+    wage_fairness: 0.73,
+    human_rights_index: 0.68,
+    waste_management_score: 0.65,
+    ethical_score: 71.2,
+    environmental_score: 68,
+    social_score: 70,
+    governance_score: 75,
+    risk_level: "Medium",
     created_at: "2023-08-12T13:10:00Z",
-    updated_at: "2023-11-27T09:50:00Z",
+    updated_at: "2024-01-27T09:50:00Z",
+  },
+  {
+    id: 7,
+    name: "Tyson Foods",
+    country: "United States",
+    industry: "Food Processing",
+    co2_emissions: 25, // Million metric tons CO2e
+    delivery_efficiency: 0.82,
+    wage_fairness: 0.71,
+    human_rights_index: 0.68,
+    waste_management_score: 0.66,
+    ethical_score: 68.9,
+    environmental_score: 64,
+    social_score: 69,
+    governance_score: 73,
+    risk_level: "Medium",
+    created_at: "2023-05-25T08:20:00Z",
+    updated_at: "2024-01-15T14:30:00Z",
+  },
+  {
+    id: 8,
+    name: "Danone",
+    country: "France",
+    industry: "Food & Beverage",
+    co2_emissions: 24.7, // Million metric tons CO2e
+    delivery_efficiency: 0.85,
+    wage_fairness: 0.83,
+    human_rights_index: 0.81,
+    waste_management_score: 0.84,
+    ethical_score: 80.6,
+    environmental_score: 82,
+    social_score: 81,
+    governance_score: 79,
+    risk_level: "Low",
+    created_at: "2023-06-14T10:45:00Z",
+    updated_at: "2024-02-05T11:20:00Z",
+  },
+  {
+    id: 9,
+    name: "General Mills",
+    country: "United States",
+    industry: "Food & Beverage",
+    co2_emissions: 12, // Million metric tons CO2e
+    delivery_efficiency: 0.87,
+    wage_fairness: 0.85,
+    human_rights_index: 0.82,
+    waste_management_score: 0.79,
+    ethical_score: 79.8,
+    environmental_score: 76,
+    social_score: 83,
+    governance_score: 82,
+    risk_level: "Low",
+    created_at: "2023-04-28T09:30:00Z",
+    updated_at: "2024-01-18T16:15:00Z",
+  },
+  {
+    id: 10,
+    name: "Nike",
+    country: "United States",
+    industry: "Apparel & Footwear",
+    co2_emissions: 0.3, // Million metric tons CO2e (direct operations)
+    delivery_efficiency: 0.89,
+    wage_fairness: 0.74,
+    human_rights_index: 0.76,
+    waste_management_score: 0.86,
+    ethical_score: 78.3,
+    environmental_score: 81,
+    social_score: 75,
+    governance_score: 80,
+    risk_level: "Low",
+    created_at: "2023-07-10T14:20:00Z",
+    updated_at: "2024-02-12T10:40:00Z",
+  },
+  {
+    id: 11,
+    name: "VF Corporation",
+    country: "United States",
+    industry: "Apparel & Footwear",
+    co2_emissions: 2.2, // Million metric tons CO2e
+    delivery_efficiency: 0.86,
+    wage_fairness: 0.78,
+    human_rights_index: 0.77,
+    waste_management_score: 0.81,
+    ethical_score: 77.4,
+    environmental_score: 79,
+    social_score: 76,
+    governance_score: 78,
+    risk_level: "Low",
+    created_at: "2023-05-22T11:15:00Z",
+    updated_at: "2024-01-20T09:30:00Z",
+  },
+  {
+    id: 12,
+    name: "Haier",
+    country: "China",
+    industry: "Home Appliances",
+    co2_emissions: 18.5, // Million metric tons CO2e
+    delivery_efficiency: 0.84,
+    wage_fairness: 0.69,
+    human_rights_index: 0.65,
+    waste_management_score: 0.72,
+    ethical_score: 68.7,
+    environmental_score: 71,
+    social_score: 67,
+    governance_score: 70,
+    risk_level: "Medium",
+    created_at: "2023-06-30T08:45:00Z",
+    updated_at: "2024-02-08T15:10:00Z",
   },
 ];
 
@@ -392,14 +601,389 @@ export const evaluateSupplier = async (
 function createMockEvaluationResult(
   supplierData: SupplierEvaluation
 ): EvaluationResult {
+  // Calculate main category scores
+  const environmentalScore = calculateEnvironmentalScore(supplierData);
+  const socialScore = calculateSocialScore(supplierData);
+  const governanceScore = calculateGovernanceScore(supplierData);
+  const supplyChainScore = calculateSupplyChainScore(supplierData);
+  const riskScore = calculateRiskScore(supplierData);
+
+  // Calculate overall ethical score as weighted average
+  const ethicalScore =
+    (environmentalScore * 0.25 +
+      socialScore * 0.25 +
+      governanceScore * 0.25 +
+      supplyChainScore * 0.15 +
+      (1 - riskScore) * 0.1) *
+    100;
+
+  // Generate strengths and weaknesses based on scores
+  const strengths = generateStrengths(supplierData);
+  const weaknesses = generateWeaknesses(supplierData);
+
+  // Generate risk factors
+  const riskFactors = generateRiskFactors(supplierData);
+
   return {
     id: Math.floor(Math.random() * 1000) + 100,
     name: supplierData.name,
-    ethical_score: calculateMockScore(supplierData),
+
+    // Overall scores (convert 0-1 scores to 0-100 for display)
+    ethical_score: parseFloat(ethicalScore.toFixed(1)),
+    environmental_score: parseFloat((environmentalScore * 100).toFixed(1)),
+    social_score: parseFloat((socialScore * 100).toFixed(1)),
+    governance_score: parseFloat((governanceScore * 100).toFixed(1)),
+    supply_chain_score: parseFloat((supplyChainScore * 100).toFixed(1)),
+    risk_score: parseFloat((riskScore * 100).toFixed(1)),
+
+    // Detailed assessment
+    assessment: {
+      strengths: strengths.slice(0, 3),
+      weaknesses: weaknesses.slice(0, 3),
+      opportunities: generateOpportunities(supplierData),
+      threats: generateThreats(supplierData),
+    },
+
+    // Recommendations
     recommendation: generateMockRecommendation(supplierData),
     suggestions: generateMockSuggestions(supplierData),
+
+    // Risk factors
+    risk_factors: riskFactors,
+
+    // Compliance information
+    compliance: {
+      status:
+        ethicalScore > 75
+          ? "Compliant"
+          : ethicalScore > 50
+          ? "Partially Compliant"
+          : "Non-Compliant",
+      standards_met: generateStandardsMet(supplierData),
+      certifications: generateCertifications(supplierData),
+      gaps: generateComplianceGaps(supplierData),
+    },
+
+    // Industry comparison
+    industry_comparison: {
+      percentile: Math.min(
+        95,
+        Math.max(5, Math.round(ethicalScore * 0.8 + Math.random() * 20))
+      ),
+      average_score: 68.5,
+      top_performer_score: 94.2,
+    },
+
     isMockData: true,
   };
+}
+
+// Helper functions for score calculations
+function calculateEnvironmentalScore(data: SupplierEvaluation): number {
+  const metrics = [
+    1 - Math.min(1, data.co2_emissions / 100), // Lower is better for CO2
+    1 - Math.min(1, data.water_usage / 100), // Lower is better for water usage
+    data.energy_efficiency || 0.5,
+    data.waste_management_score || 0.5,
+    data.renewable_energy_percent ? data.renewable_energy_percent / 100 : 0.3,
+    data.pollution_control || 0.5,
+  ];
+  return metrics.reduce((sum, val) => sum + val, 0) / metrics.length;
+}
+
+function calculateSocialScore(data: SupplierEvaluation): number {
+  const metrics = [
+    data.wage_fairness || 0.5,
+    data.human_rights_index || 0.5,
+    data.diversity_inclusion_score || 0.5,
+    data.community_engagement || 0.5,
+    data.worker_safety || 0.5,
+  ];
+  return metrics.reduce((sum, val) => sum + val, 0) / metrics.length;
+}
+
+function calculateGovernanceScore(data: SupplierEvaluation): number {
+  const metrics = [
+    data.transparency_score || 0.5,
+    1 - (data.corruption_risk || 0.5), // Lower corruption risk is better
+    data.board_diversity || 0.5,
+    data.ethics_program || 0.5,
+    data.compliance_systems || 0.5,
+  ];
+  return metrics.reduce((sum, val) => sum + val, 0) / metrics.length;
+}
+
+function calculateSupplyChainScore(data: SupplierEvaluation): number {
+  const metrics = [
+    data.delivery_efficiency || 0.5,
+    data.quality_control_score || 0.5,
+    data.supplier_diversity || 0.5,
+    data.traceability || 0.5,
+  ];
+  return metrics.reduce((sum, val) => sum + val, 0) / metrics.length;
+}
+
+function calculateRiskScore(data: SupplierEvaluation): number {
+  const metrics = [
+    data.geopolitical_risk || 0.5,
+    data.climate_risk || 0.5,
+    data.labor_dispute_risk || 0.5,
+  ];
+  return metrics.reduce((sum, val) => sum + val, 0) / metrics.length;
+}
+
+// Helper functions for generating assessment items
+function generateStrengths(data: SupplierEvaluation): string[] {
+  const strengths = [];
+
+  if ((data.co2_emissions || 50) < 30)
+    strengths.push("Low carbon emissions compared to industry average");
+
+  if ((data.waste_management_score || 0) > 0.7)
+    strengths.push("Excellent waste management practices");
+
+  if ((data.renewable_energy_percent || 0) > 50)
+    strengths.push("High utilization of renewable energy sources");
+
+  if ((data.wage_fairness || 0) > 0.7)
+    strengths.push("Strong commitment to fair wage practices");
+
+  if ((data.human_rights_index || 0) > 0.7)
+    strengths.push("Strong human rights protections and policies");
+
+  if ((data.diversity_inclusion_score || 0) > 0.7)
+    strengths.push("Excellent diversity and inclusion initiatives");
+
+  if ((data.transparency_score || 0) > 0.7)
+    strengths.push("High level of corporate transparency");
+
+  if ((data.corruption_risk || 1) < 0.3) strengths.push("Low corruption risk");
+
+  if ((data.ethics_program || 0) > 0.7)
+    strengths.push("Robust ethics program implementation");
+
+  if ((data.delivery_efficiency || 0) > 0.7)
+    strengths.push("Highly efficient delivery systems");
+
+  if ((data.quality_control_score || 0) > 0.7)
+    strengths.push("Superior quality control processes");
+
+  // If we don't have enough strengths, add some generic ones
+  if (strengths.length < 3) {
+    strengths.push(
+      "Established reputation in the industry",
+      "Commitment to sustainability principles",
+      "Responsive management structure"
+    );
+  }
+
+  return strengths;
+}
+
+function generateWeaknesses(data: SupplierEvaluation): string[] {
+  const weaknesses = [];
+
+  if ((data.co2_emissions || 50) > 70)
+    weaknesses.push("High carbon emissions relative to industry standards");
+
+  if ((data.waste_management_score || 0) < 0.3)
+    weaknesses.push("Poor waste management practices");
+
+  if ((data.renewable_energy_percent || 0) < 20)
+    weaknesses.push("Low utilization of renewable energy sources");
+
+  if ((data.wage_fairness || 0) < 0.3)
+    weaknesses.push("Concerning wage fairness practices");
+
+  if ((data.human_rights_index || 0) < 0.3)
+    weaknesses.push("Human rights compliance issues identified");
+
+  if ((data.diversity_inclusion_score || 0) < 0.3)
+    weaknesses.push("Limited diversity and inclusion initiatives");
+
+  if ((data.transparency_score || 0) < 0.3)
+    weaknesses.push("Lack of corporate transparency");
+
+  if ((data.corruption_risk || 0) > 0.7)
+    weaknesses.push("High corruption risk identified");
+
+  if ((data.ethics_program || 0) < 0.3)
+    weaknesses.push("Inadequate ethics program implementation");
+
+  if ((data.delivery_efficiency || 0) < 0.3)
+    weaknesses.push("Inefficient delivery systems");
+
+  if ((data.quality_control_score || 0) < 0.3)
+    weaknesses.push("Deficient quality control processes");
+
+  // If we don't have enough weaknesses, add some generic ones
+  if (weaknesses.length < 2) {
+    weaknesses.push(
+      "Limited documentation of sustainability practices",
+      "Potential challenges with supply chain visibility",
+      "Opportunity to enhance stakeholder engagement"
+    );
+  }
+
+  return weaknesses;
+}
+
+function generateOpportunities(data: SupplierEvaluation): string[] {
+  return [
+    "Implement advanced emissions tracking technology",
+    "Develop comprehensive sustainability reporting framework",
+    "Expand renewable energy initiatives across operations",
+    "Strengthen supplier diversity program",
+    "Enhance worker development and training programs",
+  ].slice(0, 3);
+}
+
+function generateThreats(data: SupplierEvaluation): string[] {
+  const threats = [];
+
+  if ((data.geopolitical_risk || 0) > 0.5)
+    threats.push("Exposure to geopolitical instability in operating regions");
+
+  if ((data.climate_risk || 0) > 0.5)
+    threats.push("Vulnerability to climate change impacts on operations");
+
+  if ((data.labor_dispute_risk || 0) > 0.5)
+    threats.push("Potential labor disputes affecting production continuity");
+
+  // Add generic threats if needed
+  if (threats.length < 2) {
+    threats.push(
+      "Increasing regulatory pressure in key markets",
+      "Rising consumer expectations for ethical sourcing",
+      "Competitive pressure from more sustainable market alternatives"
+    );
+  }
+
+  return threats.slice(0, 3);
+}
+
+function generateRiskFactors(data: SupplierEvaluation): any[] {
+  const riskFactors = [];
+
+  // Environmental risks
+  if ((data.co2_emissions || 50) > 70) {
+    riskFactors.push({
+      factor: "Carbon Emissions Compliance",
+      severity: "High",
+      probability: "Medium",
+      mitigation: "Implement emissions reduction program with strict targets",
+    });
+  }
+
+  // Social risks
+  if ((data.human_rights_index || 0.5) < 0.4) {
+    riskFactors.push({
+      factor: "Human Rights Violations",
+      severity: "High",
+      probability: "Medium",
+      mitigation: "Develop comprehensive human rights due diligence process",
+    });
+  }
+
+  // Governance risks
+  if ((data.corruption_risk || 0.5) > 0.6) {
+    riskFactors.push({
+      factor: "Corruption and Bribery",
+      severity: "High",
+      probability: "Medium",
+      mitigation:
+        "Strengthen anti-corruption policies and whistleblower protection",
+    });
+  }
+
+  // Supply chain risks
+  if ((data.traceability || 0.5) < 0.4) {
+    riskFactors.push({
+      factor: "Supply Chain Opacity",
+      severity: "Medium",
+      probability: "High",
+      mitigation: "Implement blockchain-based supply chain tracking",
+    });
+  }
+
+  // Add generic risk factor if needed
+  if (riskFactors.length < 2) {
+    riskFactors.push({
+      factor: "Regulatory Compliance",
+      severity: "Medium",
+      probability: "Medium",
+      mitigation: "Establish regulatory intelligence system to track changes",
+    });
+  }
+
+  return riskFactors;
+}
+
+function generateStandardsMet(data: SupplierEvaluation): string[] {
+  const standards = [];
+
+  // Environmental standards
+  if (calculateEnvironmentalScore(data) > 0.6) {
+    standards.push("ISO 14001 Environmental Management");
+  }
+
+  // Social standards
+  if (calculateSocialScore(data) > 0.6) {
+    standards.push("SA8000 Social Accountability");
+  }
+
+  // Governance standards
+  if (calculateGovernanceScore(data) > 0.6) {
+    standards.push("ISO 37001 Anti-Bribery Management");
+  }
+
+  // Generic standards
+  standards.push("UN Global Compact Principles");
+
+  return standards;
+}
+
+function generateCertifications(data: SupplierEvaluation): string[] {
+  const certifications = [];
+
+  // Based on environmental performance
+  if ((data.renewable_energy_percent || 0) > 50) {
+    certifications.push("Green Energy Certification");
+  }
+
+  // Based on social performance
+  if ((data.wage_fairness || 0.5) > 0.7) {
+    certifications.push("Fair Labor Association Certification");
+  }
+
+  // Generic certifications
+  if (certifications.length < 2) {
+    certifications.push("ISO 9001 Quality Management");
+  }
+
+  return certifications;
+}
+
+function generateComplianceGaps(data: SupplierEvaluation): string[] {
+  const gaps = [];
+
+  if ((data.co2_emissions || 50) > 60) {
+    gaps.push("Carbon emissions reduction targets not met");
+  }
+
+  if ((data.water_usage || 50) > 60) {
+    gaps.push("Water conservation requirements not fulfilled");
+  }
+
+  if ((data.worker_safety || 0.5) < 0.5) {
+    gaps.push("Worker safety protocols below industry standards");
+  }
+
+  if ((data.transparency_score || 0.5) < 0.5) {
+    gaps.push("Insufficient disclosure of supply chain information");
+  }
+
+  return gaps.slice(0, 3);
 }
 
 export const getRecommendations = async () => {
@@ -542,93 +1126,6 @@ const getMockDashboardData = (): DashboardData => {
     isMockData: true,
   };
 };
-
-// Helper functions for mock data generation
-function calculateMockScore(data: any): number {
-  // Calculate a weighted score based on the supplier data
-  const laborWeight = 0.25;
-  const environmentalWeight = 0.3;
-  const socialWeight = 0.25;
-  const co2Weight = 0.2;
-
-  let score = 0;
-
-  if (data.wage_fairness !== undefined) {
-    score += data.wage_fairness * 100 * laborWeight;
-  }
-
-  if (data.human_rights_index !== undefined) {
-    score += data.human_rights_index * 100 * socialWeight;
-  }
-
-  if (data.waste_management_score !== undefined) {
-    score += data.waste_management_score * 100 * environmentalWeight;
-  }
-
-  if (data.co2_emissions !== undefined) {
-    // Inverse relationship - lower emissions mean higher score
-    const co2Score = Math.max(0, 100 - data.co2_emissions);
-    score += co2Score * co2Weight;
-  }
-
-  return parseFloat(score.toFixed(1));
-}
-
-function generateMockRecommendation(data: any): string {
-  const score = data.ethical_score || calculateMockScore(data);
-
-  if (score >= 80) {
-    return "This supplier demonstrates excellent ethical practices and should be prioritized for future partnerships. Consider highlighting this supplier in sustainability reports.";
-  } else if (score >= 65) {
-    return "This supplier meets most ethical standards but has room for improvement. Maintain the partnership while encouraging enhancements in weaker areas.";
-  } else if (score >= 50) {
-    return "This supplier shows moderate ethical performance. Consider requesting improvements in key areas before expanding business relationships.";
-  } else {
-    return "This supplier falls below acceptable ethical standards. It is recommended to find alternative suppliers or require significant improvements before continuing the partnership.";
-  }
-}
-
-function generateMockSuggestions(data: any): string[] {
-  const suggestions = [];
-
-  if (data.wage_fairness < 0.7) {
-    suggestions.push(
-      "Implement fair wage policies that align with international standards"
-    );
-  }
-
-  if (data.human_rights_index < 0.7) {
-    suggestions.push(
-      "Improve human rights compliance through worker protections and anti-discrimination policies"
-    );
-  }
-
-  if (data.waste_management_score < 0.7) {
-    suggestions.push(
-      "Develop more effective waste management systems to reduce environmental impact"
-    );
-  }
-
-  if (data.co2_emissions > 40) {
-    suggestions.push(
-      "Invest in renewable energy sources to reduce carbon footprint"
-    );
-  }
-
-  if (data.delivery_efficiency < 0.7) {
-    suggestions.push(
-      "Optimize logistics operations to improve delivery efficiency and reduce emissions"
-    );
-  }
-
-  if (suggestions.length === 0) {
-    suggestions.push(
-      "Continue to maintain high ethical standards and consider implementing advanced sustainability reporting"
-    );
-  }
-
-  return suggestions;
-}
 
 export const getDetailedAnalysis = async (
   supplierId: number
