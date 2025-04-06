@@ -60,7 +60,7 @@ const LandingPage = () => {
                 Get started
               </Link>
               <Link
-                to="/evaluate"
+                to="/supplier-assessment"
                 className="text-sm font-semibold leading-6 text-emerald-700 hover:text-emerald-600 transition-colors duration-200"
               >
                 Evaluate a supplier <span aria-hidden="true">→</span>
@@ -115,7 +115,7 @@ const LandingPage = () => {
                         feature.name === "Dashboard Analytics"
                           ? "/dashboard"
                           : feature.name === "Supplier Evaluation"
-                          ? "/evaluate"
+                          ? "/supplier-assessment"
                           : "/recommendations"
                       }
                       className="text-sm font-semibold leading-6 text-emerald-600 hover:text-emerald-500 transition-colors duration-200"
