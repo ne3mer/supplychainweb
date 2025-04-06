@@ -16,6 +16,7 @@ const LandingPage = () => {
   const treeContainerRef = useRef<HTMLDivElement>(null);
   const [scrollPosition, setScrollPosition] = useState(0);
   const [treeGrowth, setTreeGrowth] = useState(0);
+  const [show3D, setShow3D] = useState(false);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -111,7 +112,7 @@ const LandingPage = () => {
 
   return (
     <div className="bg-neutral-50 min-h-screen">
-      {/* Hero Section - Exact match to the image */}
+      {/* Hero Section - Modified to use 3D visualization instead of static image */}
       <div className="relative min-h-screen flex flex-col">
         {/* Top Brand Name */}
         <div className="p-4 pt-8 sm:p-6 sm:pt-12 lg:p-8 lg:pt-16">
@@ -121,7 +122,7 @@ const LandingPage = () => {
         </div>
 
         {/* Main Hero Content */}
-        <div className="flex-grow flex">
+        <div className="flex-grow flex flex-col lg:flex-row">
           <div className="w-full lg:w-1/2 flex flex-col justify-center p-4 sm:p-6 lg:p-8">
             <h1 className="text-5xl sm:text-6xl lg:text-7xl font-bold leading-tight tracking-tight text-gray-900 mb-8">
               Ethical AI for <br />
@@ -139,60 +140,69 @@ const LandingPage = () => {
               >
                 Get Started
               </Link>
-              <Link
-                to="/3d-visualization"
+              <button
+                onClick={() => setShow3D(!show3D)}
                 className="inline-flex items-center px-6 py-3 bg-white border border-emerald-700 hover:bg-emerald-50 transition-colors rounded-md text-emerald-700 font-medium text-lg shadow-md"
               >
-                View 3D Experience
-              </Link>
+                {show3D ? "Hide 3D View" : "Show 3D View"}
+              </button>
             </div>
           </div>
 
-          {/* Hero Image */}
-          <div className="hidden lg:flex w-1/2 items-center justify-center p-8">
-            <div className="relative">
-              <div className="w-[450px] h-[450px] rounded-full bg-emerald-100"></div>
-              <img
-                src="/supply-chain-illustration.svg"
-                alt="Supply Chain Illustration"
-                className="absolute top-0 left-0 w-full h-full object-contain"
-                onError={(e) => {
-                  e.currentTarget.style.display = "none";
-                  // Fallback illustration when image is not found
-                  document
-                    .getElementById("fallback-illustration")
-                    ?.classList.remove("hidden");
-                }}
-              />
-              <div
-                id="fallback-illustration"
-                className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 hidden"
-              >
-                <div className="relative">
-                  {/* Warehouse */}
-                  <div className="absolute top-[-120px] left-[-60px] w-[120px] h-[100px] bg-gray-300 rounded-sm">
-                    <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-[40px] h-[40px] bg-gray-500"></div>
-                    <div className="absolute top-0 w-full h-[20px] bg-gray-400"></div>
-                  </div>
-
-                  {/* Ground with tree */}
-                  <div className="absolute top-0 left-0 w-[300px] h-[150px] bg-emerald-200 rounded-full">
-                    <div className="absolute top-[-90px] left-[210px]">
-                      <div className="w-[20px] h-[60px] bg-emerald-800 rounded-full"></div>
-                      <div className="absolute top-[-60px] left-[-30px] w-[80px] h-[80px] bg-emerald-500 rounded-full"></div>
-                    </div>
-
-                    {/* Delivery truck */}
-                    <div className="absolute top-[40px] left-[50px]">
-                      <div className="w-[100px] h-[40px] bg-white rounded-sm">
-                        <div className="absolute top-[10px] left-[-20px] w-[40px] h-[20px] bg-blue-400 rounded-l-md"></div>
+          {/* 3D Visualization Container */}
+          <div className="w-full lg:w-1/2 flex items-center justify-center p-4 lg:p-0 mt-8 lg:mt-0">
+            <div className="w-full h-[450px] relative rounded-lg overflow-hidden shadow-lg">
+              {show3D ? (
+                <iframe
+                  src="/index.html"
+                  className="w-full h-full border-0"
+                  title="3D Supply Chain Visualization"
+                ></iframe>
+              ) : (
+                <div className="relative w-full h-full">
+                  <div className="w-full h-full rounded-lg bg-emerald-100"></div>
+                  <img
+                    src="/supply-chain-illustration.svg"
+                    alt="Supply Chain Illustration"
+                    className="absolute top-0 left-0 w-full h-full object-contain"
+                    onError={(e) => {
+                      e.currentTarget.style.display = "none";
+                      document
+                        .getElementById("fallback-illustration")
+                        ?.classList.remove("hidden");
+                    }}
+                  />
+                  <div
+                    id="fallback-illustration"
+                    className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 hidden"
+                  >
+                    <div className="relative">
+                      {/* Warehouse */}
+                      <div className="absolute top-[-120px] left-[-60px] w-[120px] h-[100px] bg-gray-300 rounded-sm">
+                        <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-[40px] h-[40px] bg-gray-500"></div>
+                        <div className="absolute top-0 w-full h-[20px] bg-gray-400"></div>
                       </div>
-                      <div className="absolute bottom-[-10px] left-[10px] w-[15px] h-[15px] rounded-full bg-gray-700"></div>
-                      <div className="absolute bottom-[-10px] left-[75px] w-[15px] h-[15px] rounded-full bg-gray-700"></div>
+
+                      {/* Ground with tree */}
+                      <div className="absolute top-0 left-0 w-[300px] h-[150px] bg-emerald-200 rounded-full">
+                        <div className="absolute top-[-90px] left-[210px]">
+                          <div className="w-[20px] h-[60px] bg-emerald-800 rounded-full"></div>
+                          <div className="absolute top-[-60px] left-[-30px] w-[80px] h-[80px] bg-emerald-500 rounded-full"></div>
+                        </div>
+
+                        {/* Delivery truck */}
+                        <div className="absolute top-[40px] left-[50px]">
+                          <div className="w-[100px] h-[40px] bg-white rounded-sm">
+                            <div className="absolute top-[10px] left-[-20px] w-[40px] h-[20px] bg-blue-400 rounded-l-md"></div>
+                          </div>
+                          <div className="absolute bottom-[-10px] left-[10px] w-[15px] h-[15px] rounded-full bg-gray-700"></div>
+                          <div className="absolute bottom-[-10px] left-[75px] w-[15px] h-[15px] rounded-full bg-gray-700"></div>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
+              )}
             </div>
           </div>
         </div>
