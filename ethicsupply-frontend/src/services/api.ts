@@ -499,11 +499,11 @@ export const getSuppliers = async (): Promise<Supplier[]> => {
     while (nextUrl) {
       const response = await fetch(nextUrl);
 
-      if (!response.ok) {
+    if (!response.ok) {
         throw new Error(`API returned status ${response.status}`);
-      }
+    }
 
-      const data = await response.json();
+    const data = await response.json();
       console.log("API response data:", data);
 
       // Handle paginated response (Django REST Framework format)
@@ -614,9 +614,9 @@ function createMockEvaluationResult(
   // Generate risk factors
   const riskFactors = generateRiskFactors(supplierData);
 
-  return {
-    id: Math.floor(Math.random() * 1000) + 100,
-    name: supplierData.name,
+      return {
+        id: Math.floor(Math.random() * 1000) + 100,
+        name: supplierData.name,
 
     // Overall scores (convert 0-1 scores to 0-100 for display)
     ethical_score: parseFloat(ethicalScore.toFixed(1)),
@@ -635,8 +635,8 @@ function createMockEvaluationResult(
     },
 
     // Recommendations
-    recommendation: generateMockRecommendation(supplierData),
-    suggestions: generateMockSuggestions(supplierData),
+        recommendation: generateMockRecommendation(supplierData),
+        suggestions: generateMockSuggestions(supplierData),
 
     // Risk factors
     risk_factors: riskFactors,
@@ -664,9 +664,9 @@ function createMockEvaluationResult(
       top_performer_score: 94.2,
     },
 
-    isMockData: true,
-  };
-}
+        isMockData: true,
+      };
+    }
 
 // Helper functions for score calculations
 function calculateEnvironmentalScore(data: SupplierEvaluation): number {
@@ -1055,7 +1055,7 @@ export const getDashboardData = async (): Promise<DashboardData> => {
     const data = await response.json();
     console.log("Dashboard API response:", data);
 
-    return {
+      return {
       ...data,
       isMockData: false,
     };
@@ -1073,7 +1073,7 @@ const getMockDashboardData = (): DashboardData => {
     total_suppliers: 12,
     avg_ethical_score: 75.3,
     avg_co2_emissions: 23.9,
-    suppliers_by_country: {
+        suppliers_by_country: {
       "United States": 4,
       "United Kingdom": 1,
       Taiwan: 1,
@@ -1082,23 +1082,23 @@ const getMockDashboardData = (): DashboardData => {
       "Hong Kong": 1,
       France: 1,
       China: 1,
-    },
-    ethical_score_distribution: [
+        },
+        ethical_score_distribution: [
       { range: "0-20", count: 0 },
       { range: "21-40", count: 0 },
       { range: "41-60", count: 2 },
       { range: "61-80", count: 7 },
       { range: "81-100", count: 3 },
-    ],
-    co2_emissions_by_industry: [
+        ],
+        co2_emissions_by_industry: [
       { name: "Consumer Goods", value: 4.3 },
       { name: "Electronics", value: 20.4 },
       { name: "Food & Beverage", value: 128.7 },
       { name: "Apparel", value: 2.5 },
       { name: "Home Appliances", value: 18.5 },
-    ],
-    isMockData: true,
-  };
+        ],
+        isMockData: true,
+      };
 };
 
 export const getDetailedAnalysis = async (
@@ -1165,7 +1165,7 @@ function getMockDetailedAnalysis(supplierId: number): DetailedAnalysis {
     mockSuppliers.find((s) => s.id === supplierId) || mockSuppliers[0];
   const score = supplier.ethical_score || 75;
 
-  return {
+    return {
     id: supplier.id,
     name: supplier.name,
     country: supplier.country,
@@ -1281,10 +1281,10 @@ function getMockDetailedAnalysis(supplierId: number): DetailedAnalysis {
           },
         },
       },
-    ],
-    isMockData: true,
-  };
-}
+      ],
+      isMockData: true,
+    };
+  }
 
 function getMockSimulationResult(
   supplierId: number,
