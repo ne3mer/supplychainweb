@@ -834,52 +834,59 @@ class MLStatusView(APIView):
     API endpoint for retrieving the status of machine learning models
     """
     def get(self, request):
-        # Calculate timestamps
-        now = datetime.now()
-        last_hour = (now - timedelta(hours=1)).strftime("%H:%M:%S")
-        last_day = (now - timedelta(days=1)).strftime("%b %d, %H:%M")
-        
-        # Generate realistic ML model data
-        ml_status = {
-            "models": [
-                {
-                    "name": "Supplier Risk Prediction",
-                    "status": "ready",
-                    "accuracy": 0.895,
-                    "lastUpdated": "2 days ago",
-                    "predictionCount": random.randint(250, 300),
-                },
-                {
-                    "name": "ESG Score Estimation",
-                    "status": random.choice(["training", "ready"]),
-                    "accuracy": round(random.uniform(0.75, 0.84), 2),
-                    "lastUpdated": "in progress" if random.random() > 0.5 else last_hour,
-                    "predictionCount": random.randint(120, 180),
-                },
-                {
-                    "name": "Supply Chain Disruption",
-                    "status": "ready",
-                    "accuracy": 0.91,
-                    "lastUpdated": last_day,
-                    "predictionCount": random.randint(300, 350),
-                },
-                {
-                    "name": "Sustainability Score Predictor",
-                    "status": random.choice(["ready", "error"]),
-                    "accuracy": 0.832,
-                    "lastUpdated": "3 days ago",
-                    "predictionCount": random.randint(80, 120),
+        try:
+            # Calculate timestamps
+            now = datetime.now()
+            last_hour = (now - timedelta(hours=1)).strftime("%H:%M:%S")
+            last_day = (now - timedelta(days=1)).strftime("%b %d, %H:%M")
+            
+            # Generate realistic ML model data
+            ml_status = {
+                "models": [
+                    {
+                        "name": "Supplier Risk Prediction",
+                        "status": "ready",
+                        "accuracy": 0.895,
+                        "lastUpdated": "2 days ago",
+                        "predictionCount": random.randint(250, 300),
+                    },
+                    {
+                        "name": "ESG Score Estimation",
+                        "status": random.choice(["training", "ready"]),
+                        "accuracy": round(random.uniform(0.75, 0.84), 2),
+                        "lastUpdated": "in progress" if random.random() > 0.5 else last_hour,
+                        "predictionCount": random.randint(120, 180),
+                    },
+                    {
+                        "name": "Supply Chain Disruption",
+                        "status": "ready",
+                        "accuracy": 0.91,
+                        "lastUpdated": last_day,
+                        "predictionCount": random.randint(300, 350),
+                    },
+                    {
+                        "name": "Sustainability Score Predictor",
+                        "status": random.choice(["ready", "error"]),
+                        "accuracy": 0.832,
+                        "lastUpdated": "3 days ago",
+                        "predictionCount": random.randint(80, 120),
+                    }
+                ],
+                "systemStatus": {
+                    "apiHealth": random.random() > 0.05,  # 95% healthy
+                    "dataIngestion": random.random() > 0.08,  # 92% healthy
+                    "mlPipeline": random.random() > 0.1,  # 90% healthy
+                    "lastChecked": now.strftime("%H:%M:%S")
                 }
-            ],
-            "systemStatus": {
-                "apiHealth": random.random() > 0.05,  # 95% healthy
-                "dataIngestion": random.random() > 0.08,  # 92% healthy
-                "mlPipeline": random.random() > 0.1,  # 90% healthy
-                "lastChecked": now.strftime("%H:%M:%S")
             }
-        }
-        
-        return Response(ml_status)
+            
+            return Response(ml_status)
+        except Exception as e:
+            logger.error(f"Error in ML status view: {str(e)}")
+            return Response(
+                {"error": "Failed to retrieve ML status", "detail": str(e)},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
 
 @api_view(['GET'])
 def supply_chain_graph_view(request):
