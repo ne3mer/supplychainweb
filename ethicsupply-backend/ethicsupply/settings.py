@@ -142,8 +142,16 @@ REST_FRAMEWORK = {
 }
 
 # CORS settings
-CORS_ALLOW_ALL_ORIGINS = True
+CORS_ALLOW_ALL_ORIGINS = False
 CORS_ALLOW_CREDENTIALS = True
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:5173",
+    "http://localhost:5174",
+    "http://localhost:5175",
+    "https://ethic-supply.vercel.app",
+    "https://supplychainweb.vercel.app",
+    "https://ethicsupply-frontend.vercel.app"
+]
 
 # Add Render.com to allowed hosts
 ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', 'localhost,127.0.0.1,ethicsupply-backend.onrender.com,.vercel.app').split(',')
