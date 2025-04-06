@@ -1,6 +1,5 @@
 from pathlib import Path
 import os
-import dj_database_url
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -68,11 +67,16 @@ DATABASES = {
 # Vercel deployment settings
 DATABASE_URL = os.environ.get('DATABASE_URL')
 if DATABASE_URL:
-    DATABASES['default'] = dj_database_url.config(
-        default=DATABASE_URL,
-        conn_max_age=600,
-        ssl_require=False
-    )
+    try:
+        import dj_database_url
+        DATABASES['default'] = dj_database_url.config(
+            default=DATABASE_URL,
+            conn_max_age=600,
+            ssl_require=False
+        )
+    except ImportError:
+        # dj_database_url is not installed, continue with default database
+        pass
 
 # Password validation
 AUTH_PASSWORD_VALIDATORS = [
