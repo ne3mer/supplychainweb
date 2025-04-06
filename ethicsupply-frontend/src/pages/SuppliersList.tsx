@@ -30,7 +30,7 @@ const SuppliersList = () => {
       try {
         setLoading(true);
         const data = await getSuppliers();
-        console.log("Suppliers data received:", data);
+        console.log(`Suppliers data received: ${data.length} suppliers`, data);
         setSuppliers(data);
         setError(null);
 
@@ -46,7 +46,11 @@ const SuppliersList = () => {
         }
       } catch (err) {
         console.error("Error fetching suppliers:", err);
-        setError("Failed to fetch suppliers. Please try again later.");
+        setError(
+          `Failed to fetch suppliers: ${
+            err.message || "Unknown error"
+          }. Please try again later.`
+        );
         setUsingMockData(true); // Likely using mock data if there's an error
       } finally {
         setLoading(false);

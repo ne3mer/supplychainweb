@@ -91,8 +91,15 @@ const EvaluateSupplier = () => {
 
       try {
         setLoadingSupplier(true);
+        setError(null);
+
+        console.log(`Loading supplier ${supplierId} for evaluation...`);
         const suppliers = await getSuppliers();
-        console.log("Suppliers data for evaluation:", suppliers);
+        console.log(
+          `Suppliers data for evaluation: ${suppliers.length} suppliers`,
+          suppliers
+        );
+
         const supplier = suppliers.find(
           (s) => s.id === parseInt(supplierId, 10)
         );
@@ -114,11 +121,18 @@ const EvaluateSupplier = () => {
           console.log("Using mock data for evaluation:", isMock);
           setUsingMockData(isMock);
         } else {
-          setError(`Supplier with ID ${supplierId} not found`);
+          console.error(
+            `Supplier with ID ${supplierId} not found in the ${suppliers.length} suppliers returned`
+          );
+          setError(
+            `Supplier with ID ${supplierId} not found. The API returned ${suppliers.length} suppliers, but none matched this ID.`
+          );
         }
       } catch (err) {
         console.error("Error loading supplier for evaluation:", err);
-        setError("Failed to load supplier data");
+        setError(
+          `Failed to load supplier data: ${err.message || "Unknown error"}`
+        );
       } finally {
         setLoadingSupplier(false);
       }

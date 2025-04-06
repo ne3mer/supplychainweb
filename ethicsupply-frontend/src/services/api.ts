@@ -104,6 +104,87 @@ export interface DetailedAnalysis {
   isMockData?: boolean;
 }
 
+export interface SupplierAnalytics {
+  supplier: {
+    id: number;
+    name: string;
+    country: string;
+    industry: string;
+    ethical_score: number;
+    environmental_score: number;
+    social_score: number;
+    governance_score: number;
+    overall_score: number;
+    risk_level: string;
+    co2_emissions: number;
+    water_usage: number;
+    energy_efficiency: number;
+    waste_management_score: number;
+    wage_fairness: number;
+    human_rights_index: number;
+    diversity_inclusion_score: number;
+    community_engagement: number;
+    transparency_score: number;
+    corruption_risk: number;
+    delivery_efficiency: number;
+    quality_control_score: number;
+    esg_reports?: {
+      year: number;
+      environmental: number;
+      social: number;
+      governance: number;
+    }[];
+    media_sentiment?: {
+      source: string;
+      date: string;
+      score: number;
+      headline: string;
+    }[];
+    controversies?: {
+      issue: string;
+      date: string;
+      severity: string;
+      status: string;
+    }[];
+  };
+  industry_average: {
+    [key: string]: number;
+  };
+  similar_suppliers: Supplier[];
+  recommendations: {
+    area: string;
+    suggestion: string;
+    impact: string;
+    difficulty: string;
+  }[];
+  improvement_potential: {
+    [key: string]: number;
+  };
+  risk_factors: {
+    factor: string;
+    severity: string;
+    probability: string;
+    description: string;
+  }[];
+  cluster_info: {
+    cluster_id: number;
+    size: number;
+    avg_ethical_score: number;
+    avg_environmental_score: number;
+    avg_social_score: number;
+    avg_governance_score: number;
+    description: string;
+  };
+  prediction: {
+    next_quarter_score: number;
+    confidence: number;
+    factors: {
+      factor: string;
+      impact: number;
+    }[];
+  };
+}
+
 const api = axios.create({
   baseURL: API_BASE_URL,
   headers: {
@@ -196,39 +277,54 @@ const mockSuppliers: Supplier[] = [
 export const getSuppliers = async (): Promise<Supplier[]> => {
   try {
     console.log("Fetching suppliers from API...");
-    const response = await fetch(`${API_BASE_URL}/suppliers/`);
+    let allSuppliers: Supplier[] = [];
+    let nextUrl = `${API_BASE_URL}/suppliers/`;
 
-    if (!response.ok) {
-      console.warn(
-        `Suppliers API returned status ${response.status}. Using mock data.`
-      );
-      return mockSuppliers.map((supplier) => ({
-        ...supplier,
-        isMockData: true,
-      }));
-    }
+    // Fetch all pages of suppliers
+    while (nextUrl) {
+      const response = await fetch(nextUrl);
 
-    const data = await response.json();
-    console.log("API response data:", data);
+      if (!response.ok) {
+        console.warn(
+          `Suppliers API returned status ${response.status}. Using mock data.`
+        );
+        return mockSuppliers.map((supplier) => ({
+          ...supplier,
+          isMockData: true,
+        }));
+      }
 
-    // Handle paginated response (Django REST Framework format)
-    if (data && typeof data === "object") {
-      // Check if the response has a 'results' field (paginated response)
-      if (data.results && Array.isArray(data.results)) {
-        console.log("Using paginated API results:", data.results);
-        if (data.results.length > 0) {
-          return data.results;
+      const data = await response.json();
+      console.log("API response data:", data);
+
+      // Handle paginated response (Django REST Framework format)
+      if (data && typeof data === "object") {
+        // Check if the response has a 'results' field (paginated response)
+        if (data.results && Array.isArray(data.results)) {
+          console.log("Using paginated API results:", data.results);
+          if (data.results.length > 0) {
+            allSuppliers = [...allSuppliers, ...data.results];
+          }
+          // Update nextUrl for pagination
+          nextUrl = data.next;
+        } else if (Array.isArray(data) && data.length > 0) {
+          // Handle non-paginated response
+          console.log("Using non-paginated API results");
+          allSuppliers = data;
+          break; // No pagination, exit loop
+        } else {
+          break; // No more data
         }
-      }
-
-      // Handle non-paginated response
-      if (Array.isArray(data) && data.length > 0) {
-        console.log("Using non-paginated API results");
-        return data;
+      } else {
+        break; // Unexpected response format
       }
     }
 
-    // Only if the API returns an empty array, use mock data
+    if (allSuppliers.length > 0) {
+      return allSuppliers;
+    }
+
+    // Only if the API returns empty data, use mock data
     console.warn("API returned empty data. Using mock data.");
     return mockSuppliers.map((supplier) => ({
       ...supplier,
@@ -964,3 +1060,191 @@ const calculateMockRiskLevel = (data: any): string => {
   if (ethicalScore >= 0.6) return "Medium";
   return "High";
 };
+
+export const getSupplierAnalytics = async (
+  supplierId: number
+): Promise<SupplierAnalytics> => {
+  try {
+    console.log(`Fetching analytics for supplier ${supplierId}...`);
+    const response = await fetch(
+      `${API_BASE_URL}/suppliers/${supplierId}/analytics/`
+    );
+
+    if (!response.ok) {
+      console.warn(
+        `Analytics API returned status ${response.status}. Using mock data.`
+      );
+      return getMockSupplierAnalytics(supplierId);
+    }
+
+    const data = await response.json();
+    console.log("Supplier analytics API response:", data);
+    return data;
+  } catch (error) {
+    console.error("Error fetching supplier analytics:", error);
+    return getMockSupplierAnalytics(supplierId);
+  }
+};
+
+// Mock data generator for supplier analytics
+function getMockSupplierAnalytics(supplierId: number): SupplierAnalytics {
+  const supplier =
+    mockSuppliers.find((s) => s.id === supplierId) || mockSuppliers[0];
+
+  return {
+    supplier: {
+      id: supplier.id,
+      name: supplier.name,
+      country: supplier.country,
+      industry: "Manufacturing",
+      ethical_score: supplier.ethical_score || 78,
+      environmental_score: supplier.ethical_score
+        ? supplier.ethical_score * 0.9
+        : 72,
+      social_score: supplier.ethical_score ? supplier.ethical_score * 1.05 : 82,
+      governance_score: supplier.ethical_score
+        ? supplier.ethical_score * 0.98
+        : 76,
+      overall_score: supplier.ethical_score
+        ? supplier.ethical_score * 0.99
+        : 77,
+      risk_level: "Medium",
+      co2_emissions: supplier.co2_emissions || 65,
+      water_usage: 58,
+      energy_efficiency: 0.68,
+      waste_management_score: supplier.waste_management_score || 0.75,
+      wage_fairness: supplier.wage_fairness || 0.85,
+      human_rights_index: supplier.human_rights_index || 0.79,
+      diversity_inclusion_score: 0.82,
+      community_engagement: 0.73,
+      transparency_score: 0.74,
+      corruption_risk: 0.22,
+      delivery_efficiency: supplier.delivery_efficiency || 0.88,
+      quality_control_score: 0.91,
+      esg_reports: [
+        { year: 2021, environmental: 0.65, social: 0.78, governance: 0.7 },
+        { year: 2022, environmental: 0.68, social: 0.8, governance: 0.73 },
+        { year: 2023, environmental: 0.72, social: 0.82, governance: 0.76 },
+      ],
+      media_sentiment: [
+        {
+          source: "Industry News",
+          date: "2023-10-15",
+          score: 0.8,
+          headline: `${supplier.name} Leads in Sustainable Manufacturing`,
+        },
+        {
+          source: "Financial Times",
+          date: "2023-09-08",
+          score: 0.6,
+          headline: `Mixed Results for ${supplier.name}'s Q3 Performance`,
+        },
+        {
+          source: "Twitter",
+          date: "2023-11-20",
+          score: -0.2,
+          headline: `Customers Report Delays in ${supplier.name}'s Supply Chain`,
+        },
+      ],
+      controversies: [
+        {
+          issue: "Employee Complaint",
+          date: "2023-07-12",
+          severity: "Low",
+          status: "Resolved",
+        },
+        {
+          issue: "Environmental Fine",
+          date: "2022-05-18",
+          severity: "Medium",
+          status: "Resolved",
+        },
+      ],
+    },
+    industry_average: {
+      ethical_score: 65,
+      environmental_score: 60,
+      social_score: 68,
+      governance_score: 63,
+      overall_score: 64,
+      co2_emissions: 75,
+      water_usage: 70,
+      energy_efficiency: 0.58,
+      waste_management_score: 0.62,
+      wage_fairness: 0.72,
+      human_rights_index: 0.68,
+      diversity_inclusion_score: 0.65,
+      community_engagement: 0.6,
+      transparency_score: 0.61,
+      corruption_risk: 0.3,
+      delivery_efficiency: 0.75,
+      quality_control_score: 0.8,
+    },
+    similar_suppliers: [],
+    recommendations: [
+      {
+        area: "Environmental",
+        suggestion: "Implement water recycling systems in manufacturing plants",
+        impact: "High",
+        difficulty: "Medium",
+      },
+      {
+        area: "Social",
+        suggestion:
+          "Expand community engagement program to include educational initiatives",
+        impact: "Medium",
+        difficulty: "Low",
+      },
+      {
+        area: "Governance",
+        suggestion:
+          "Enhance board diversity and establish an independent ethics committee",
+        impact: "Medium",
+        difficulty: "Medium",
+      },
+    ],
+    improvement_potential: {
+      co2_emissions: 18,
+      water_usage: 22,
+      energy_efficiency: 15,
+      waste_management_score: 12,
+      transparency_score: 18,
+      corruption_risk: 10,
+    },
+    risk_factors: [
+      {
+        factor: "Supply Chain Disruption",
+        severity: "Medium",
+        probability: "Medium",
+        description:
+          "Potential disruptions due to reliance on suppliers in regions with geopolitical instability",
+      },
+      {
+        factor: "Regulatory Compliance",
+        severity: "High",
+        probability: "Low",
+        description:
+          "Risk of non-compliance with upcoming carbon emissions regulations",
+      },
+    ],
+    cluster_info: {
+      cluster_id: 2,
+      size: 15,
+      avg_ethical_score: 0.75,
+      avg_environmental_score: 0.71,
+      avg_social_score: 0.78,
+      avg_governance_score: 0.73,
+      description:
+        "Above-average performers with strong social responsibility programs",
+    },
+    prediction: {
+      next_quarter_score: 0.79,
+      confidence: 0.85,
+      factors: [
+        { factor: "Seasonal efficiency improvements", impact: 0.02 },
+        { factor: "Expanding diversity initiatives", impact: 0.03 },
+        { factor: "Pending environmental litigation", impact: -0.01 },
+      ],
+    },
+  };
+}

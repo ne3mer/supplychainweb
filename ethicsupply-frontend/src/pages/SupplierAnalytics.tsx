@@ -1,6 +1,9 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import axios from "axios";
+import {
+  getSupplierAnalytics,
+  SupplierAnalytics as IAnalyticsData,
+} from "../services/api";
 import {
   DocumentMagnifyingGlassIcon,
   ChartBarIcon,
@@ -30,93 +33,6 @@ import {
   Legend,
 } from "recharts";
 
-const API_BASE_URL = "http://localhost:8000/api";
-
-interface Supplier {
-  id: number;
-  name: string;
-  country: string;
-  industry: string;
-  ethical_score: number;
-  environmental_score: number;
-  social_score: number;
-  governance_score: number;
-  overall_score: number;
-  risk_level: string;
-  co2_emissions: number;
-  water_usage: number;
-  energy_efficiency: number;
-  waste_management_score: number;
-  wage_fairness: number;
-  human_rights_index: number;
-  diversity_inclusion_score: number;
-  community_engagement: number;
-  transparency_score: number;
-  corruption_risk: number;
-  delivery_efficiency: number;
-  quality_control_score: number;
-  esg_reports?: {
-    year: number;
-    environmental: number;
-    social: number;
-    governance: number;
-  }[];
-  media_sentiment?: {
-    source: string;
-    date: string;
-    score: number;
-    headline: string;
-  }[];
-  controversies?: {
-    issue: string;
-    date: string;
-    severity: string;
-    status: string;
-  }[];
-}
-
-interface ClusterInfo {
-  cluster_id: number;
-  size: number;
-  avg_ethical_score: number;
-  avg_environmental_score: number;
-  avg_social_score: number;
-  avg_governance_score: number;
-  description: string;
-}
-
-interface AnalyticsData {
-  supplier: Supplier;
-  industry_average: {
-    [key: string]: number;
-  };
-  similar_suppliers: Supplier[];
-  recommendations: {
-    area: string;
-    suggestion: string;
-    impact: string;
-    difficulty: string;
-  }[];
-  improvement_potential: {
-    [key: string]: number;
-  };
-  risk_factors: {
-    factor: string;
-    severity: string;
-    probability: string;
-    description: string;
-  }[];
-  cluster_info: ClusterInfo;
-  prediction: {
-    next_quarter_score: number;
-    confidence: number;
-    factors: {
-      factor: string;
-      impact: number;
-    }[];
-  };
-}
-
 // Color constants for visual consistency
 const COLORS = {
   ethical: "#3b82f6",
@@ -126,6 +42,9 @@ const COLORS = {
   risk: "#ef4444",
   improvement: "#2dd4bf",
 };
+
+// Update the analytics data type
+type AnalyticsData = IAnalyticsData;
 
 const SupplierAnalytics = () => {
   const { id } = useParams<{ id: string }>();
@@ -145,19 +64,13 @@ const SupplierAnalytics = () => {
 
       try {
         setIsLoading(true);
+        setError(""); // Clear any previous errors
 
-        // In a real app, this would hit the backend API
-        // For now, we'll simulate a response with mock data
-        const response = await axios.get(
-          `${API_BASE_URL}/suppliers/${id}/analytics/`
-        );
-        setAnalytics(response.data);
+        // Use the API service function instead of making a direct axios call
+        const data = await getSupplierAnalytics(parseInt(id, 10));
+        setAnalytics(data);
       } catch (err) {
         console.error("Error fetching supplier analytics:", err);
-
-        // For demo purposes, use mock data if API fails
-        setAnalytics(getMockAnalyticsData());
-
         setError(
           "Could not fetch supplier analytics data. Using sample data for demonstration."
         );
@@ -168,161 +81,6 @@ const SupplierAnalytics = () => {
 
     fetchAnalytics();
   }, [id]);
-
-  // Placeholder for mock data
-  const getMockAnalyticsData = (): AnalyticsData => {
-    return {
-      supplier: {
-        id: parseInt(id || "1"),
-        name: "Acme Global Solutions",
-        country: "United States",
-        industry: "Manufacturing",
-        ethical_score: 0.78,
-        environmental_score: 0.72,
-        social_score: 0.82,
-        governance_score: 0.76,
-        overall_score: 0.77,
-        risk_level: "Medium",
-        co2_emissions: 65,
-        water_usage: 58,
-        energy_efficiency: 0.68,
-        waste_management_score: 0.75,
-        wage_fairness: 0.85,
-        human_rights_index: 0.79,
-        diversity_inclusion_score: 0.82,
-        community_engagement: 0.73,
-        transparency_score: 0.74,
-        corruption_risk: 0.22,
-        delivery_efficiency: 0.88,
-        quality_control_score: 0.91,
-        esg_reports: [
-          { year: 2021, environmental: 0.65, social: 0.78, governance: 0.7 },
-          { year: 2022, environmental: 0.68, social: 0.8, governance: 0.73 },
-          { year: 2023, environmental: 0.72, social: 0.82, governance: 0.76 },
-        ],
-        media_sentiment: [
-          {
-            source: "Industry News",
-            date: "2023-10-15",
-            score: 0.8,
-            headline: "Acme Leads in Sustainable Manufacturing",
-          },
-          {
-            source: "Financial Times",
-            date: "2023-09-08",
-            score: 0.6,
-            headline: "Mixed Results for Acme's Q3 Performance",
-          },
-          {
-            source: "Twitter",
-            date: "2023-11-20",
-            score: -0.2,
-            headline: "Customers Report Delays in Acme's Supply Chain",
-          },
-        ],
-        controversies: [
-          {
-            issue: "Employee Complaint",
-            date: "2023-07-12",
-            severity: "Low",
-            status: "Resolved",
-          },
-          {
-            issue: "Environmental Fine",
-            date: "2022-05-18",
-            severity: "Medium",
-            status: "Resolved",
-          },
-        ],
-      },
-      industry_average: {
-        ethical_score: 0.65,
-        environmental_score: 0.6,
-        social_score: 0.68,
-        governance_score: 0.63,
-        overall_score: 0.64,
-        co2_emissions: 75,
-        water_usage: 70,
-        energy_efficiency: 0.58,
-        waste_management_score: 0.62,
-        wage_fairness: 0.72,
-        human_rights_index: 0.68,
-        diversity_inclusion_score: 0.65,
-        community_engagement: 0.6,
-        transparency_score: 0.61,
-        corruption_risk: 0.3,
-        delivery_efficiency: 0.75,
-        quality_control_score: 0.8,
-      },
-      similar_suppliers: [],
-      recommendations: [
-        {
-          area: "Environmental",
-          suggestion:
-            "Implement water recycling systems in manufacturing plants",
-          impact: "High",
-          difficulty: "Medium",
-        },
-        {
-          area: "Social",
-          suggestion:
-            "Expand community engagement program to include educational initiatives",
-          impact: "Medium",
-          difficulty: "Low",
-        },
-        {
-          area: "Governance",
-          suggestion:
-            "Enhance board diversity and establish an independent ethics committee",
-          impact: "Medium",
-          difficulty: "Medium",
-        },
-      ],
-      improvement_potential: {
-        co2_emissions: 18,
-        water_usage: 22,
-        energy_efficiency: 15,
-        waste_management_score: 12,
-        transparency_score: 18,
-        corruption_risk: 10,
-      },
-      risk_factors: [
-        {
-          factor: "Supply Chain Disruption",
-          severity: "Medium",
-          probability: "Medium",
-          description:
-            "Potential disruptions due to reliance on suppliers in regions with geopolitical instability",
-        },
-        {
-          factor: "Regulatory Compliance",
-          severity: "High",
-          probability: "Low",
-          description:
-            "Risk of non-compliance with upcoming carbon emissions regulations",
-        },
-      ],
-      cluster_info: {
-        cluster_id: 2,
-        size: 15,
-        avg_ethical_score: 0.75,
-        avg_environmental_score: 0.71,
-        avg_social_score: 0.78,
-        avg_governance_score: 0.73,
-        description:
-          "Above-average performers with strong social responsibility programs",
-      },
-      prediction: {
-        next_quarter_score: 0.79,
-        confidence: 0.85,
-        factors: [
-          { factor: "Seasonal efficiency improvements", impact: 0.02 },
-          { factor: "Expanding diversity initiatives", impact: 0.03 },
-          { factor: "Pending environmental litigation", impact: -0.01 },
-        ],
-      },
-    };
-  };
 
   if (isLoading) {
     return (
@@ -364,14 +122,7 @@ const SupplierAnalytics = () => {
     return null;
   }
 
-  const {
-    supplier,
-    industry_average,
-    recommendations,
-    risk_factors,
-    cluster_info,
-    prediction,
-  } = analytics;
+  const { supplier, industry_average, cluster_info, prediction } = analytics;
 
   // Prepare data for radar chart
   const radarData = [

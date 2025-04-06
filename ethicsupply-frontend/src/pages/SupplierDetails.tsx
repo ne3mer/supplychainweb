@@ -9,6 +9,7 @@ import {
   CheckCircleIcon,
   XCircleIcon,
   InformationCircleIcon,
+  ChartBarIcon,
 } from "@heroicons/react/24/outline";
 
 const SupplierDetails = () => {
@@ -22,8 +23,12 @@ const SupplierDetails = () => {
     const fetchSupplier = async () => {
       try {
         setLoading(true);
+        setError(null);
+
+        console.log(`Fetching supplier with ID ${id}...`);
         const suppliers = await getSuppliers();
         console.log("Suppliers data for details:", suppliers);
+
         const foundSupplier = suppliers.find((s) => s.id === parseInt(id, 10));
 
         if (foundSupplier) {
@@ -35,11 +40,18 @@ const SupplierDetails = () => {
           console.log("Using mock data for supplier details:", isMock);
           setUsingMockData(isMock);
         } else {
-          setError(`Supplier with ID ${id} not found`);
+          console.error(
+            `Supplier with ID ${id} not found in the ${suppliers.length} suppliers returned`
+          );
+          setError(
+            `Supplier with ID ${id} not found. The API returned ${suppliers.length} suppliers, but none matched this ID.`
+          );
         }
       } catch (err) {
         console.error("Error fetching supplier details:", err);
-        setError("Failed to fetch supplier details");
+        setError(
+          `Failed to fetch supplier details: ${err.message || "Unknown error"}`
+        );
         setUsingMockData(true);
       } finally {
         setLoading(false);
@@ -358,6 +370,13 @@ const SupplierDetails = () => {
         >
           <CheckCircleIcon className="h-5 w-5 mr-2" />
           Evaluate This Supplier
+        </Link>
+        <Link
+          to={`/suppliers/${supplier.id}/scorecard`}
+          className="inline-flex justify-center items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-emerald-600 hover:bg-emerald-700"
+        >
+          <ChartBarIcon className="h-5 w-5 mr-2" />
+          View Ethical Scorecard
         </Link>
       </div>
     </div>
