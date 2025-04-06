@@ -19,6 +19,54 @@ const EvaluateSupplier = () => {
   const [searchParams] = useSearchParams();
   const supplierId = searchParams.get("id");
 
+  // Add list of countries
+  const countries = [
+    "United States",
+    "China",
+    "India",
+    "Germany",
+    "United Kingdom",
+    "France",
+    "Brazil",
+    "Italy",
+    "Canada",
+    "Japan",
+    "South Korea",
+    "Australia",
+    "Spain",
+    "Mexico",
+    "Indonesia",
+    "Netherlands",
+    "Saudi Arabia",
+    "Turkey",
+    "Switzerland",
+    "Poland",
+    "Thailand",
+    "Sweden",
+    "Belgium",
+    "Nigeria",
+    "Austria",
+    "Norway",
+    "United Arab Emirates",
+    "Israel",
+    "Ireland",
+    "Singapore",
+    "Vietnam",
+    "Malaysia",
+    "Denmark",
+    "Philippines",
+    "Pakistan",
+    "Colombia",
+    "Chile",
+    "Finland",
+    "Bangladesh",
+    "Egypt",
+    "South Africa",
+    "New Zealand",
+    "Argentina",
+    "Other",
+  ];
+
   const [formData, setFormData] = useState({
     name: "",
     country: "",
@@ -139,7 +187,8 @@ const EvaluateSupplier = () => {
       name: "country",
       label: "Country",
       icon: GlobeAltIcon,
-      type: "text",
+      type: "select",
+      options: countries,
     },
   ];
 
@@ -288,7 +337,7 @@ const EvaluateSupplier = () => {
         </div>
 
         <div className="p-4 sm:p-6">
-          {activeTab === "form" ? (
+          {activeTab === "form" && (
             <form onSubmit={handleSubmit} className="space-y-6">
               <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 mb-8">
                 {textFields.map((field) => (
@@ -306,15 +355,33 @@ const EvaluateSupplier = () => {
                           aria-hidden="true"
                         />
                       </div>
-                      <input
-                        type={field.type}
-                        name={field.name}
-                        id={field.name}
-                        value={formData[field.name]}
-                        onChange={handleChange}
-                        required
-                        className="focus:ring-emerald-500 focus:border-emerald-500 block w-full pl-10 sm:text-sm border-gray-300 rounded-md"
-                      />
+                      {field.type === "select" ? (
+                        <select
+                          name={field.name}
+                          id={field.name}
+                          value={formData[field.name]}
+                          onChange={handleChange}
+                          required
+                          className="focus:ring-emerald-500 focus:border-emerald-500 block w-full pl-10 sm:text-sm border-gray-300 rounded-md"
+                        >
+                          <option value="">Select a {field.label}</option>
+                          {field.options.map((option) => (
+                            <option key={option} value={option}>
+                              {option}
+                            </option>
+                          ))}
+                        </select>
+                      ) : (
+                        <input
+                          type={field.type}
+                          name={field.name}
+                          id={field.name}
+                          value={formData[field.name]}
+                          onChange={handleChange}
+                          required
+                          className="focus:ring-emerald-500 focus:border-emerald-500 block w-full pl-10 sm:text-sm border-gray-300 rounded-md"
+                        />
+                      )}
                     </div>
                   </div>
                 ))}
