@@ -1,8 +1,8 @@
 import axios from "axios";
 
 // Define the API URL in one place for easy updates
-// Using port 8001 as the Django server is now running on that port
-const API_BASE_URL = "http://localhost:8001/api";
+// Using port 8000 for the Django server
+const API_BASE_URL = "http://localhost:8000/api";
 
 export interface Supplier {
   id: number;
@@ -822,6 +822,42 @@ function generateOpportunities(data: SupplierEvaluation): string[] {
     "Strengthen supplier diversity program",
     "Enhance worker development and training programs",
   ].slice(0, 3);
+}
+
+function generateMockRecommendation(data: SupplierEvaluation): string {
+  const score = data.ethical_score || 50;
+
+  if (score > 80) {
+    return `${data.name} is performing exceptionally well in ethical and sustainability metrics. Consider strengthening partnership and exploring collaborative sustainability initiatives.`;
+  } else if (score > 60) {
+    return `${data.name} shows good potential with moderate ethical scores. Focus on specific improvements in environmental and governance areas to enhance overall performance.`;
+  } else {
+    return `${data.name} requires closer monitoring due to below-average ethical scores. Recommend implementing a structured improvement plan focusing on key sustainability metrics.`;
+  }
+}
+
+function generateMockSuggestions(data: SupplierEvaluation): string[] {
+  const score = data.ethical_score || 50;
+
+  if (score > 80) {
+    return [
+      "Highlight this supplier as a best practice model for others",
+      "Consider joint sustainability marketing initiatives",
+      "Explore expanding relationship to additional product lines",
+    ];
+  } else if (score > 60) {
+    return [
+      "Schedule quarterly sustainability review meetings",
+      "Provide resources for improving carbon footprint",
+      "Consider joint training programs on ethical practices",
+    ];
+  } else {
+    return [
+      "Implement monthly compliance check-ins",
+      "Require sustainability improvement plan within 60 days",
+      "Consider alternative suppliers while monitoring improvements",
+    ];
+  }
 }
 
 function generateThreats(data: SupplierEvaluation): string[] {

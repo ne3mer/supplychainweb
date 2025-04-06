@@ -64,95 +64,136 @@ class SupplierViewSet(viewsets.ModelViewSet):
             data = serializer.validated_data
             scores = ml_model.calculate_score(data)
             
-            # Save supplier with full scores
-            supplier = serializer.save(
-                ethical_score=scores['overall_score'],
-                environmental_score=scores['environmental_score'],
-                social_score=scores['social_score'],
-                governance_score=scores['governance_score'],
-                risk_level=scores['risk_level']
-            )
-            
-            # Generate recommendations using all supplier data for context
-            all_suppliers = list(Supplier.objects.values())
-            recommendations = ml_model.generate_recommendations(data, all_suppliers)
-            
-            return Response({
-                'id': supplier.id,
-                'name': supplier.name,
-                'scores': scores,
-                'recommendations': recommendations
-            }, status=status.HTTP_201_CREATED)
+            try:
+                # Save supplier with full scores
+                supplier = serializer.save(
+                    ethical_score=scores['overall_score'],
+                    environmental_score=scores['environmental_score'],
+                    social_score=scores['social_score'],
+                    governance_score=scores['governance_score'],
+                    risk_level=scores['risk_level']
+                )
+                
+                # Generate recommendations using all supplier data for context
+                all_suppliers = list(Supplier.objects.values())
+                recommendations = ml_model.generate_recommendations(data, all_suppliers)
+                
+                return Response({
+                    'id': supplier.id,
+                    'name': supplier.name,
+                    'scores': scores,
+                    'recommendations': recommendations
+                }, status=status.HTTP_201_CREATED)
+            except Exception as e:
+                # Log the error
+                import logging
+                logger = logging.getLogger(__name__)
+                logger.error(f"Error saving supplier: {str(e)}")
+                
+                # Return a response with the scores but indicate the supplier wasn't saved
+                return Response({
+                    'scores': scores,
+                    'error': f"Could not save supplier: {str(e)}",
+                    'recommendations': ml_model.generate_recommendations(data, list(Supplier.objects.values()))
+                }, status=status.HTTP_200_OK)
+                
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     @action(detail=False, methods=['get'])
     def recommendations(self, request):
-        # Get top suppliers by ethical score
-        top_suppliers = self.queryset.order_by('-ethical_score')[:10]
-        serializer = self.get_serializer(top_suppliers, many=True)
-        
-        # Convert serialized data to list
-        suppliers_data = serializer.data
-        
-        # Append recommendations for each supplier
-        ml_model = EthicalScoringModel()
-        all_suppliers = list(Supplier.objects.values())
-        
-        for supplier_data in suppliers_data:
-            # Get the full supplier object
-            supplier_id = supplier_data['id']
-            try:
-                supplier = Supplier.objects.get(id=supplier_id)
-                supplier_dict = {
-                    'co2_emissions': supplier.co2_emissions,
-                    'water_usage': supplier.water_usage,
-                    'energy_efficiency': supplier.energy_efficiency,
-                    'waste_management_score': supplier.waste_management_score,
-                    'wage_fairness': supplier.wage_fairness,
-                    'human_rights_index': supplier.human_rights_index,
-                    'diversity_inclusion_score': supplier.diversity_inclusion_score,
-                    'community_engagement': supplier.community_engagement,
-                    'transparency_score': supplier.transparency_score,
-                    'corruption_risk': supplier.corruption_risk,
-                    'industry': supplier.industry,
-                    'country': supplier.country
-                }
-                
-                # Generate recommendations
-                recommendations = ml_model.generate_recommendations(supplier_dict, all_suppliers)
-                
-                # Generate AI explanations of why this supplier is recommended
-                explanations = ml_model.generate_explanation(supplier_dict, all_suppliers)
-                
-                # Add to results
-                supplier_data['recommendations'] = recommendations
-                supplier_data['ai_explanation'] = explanations
-                
-                # Set the recommendation summary as the main recommendation text
-                supplier_data['recommendation'] = explanations['summary']
-                
-                # Add peer insights if clustering is available
-                supplier_cluster = ml_model.get_supplier_cluster(supplier_dict)
-                if supplier_cluster is not None:
-                    # Count peers in same cluster
-                    peer_count = sum(1 for s in all_suppliers if ml_model.get_supplier_cluster(s) == supplier_cluster)
-                    supplier_data['peer_insights'] = {
-                        'cluster': supplier_cluster,
-                        'peer_count': peer_count,
-                        'percentile': self._calculate_percentile(supplier.ethical_score)
+        try:
+            # Get top suppliers by ethical score
+            top_suppliers = self.queryset.order_by('-ethical_score')[:10]
+            serializer = self.get_serializer(top_suppliers, many=True)
+            
+            # Convert serialized data to list
+            suppliers_data = serializer.data
+            
+            # Append recommendations for each supplier
+            ml_model = EthicalScoringModel()
+            all_suppliers = list(Supplier.objects.values())
+            
+            for supplier_data in suppliers_data:
+                try:
+                    # Get the full supplier object
+                    supplier_id = supplier_data['id']
+                    try:
+                        supplier = Supplier.objects.get(id=supplier_id)
+                        supplier_dict = {
+                            'co2_emissions': getattr(supplier, 'co2_emissions', 50),
+                            'water_usage': getattr(supplier, 'water_usage', 50),
+                            'energy_efficiency': getattr(supplier, 'energy_efficiency', 0.5),
+                            'waste_management_score': getattr(supplier, 'waste_management_score', 0.5),
+                            'wage_fairness': getattr(supplier, 'wage_fairness', 0.5),
+                            'human_rights_index': getattr(supplier, 'human_rights_index', 0.5),
+                            'diversity_inclusion_score': getattr(supplier, 'diversity_inclusion_score', 0.5),
+                            'community_engagement': getattr(supplier, 'community_engagement', 0.5),
+                            'transparency_score': getattr(supplier, 'transparency_score', 0.5),
+                            'corruption_risk': getattr(supplier, 'corruption_risk', 0.5),
+                            'industry': getattr(supplier, 'industry', 'Manufacturing'),
+                            'country': getattr(supplier, 'country', 'Unknown')
+                        }
+                        
+                        # Generate recommendations
+                        recommendations = ml_model.generate_recommendations(supplier_dict, all_suppliers)
+                        
+                        # Generate AI explanations of why this supplier is recommended
+                        explanations = ml_model.generate_explanation(supplier_dict, all_suppliers)
+                        
+                        # Add to results
+                        supplier_data['recommendations'] = recommendations
+                        supplier_data['ai_explanation'] = explanations
+                        
+                        # Set the recommendation summary as the main recommendation text
+                        supplier_data['recommendation'] = explanations.get('summary', 'No recommendation available.')
+                        
+                        # Add peer insights if clustering is available
+                        supplier_cluster = ml_model.get_supplier_cluster(supplier_dict)
+                        if supplier_cluster is not None:
+                            # Count peers in same cluster
+                            peer_count = sum(1 for s in all_suppliers if ml_model.get_supplier_cluster(s) == supplier_cluster)
+                            try:
+                                percentile = self._calculate_percentile(getattr(supplier, 'ethical_score', 0))
+                            except Exception as e:
+                                percentile = 50  # Default to 50th percentile if calculation fails
+                                
+                            supplier_data['peer_insights'] = {
+                                'cluster': supplier_cluster,
+                                'peer_count': peer_count,
+                                'percentile': percentile
+                            }
+                        
+                    except Supplier.DoesNotExist:
+                        supplier_data['recommendations'] = []
+                        supplier_data['ai_explanation'] = {
+                            'key_strengths': [],
+                            'percentile_insights': [],
+                            'comparative_insights': [],
+                            'summary': 'No data available for this supplier.'
+                        }
+                        supplier_data['recommendation'] = 'No data available for this supplier.'
+                except Exception as inner_e:
+                    # Handle any exceptions for individual suppliers
+                    import logging
+                    logger = logging.getLogger(__name__)
+                    logger.error(f"Error processing supplier {supplier_data.get('id')}: {str(inner_e)}")
+                    
+                    supplier_data['recommendations'] = []
+                    supplier_data['ai_explanation'] = {
+                        'key_strengths': [],
+                        'percentile_insights': [],
+                        'comparative_insights': [],
+                        'summary': 'Unable to generate recommendations at this time.'
                     }
-                
-            except Supplier.DoesNotExist:
-                supplier_data['recommendations'] = []
-                supplier_data['ai_explanation'] = {
-                    'key_strengths': [],
-                    'percentile_insights': [],
-                    'comparative_insights': [],
-                    'summary': 'No data available for this supplier.'
-                }
-                supplier_data['recommendation'] = 'No data available for this supplier.'
-        
-        return Response(suppliers_data)
+                    supplier_data['recommendation'] = 'Unable to generate recommendations at this time.'
+            
+            return Response(suppliers_data)
+        except Exception as e:
+            # Log the error and return a 500 response with a fallback message
+            import logging
+            logger = logging.getLogger(__name__)
+            logger.error(f"Recommendations API error: {str(e)}")
+            return Response({"error": "Failed to generate recommendations"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     @action(detail=False, methods=['get'])
     def summary(self, request):
@@ -191,11 +232,21 @@ class SupplierViewSet(viewsets.ModelViewSet):
         )
         
         # Get suppliers by industry
-        suppliers_by_industry = dict(
-            suppliers.values('industry')
-            .annotate(count=Count('id'))
-            .values_list('industry', 'count')
-        )
+        try:
+            suppliers_by_industry = dict(
+                suppliers.values('industry')
+                .annotate(count=Count('id'))
+                .values_list('industry', 'count')
+            )
+            
+            # Safely handle None/null values by replacing them with 'Unspecified'
+            if None in suppliers_by_industry:
+                count = suppliers_by_industry.pop(None)
+                suppliers_by_industry['Unspecified'] = count
+                
+        except Exception as e:
+            print(f"Error in suppliers_by_industry: {str(e)}")
+            suppliers_by_industry = {}
         
         # If we have fewer than 3 countries or industries, add some mock data
         if len(suppliers_by_country) < 3:
@@ -250,20 +301,18 @@ class SupplierViewSet(viewsets.ModelViewSet):
         
         # Generate CO2 emissions by industry data
         co2_emissions_by_industry = []
-        for industry in suppliers_by_industry.keys():
-            industry_suppliers = suppliers.filter(industry=industry)
-            if industry_suppliers.exists():
-                avg_emissions = industry_suppliers.aggregate(Avg('co2_emissions'))['co2_emissions__avg'] or 0
-                co2_emissions_by_industry.append({
-                    'name': industry,
-                    'value': round(avg_emissions, 1)
-                })
-            else:
-                co2_emissions_by_industry.append({
-                    'name': industry,
-                    'value': 0
-                })
+        industries = {}
         
+        for supplier in suppliers:
+            # Safely handle None values for industry
+            industry = getattr(supplier, 'industry', None) or 'Other'
+            
+            if supplier.co2_emissions is not None:
+                industries[industry] = industries.get(industry, 0) + supplier.co2_emissions
+                
+        for industry, total in industries.items():
+            co2_emissions_by_industry.append({'name': industry, 'value': total})
+            
         # Generate water usage by industry data
         water_usage_by_industry = []
         for industry in suppliers_by_industry.keys():
@@ -440,21 +489,21 @@ class SupplierViewSet(viewsets.ModelViewSet):
             
             # Create supplier dict for ML processing
             supplier_dict = {
-                'co2_emissions': supplier.co2_emissions,
-                'water_usage': supplier.water_usage,
-                'energy_efficiency': supplier.energy_efficiency,
-                'waste_management_score': supplier.waste_management_score,
-                'wage_fairness': supplier.wage_fairness,
-                'human_rights_index': supplier.human_rights_index,
-                'diversity_inclusion_score': supplier.diversity_inclusion_score,
-                'community_engagement': supplier.community_engagement,
-                'transparency_score': supplier.transparency_score,
-                'corruption_risk': supplier.corruption_risk,
-                'industry': supplier.industry,
-                'country': supplier.country,
-                'social_media_sentiment': supplier.social_media_sentiment,
-                'news_sentiment': supplier.news_sentiment,
-                'worker_satisfaction': supplier.worker_satisfaction
+                'co2_emissions': getattr(supplier, 'co2_emissions', 50),
+                'water_usage': getattr(supplier, 'water_usage', 50),
+                'energy_efficiency': getattr(supplier, 'energy_efficiency', 0.5),
+                'waste_management_score': getattr(supplier, 'waste_management_score', 0.5),
+                'wage_fairness': getattr(supplier, 'wage_fairness', 0.5),
+                'human_rights_index': getattr(supplier, 'human_rights_index', 0.5),
+                'diversity_inclusion_score': getattr(supplier, 'diversity_inclusion_score', 0.5),
+                'community_engagement': getattr(supplier, 'community_engagement', 0.5),
+                'transparency_score': getattr(supplier, 'transparency_score', 0.5),
+                'corruption_risk': getattr(supplier, 'corruption_risk', 0.5),
+                'industry': getattr(supplier, 'industry', 'Manufacturing'),
+                'country': getattr(supplier, 'country', 'Unknown'),
+                'social_media_sentiment': getattr(supplier, 'social_media_sentiment', 0),
+                'news_sentiment': getattr(supplier, 'news_sentiment', 0),
+                'worker_satisfaction': getattr(supplier, 'worker_satisfaction', 3)
             }
             
             # Initialize ML model
@@ -468,14 +517,14 @@ class SupplierViewSet(viewsets.ModelViewSet):
             explanations = ml_model.generate_explanation(supplier_dict, all_suppliers)
             
             # Calculate industry benchmarks
-            industry_benchmarks = self._calculate_benchmarks(supplier.industry)
+            industry_benchmarks = self._calculate_benchmarks(getattr(supplier, 'industry', 'Manufacturing'))
             
             # Calculate percentiles
             percentiles = {
-                'overall': self._calculate_percentile(supplier.ethical_score),
-                'environmental': self._calculate_percentile(supplier.environmental_score, 'environmental_score'),
-                'social': self._calculate_percentile(supplier.social_score, 'social_score'),
-                'governance': self._calculate_percentile(supplier.governance_score, 'governance_score'),
+                'overall': self._calculate_percentile(getattr(supplier, 'ethical_score', 0)),
+                'environmental': self._calculate_percentile(getattr(supplier, 'environmental_score', 0), 'environmental_score'),
+                'social': self._calculate_percentile(getattr(supplier, 'social_score', 0), 'social_score'),
+                'governance': self._calculate_percentile(getattr(supplier, 'governance_score', 0), 'governance_score'),
             }
             
             # Generate improvement scenarios
@@ -484,33 +533,33 @@ class SupplierViewSet(viewsets.ModelViewSet):
             # Prepare and return detailed analysis
             response_data = {
                 'id': supplier.id,
-                'name': supplier.name,
-                'country': supplier.country,
-                'industry': supplier.industry,
-                'website': supplier.website,
-                'description': supplier.description,
-                'created_at': supplier.created_at,
-                'updated_at': supplier.updated_at,
+                'name': getattr(supplier, 'name', 'Unknown Supplier'),
+                'country': getattr(supplier, 'country', 'Unknown'),
+                'industry': getattr(supplier, 'industry', 'Manufacturing'),
+                'website': getattr(supplier, 'website', ''),
+                'description': getattr(supplier, 'description', ''),
+                'created_at': getattr(supplier, 'created_at', None),
+                'updated_at': getattr(supplier, 'updated_at', None),
                 'scores': {
-                    'overall': supplier.ethical_score,
-                    'environmental': supplier.environmental_score,
-                    'social': supplier.social_score,
-                    'governance': supplier.governance_score,
-                    'risk_level': supplier.risk_level
+                    'overall': getattr(supplier, 'ethical_score', 0),
+                    'environmental': getattr(supplier, 'environmental_score', 0),
+                    'social': getattr(supplier, 'social_score', 0),
+                    'governance': getattr(supplier, 'governance_score', 0),
+                    'risk_level': getattr(supplier, 'risk_level', 'medium')
                 },
-                'co2_emissions': supplier.co2_emissions,
-                'water_usage': supplier.water_usage,
-                'energy_efficiency': supplier.energy_efficiency,
-                'waste_management_score': supplier.waste_management_score,
-                'wage_fairness': supplier.wage_fairness,
-                'human_rights_index': supplier.human_rights_index,
-                'diversity_inclusion_score': supplier.diversity_inclusion_score,
-                'community_engagement': supplier.community_engagement,
-                'transparency_score': supplier.transparency_score,
-                'corruption_risk': supplier.corruption_risk,
-                'social_media_sentiment': supplier.social_media_sentiment,
-                'news_sentiment': supplier.news_sentiment,
-                'worker_satisfaction': supplier.worker_satisfaction,
+                'co2_emissions': getattr(supplier, 'co2_emissions', 50),
+                'water_usage': getattr(supplier, 'water_usage', 50),
+                'energy_efficiency': getattr(supplier, 'energy_efficiency', 0.5),
+                'waste_management_score': getattr(supplier, 'waste_management_score', 0.5),
+                'wage_fairness': getattr(supplier, 'wage_fairness', 0.5),
+                'human_rights_index': getattr(supplier, 'human_rights_index', 0.5),
+                'diversity_inclusion_score': getattr(supplier, 'diversity_inclusion_score', 0.5),
+                'community_engagement': getattr(supplier, 'community_engagement', 0.5),
+                'transparency_score': getattr(supplier, 'transparency_score', 0.5),
+                'corruption_risk': getattr(supplier, 'corruption_risk', 0.5),
+                'social_media_sentiment': getattr(supplier, 'social_media_sentiment', 0),
+                'news_sentiment': getattr(supplier, 'news_sentiment', 0),
+                'worker_satisfaction': getattr(supplier, 'worker_satisfaction', 3),
                 'percentiles': percentiles,
                 'industry_benchmarks': industry_benchmarks,
                 'recommendations': recommendations,
@@ -524,6 +573,15 @@ class SupplierViewSet(viewsets.ModelViewSet):
             return Response(
                 {'detail': 'Supplier not found'}, 
                 status=status.HTTP_404_NOT_FOUND
+            )
+        except Exception as e:
+            # Log the error
+            import logging
+            logger = logging.getLogger(__name__)
+            logger.error(f"Detailed analysis error for supplier {pk}: {str(e)}")
+            return Response(
+                {'detail': 'Failed to generate detailed analysis', 'error': str(e)}, 
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
 
     @action(detail=True, methods=['post'])
@@ -543,19 +601,19 @@ class SupplierViewSet(viewsets.ModelViewSet):
             
             # Create supplier dict for ML model
             current_data = {
-                'co2_emissions': supplier.co2_emissions,
-                'water_usage': supplier.water_usage,
-                'energy_efficiency': supplier.energy_efficiency,
-                'waste_management_score': supplier.waste_management_score,
-                'wage_fairness': supplier.wage_fairness,
-                'human_rights_index': supplier.human_rights_index,
-                'diversity_inclusion_score': supplier.diversity_inclusion_score,
-                'community_engagement': supplier.community_engagement,
-                'transparency_score': supplier.transparency_score,
-                'corruption_risk': supplier.corruption_risk,
-                'social_media_sentiment': supplier.social_media_sentiment,
-                'news_sentiment': supplier.news_sentiment,
-                'worker_satisfaction': supplier.worker_satisfaction
+                'co2_emissions': getattr(supplier, 'co2_emissions', 50),
+                'water_usage': getattr(supplier, 'water_usage', 50),
+                'energy_efficiency': getattr(supplier, 'energy_efficiency', 0.5),
+                'waste_management_score': getattr(supplier, 'waste_management_score', 0.5),
+                'wage_fairness': getattr(supplier, 'wage_fairness', 0.5),
+                'human_rights_index': getattr(supplier, 'human_rights_index', 0.5),
+                'diversity_inclusion_score': getattr(supplier, 'diversity_inclusion_score', 0.5),
+                'community_engagement': getattr(supplier, 'community_engagement', 0.5),
+                'transparency_score': getattr(supplier, 'transparency_score', 0.5),
+                'corruption_risk': getattr(supplier, 'corruption_risk', 0.5),
+                'social_media_sentiment': getattr(supplier, 'social_media_sentiment', 0),
+                'news_sentiment': getattr(supplier, 'news_sentiment', 0),
+                'worker_satisfaction': getattr(supplier, 'worker_satisfaction', 3)
             }
             
             # Predict impact
@@ -563,8 +621,20 @@ class SupplierViewSet(viewsets.ModelViewSet):
             
             return Response(result)
         
+        except Supplier.DoesNotExist:
+            return Response(
+                {'detail': 'Supplier not found'}, 
+                status=status.HTTP_404_NOT_FOUND
+            )
         except Exception as e:
-            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+            # Log the error
+            import logging
+            logger = logging.getLogger(__name__)
+            logger.error(f"Simulate changes error for supplier {pk}: {str(e)}")
+            return Response(
+                {"error": f"Failed to simulate changes: {str(e)}"}, 
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
     
     @action(detail=False, methods=['get'])
     def scorecard_settings(self, request):
@@ -803,7 +873,9 @@ def dashboard_view(request):
         industries = {}
         
         for supplier in suppliers:
-            industry = supplier.industry or 'Other'
+            # Safely handle None values for industry
+            industry = getattr(supplier, 'industry', None) or 'Other'
+            
             if supplier.co2_emissions is not None:
                 industries[industry] = industries.get(industry, 0) + supplier.co2_emissions
                 
@@ -942,7 +1014,10 @@ def supply_chain_graph_view(request):
             
             # Link to raw materials based on industry
             industry = supplier.get('industry', '').lower()
-            ethical_score = supplier.get('ethical_score', 50)
+            ethical_score = supplier.get('ethical_score')
+            # Ensure ethical_score is not None before comparison
+            if ethical_score is None:
+                ethical_score = 50
             
             # Default to ethical unless score is low
             is_ethical_source = ethical_score >= 60
