@@ -22,6 +22,22 @@
       "dest": "/staticfiles/$1"
     },
     {
+      "src": "/favicon.ico",
+      "dest": "/staticfiles/favicon.ico"
+    },
+    {
+      "src": "/api/(.*)",
+      "dest": "ethicsupply/wsgi.py"
+    },
+    {
+      "src": "/admin/(.*)",
+      "dest": "ethicsupply/wsgi.py"
+    },
+    {
+      "src": "/health",
+      "dest": "ethicsupply/wsgi.py"
+    },
+    {
       "src": "/(.*)",
       "dest": "ethicsupply/wsgi.py"
     }
