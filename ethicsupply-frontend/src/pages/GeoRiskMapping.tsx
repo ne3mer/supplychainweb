@@ -5,22 +5,25 @@ import {
   Marker,
   Popup,
   CircleMarker,
+  useMap,
 } from "react-leaflet";
+import { getSuppliers, Supplier } from "../services/api";
+import "leaflet/dist/leaflet.css";
+import L from "leaflet";
 import {
   GlobeAltIcon,
+  BuildingOfficeIcon,
   ExclamationTriangleIcon,
   InformationCircleIcon,
   ArrowPathIcon,
   BellIcon,
+  BellAlertIcon,
   ShieldExclamationIcon,
   FireIcon,
   CloudIcon,
   ScaleIcon,
   UserGroupIcon,
 } from "@heroicons/react/24/outline";
-import { getSuppliers, Supplier } from "../services/api";
-import "leaflet/dist/leaflet.css";
-import L from "leaflet";
 
 // Fix for default marker icons
 // @ts-ignore
@@ -212,13 +215,11 @@ const RiskOverlay: React.FC<RiskOverlayProps> = ({ country, riskTypes }) => {
       {riskTypes.map((riskType, index) => (
         <CircleMarker
           key={`${country}-${riskType}-${index}`}
-          center={[coordinates[0] as number, coordinates[1] as number]}
+          center={[coordinates[0], coordinates[1]]}
           radius={15 + index * 5}
           pathOptions={{
-            color:
-              riskTypes[riskType as keyof typeof riskTypes]?.color || "#000",
-            fillColor:
-              riskTypes[riskType as keyof typeof riskTypes]?.color || "#000",
+            color: riskTypes[riskType]?.color || "#000",
+            fillColor: riskTypes[riskType]?.color || "#000",
             fillOpacity: 0.2,
             weight: 1,
           }}
@@ -250,6 +251,7 @@ const GeoRiskMapping = () => {
   const [highlightedCountry, setHighlightedCountry] = useState<string | null>(
     null
   );
+  const [showTutorial, setShowTutorial] = useState<boolean>(false);
 
   // Fetch suppliers
   useEffect(() => {
@@ -304,90 +306,93 @@ const GeoRiskMapping = () => {
       <div className="flex flex-col md:flex-row justify-between items-start mb-6">
         <div>
           <h1 className="text-2xl font-bold text-gray-900 flex items-center">
-            <GlobeAltIcon className="h-6 w-6 text-indigo-600 mr-2" />
-            Geopolitical Risk Mapping
+            <GlobeAltIcon className="h-6 w-6 text-blue-600 mr-2" />
+            Geo-AI Risk Mapping
           </h1>
           <p className="text-gray-600 mt-1">
-            Monitor and analyze global supply chain risks across regions
+            Visualize suppliers and global risk factors in real-time
           </p>
         </div>
 
-        {/* Alert button */}
-        <div className="mt-4 md:mt-0">
+        <div className="flex space-x-2 mt-4 md:mt-0">
+          <button
+            onClick={() => setShowTutorial(true)}
+            className="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+          >
+            <InformationCircleIcon className="h-5 w-5 mr-1 text-blue-500" />
+            Help
+          </button>
+
           <button
             onClick={() => setShowAlerts(!showAlerts)}
-            className="relative inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+            className="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 relative"
           >
             {unreadAlertsCount > 0 ? (
-              <>
-                <BellIcon className="h-5 w-5 mr-2 animate-pulse" />
-                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">
-                  {unreadAlertsCount}
-                </span>
-              </>
+              <BellAlertIcon className="h-5 w-5 mr-1 text-red-500" />
             ) : (
-              <BellIcon className="h-5 w-5 mr-2" />
+              <BellIcon className="h-5 w-5 mr-1 text-gray-500" />
             )}
             Alerts
+            {unreadAlertsCount > 0 && (
+              <span className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs">
+                {unreadAlertsCount}
+              </span>
+            )}
           </button>
         </div>
       </div>
 
-      {/* Filter options */}
+      {/* Risk Type Filters */}
       <div className="bg-white p-4 rounded-lg shadow mb-4">
-        <h2 className="text-sm font-medium text-gray-700 mb-2">
-          Filter Risk Types
-        </h2>
+        <h2 className="text-lg font-semibold mb-3">Risk Overlays</h2>
         <div className="flex flex-wrap gap-2">
-          {Object.entries(riskTypes).map(([key, risk]) => (
+          {Object.entries(riskTypes).map(([key, { name, color, icon }]) => (
             <button
               key={key}
               onClick={() => toggleRiskType(key)}
-              className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium`}
+              className={`inline-flex items-center px-3 py-2 rounded-full text-sm font-medium ${
+                activeRiskTypes.includes(key)
+                  ? "bg-gray-800 text-white"
+                  : "bg-gray-100 text-gray-700"
+              }`}
               style={{
-                backgroundColor: activeRiskTypes.includes(key)
-                  ? risk.color
-                  : "#f3f4f6",
-                color: activeRiskTypes.includes(key) ? "white" : "#1f2937",
+                borderLeft: activeRiskTypes.includes(key)
+                  ? `4px solid ${color}`
+                  : undefined,
               }}
             >
-              <span className="mr-1">{risk.icon}</span>
-              {risk.name}
+              <span className="mr-2">{icon}</span>
+              {name}
             </button>
           ))}
         </div>
       </div>
 
-      {/* Main content */}
-      <div className="bg-white rounded-lg shadow overflow-hidden">
-        {loading ? (
-          <div className="p-12 text-center">
-            <ArrowPathIcon className="h-12 w-12 text-gray-400 animate-spin mx-auto" />
-            <p className="mt-4 text-gray-600">Loading risk data...</p>
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        {/* Map container */}
+        <div className="md:col-span-3 bg-white rounded-lg shadow">
+          <div className="p-4 border-b">
+            <h2 className="text-lg font-semibold">Supplier Risk Map</h2>
+            <p className="text-sm text-gray-500">
+              {loading
+                ? "Loading supplier locations..."
+                : `Showing ${suppliers.length} suppliers with active risk overlays`}
+            </p>
           </div>
-        ) : error ? (
-          <div className="p-12 text-center">
-            <ExclamationTriangleIcon className="h-12 w-12 text-red-500 mx-auto" />
-            <p className="mt-4 text-red-500">{error}</p>
-            <button
-              onClick={() => window.location.reload()}
-              className="mt-4 px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700"
-            >
-              Try Again
-            </button>
-          </div>
-        ) : (
-          <div>
-            <div className="p-4 border-b">
-              <h2 className="text-lg font-semibold">Supply Chain Risk Map</h2>
-              <p className="text-sm text-gray-500">
-                {loading
-                  ? "Loading supplier locations..."
-                  : `Showing ${suppliers.length} suppliers with active risk overlays`}
-              </p>
-            </div>
 
-            {/* Map container with 600px height */}
+          {error ? (
+            <div className="p-8 text-center">
+              <ExclamationTriangleIcon className="h-12 w-12 text-red-500 mx-auto mb-4" />
+              <p className="text-red-500">{error}</p>
+              <button
+                onClick={() => window.location.reload()}
+                className="mt-4 inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+              >
+                <ArrowPathIcon className="h-4 w-4 mr-2" />
+                Retry
+              </button>
+            </div>
+          ) : (
             <div className="h-[600px] w-full">
               <MapContainer
                 center={[20, 0]}
@@ -434,10 +439,7 @@ const GeoRiskMapping = () => {
                     return (
                       <Marker
                         key={supplier.id}
-                        position={[
-                          coordinates[0] as number,
-                          coordinates[1] as number,
-                        ]}
+                        position={[coordinates[0], coordinates[1]]}
                         icon={L.divIcon({
                           className: "custom-div-icon",
                           html: `<div style="background-color: ${
@@ -491,24 +493,11 @@ const GeoRiskMapping = () => {
                                       <li
                                         key={risk}
                                         className="flex items-center mt-1"
-                                        style={{
-                                          color:
-                                            riskTypes[
-                                              risk as keyof typeof riskTypes
-                                            ]?.color,
-                                        }}
+                                        style={{ color: riskTypes[risk].color }}
                                       >
-                                        {
-                                          riskTypes[
-                                            risk as keyof typeof riskTypes
-                                          ]?.icon
-                                        }
+                                        {riskTypes[risk].icon}
                                         <span className="ml-1">
-                                          {
-                                            riskTypes[
-                                              risk as keyof typeof riskTypes
-                                            ]?.name
-                                          }
+                                          {riskTypes[risk].name}
                                         </span>
                                       </li>
                                     ))}
@@ -522,66 +511,179 @@ const GeoRiskMapping = () => {
                   })}
               </MapContainer>
             </div>
+          )}
+        </div>
 
-            {/* Alerts panel */}
-            {showAlerts && (
-              <div className="mt-6 bg-white rounded-lg shadow-lg border border-gray-200 p-4 max-w-2xl mx-auto mb-6">
-                <div className="flex justify-between items-center mb-4">
-                  <h3 className="font-semibold text-gray-900">Recent Alerts</h3>
-                  <span className="text-xs text-gray-500">
-                    {unreadAlertsCount} unread
-                  </span>
-                </div>
-                <div className="space-y-3 max-h-96 overflow-y-auto">
-                  {alerts.map((alert) => (
-                    <div
-                      key={alert.id}
-                      className={`p-3 rounded-lg border ${
-                        alert.read
-                          ? "border-gray-200 bg-white"
-                          : "border-indigo-200 bg-indigo-50"
-                      }`}
-                    >
-                      <div className="flex justify-between">
-                        <div className="flex items-center">
-                          <span
-                            className="w-2 h-2 rounded-full mr-2"
-                            style={{
-                              backgroundColor:
-                                riskTypes[alert.type as keyof typeof riskTypes]
-                                  ?.color || "#000",
-                            }}
-                          ></span>
-                          <h4 className="font-medium text-sm">{alert.title}</h4>
-                        </div>
-                        <span className="text-xs text-gray-500">
-                          {alert.date}
-                        </span>
-                      </div>
-                      <p className="text-sm text-gray-600 mt-1">
-                        {alert.description}
+        {/* Alerts panel */}
+        <div
+          className={`bg-white rounded-lg shadow ${
+            showAlerts ? "block" : "hidden md:block"
+          }`}
+        >
+          <div className="p-4 border-b flex justify-between items-center">
+            <h2 className="text-lg font-semibold">Recent Alerts</h2>
+            {unreadAlertsCount > 0 && (
+              <span className="bg-red-100 text-red-800 text-xs font-semibold px-2.5 py-0.5 rounded-full">
+                {unreadAlertsCount} New
+              </span>
+            )}
+          </div>
+
+          <div className="p-2 max-h-[550px] overflow-y-auto">
+            {alerts.length > 0 ? (
+              <div className="divide-y divide-gray-200">
+                {alerts.map((alert) => (
+                  <div
+                    key={alert.id}
+                    className={`p-3 hover:bg-gray-50 cursor-pointer transition-all ${
+                      !alert.read ? "bg-blue-50" : ""
+                    }`}
+                    onClick={() => markAlertAsRead(alert.id)}
+                  >
+                    <div className="flex justify-between">
+                      <p
+                        className="text-sm font-semibold"
+                        style={{ color: riskTypes[alert.type]?.color }}
+                      >
+                        {alert.title}
                       </p>
-                      <div className="flex justify-between items-center mt-2">
-                        <span className="text-xs text-gray-500">
-                          {alert.country}
+                      {!alert.read && (
+                        <span className="bg-blue-100 text-blue-800 text-xs px-1.5 py-0.5 rounded-full">
+                          New
                         </span>
-                        {!alert.read && (
-                          <button
-                            onClick={() => markAlertAsRead(alert.id)}
-                            className="text-xs text-indigo-600 hover:text-indigo-800"
-                          >
-                            Mark as read
-                          </button>
-                        )}
-                      </div>
+                      )}
                     </div>
-                  ))}
-                </div>
+                    <p className="text-xs text-gray-500 mt-1">{alert.date}</p>
+                    <p className="text-sm mt-1">{alert.description}</p>
+                    <div className="flex mt-2">
+                      <span
+                        className="text-xs px-2 py-1 rounded-full"
+                        style={{
+                          backgroundColor: `${riskTypes[alert.type]?.color}20`,
+                          color: riskTypes[alert.type]?.color,
+                        }}
+                      >
+                        {riskTypes[alert.type]?.name}
+                      </span>
+                      <span className="text-xs px-2 py-1 rounded-full bg-gray-100 text-gray-800 ml-2">
+                        {alert.country}
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="p-4 text-center text-gray-500">
+                <BellIcon className="h-8 w-8 mx-auto mb-2 text-gray-400" />
+                <p>No recent alerts</p>
               </div>
             )}
           </div>
-        )}
+        </div>
       </div>
+
+      {/* Help/Tutorial Modal */}
+      {showTutorial && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-6">
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-xl font-bold">How to Use the Risk Map</h2>
+                <button
+                  onClick={() => setShowTutorial(false)}
+                  className="text-gray-500 hover:text-gray-700"
+                >
+                  <svg
+                    className="w-6 h-6"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M6 18L18 6M6 6l12 12"
+                    />
+                  </svg>
+                </button>
+              </div>
+
+              <div className="space-y-4">
+                <div>
+                  <h3 className="font-semibold text-lg">Map Overview</h3>
+                  <p className="text-gray-600">
+                    The Geo-AI Risk Map visualizes your suppliers on a world
+                    map, overlaid with various risk factors that might affect
+                    your supply chain.
+                  </p>
+                </div>
+
+                <div>
+                  <h3 className="font-semibold text-lg">Risk Overlays</h3>
+                  <p className="text-gray-600 mb-2">
+                    Each colored overlay represents a different type of risk.
+                    You can toggle them on/off using the buttons above the map.
+                  </p>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    {Object.entries(riskTypes).map(
+                      ([key, { name, color, icon, description }]) => (
+                        <div
+                          key={key}
+                          className="flex p-3 rounded-lg"
+                          style={{
+                            backgroundColor: `${color}10`,
+                            borderLeft: `4px solid ${color}`,
+                          }}
+                        >
+                          <div className="mr-3">{icon}</div>
+                          <div>
+                            <h4 className="font-semibold" style={{ color }}>
+                              {name}
+                            </h4>
+                            <p className="text-xs text-gray-600">
+                              {description}
+                            </p>
+                          </div>
+                        </div>
+                      )
+                    )}
+                  </div>
+                </div>
+
+                <div>
+                  <h3 className="font-semibold text-lg">Alerts System</h3>
+                  <p className="text-gray-600">
+                    The alerts panel shows real-time notifications about
+                    emerging risks that could affect your suppliers. Click on an
+                    alert to mark it as read.
+                  </p>
+                </div>
+
+                <div>
+                  <h3 className="font-semibold text-lg">Supplier Markers</h3>
+                  <p className="text-gray-600">
+                    Each dot on the map represents a supplier. Red markers
+                    indicate suppliers in high-risk regions. Click on a marker
+                    to see detailed information and specific risks affecting
+                    that supplier.
+                  </p>
+                </div>
+              </div>
+
+              <div className="mt-6 pt-4 border-t">
+                <button
+                  onClick={() => setShowTutorial(false)}
+                  className="w-full inline-flex justify-center items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                >
+                  Got it
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

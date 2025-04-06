@@ -129,10 +129,13 @@ const Recommendations = () => {
               <InformationCircleIcon className="h-5 w-5 text-blue-400" />
             </div>
             <div className="ml-3">
-              <h3 className="text-sm font-medium text-blue-800">Demo Mode</h3>
+              <h3 className="text-sm font-medium text-blue-800">
+                Using Fallback Data
+              </h3>
               <div className="mt-2 text-sm text-blue-700">
-                You are viewing demo data. The API endpoint is not available at
-                this time. All recommendations shown are sample data.
+                The system is currently using fallback data instead of live
+                machine learning-generated recommendations. Real-time AI
+                analysis will be utilized once the backend is fully connected.
               </div>
             </div>
           </div>

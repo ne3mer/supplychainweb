@@ -1,17 +1,8 @@
 import axios from "axios";
 
 // Define the API URL in one place for easy updates
-// Using a dynamic approach to determine API URL based on environment
-const API_BASE_URL = (() => {
-  let baseUrl =
-    import.meta.env.VITE_API_URL ||
-    (window.location.hostname === "localhost"
-      ? "http://localhost:8000/api"
-      : "https://ethicsupply-backend.onrender.com/api");
-
-  // Remove trailing slash if it exists to prevent double slash in URLs
-  return baseUrl.endsWith("/") ? baseUrl.slice(0, -1) : baseUrl;
-})();
+// Using port 8000 for the Django server
+const API_BASE_URL = "http://localhost:8000/api";
 
 export interface Supplier {
   id: number;
@@ -831,6 +822,42 @@ function generateOpportunities(data: SupplierEvaluation): string[] {
     "Strengthen supplier diversity program",
     "Enhance worker development and training programs",
   ].slice(0, 3);
+}
+
+function generateMockRecommendation(data: SupplierEvaluation): string {
+  const score = data.ethical_score || 50;
+
+  if (score > 80) {
+    return `${data.name} is performing exceptionally well in ethical and sustainability metrics. Consider strengthening partnership and exploring collaborative sustainability initiatives.`;
+  } else if (score > 60) {
+    return `${data.name} shows good potential with moderate ethical scores. Focus on specific improvements in environmental and governance areas to enhance overall performance.`;
+  } else {
+    return `${data.name} requires closer monitoring due to below-average ethical scores. Recommend implementing a structured improvement plan focusing on key sustainability metrics.`;
+  }
+}
+
+function generateMockSuggestions(data: SupplierEvaluation): string[] {
+  const score = data.ethical_score || 50;
+
+  if (score > 80) {
+    return [
+      "Highlight this supplier as a best practice model for others",
+      "Consider joint sustainability marketing initiatives",
+      "Explore expanding relationship to additional product lines",
+    ];
+  } else if (score > 60) {
+    return [
+      "Schedule quarterly sustainability review meetings",
+      "Provide resources for improving carbon footprint",
+      "Consider joint training programs on ethical practices",
+    ];
+  } else {
+    return [
+      "Implement monthly compliance check-ins",
+      "Require sustainability improvement plan within 60 days",
+      "Consider alternative suppliers while monitoring improvements",
+    ];
+  }
 }
 
 function generateThreats(data: SupplierEvaluation): string[] {
@@ -1811,38 +1838,11 @@ function getMockMLStatus(): MLStatus {
 // Export a function to check if the API is available
 export const checkApiConnection = async (): Promise<boolean> => {
   try {
-    // Try the simple test endpoint with manual CORS headers first
-    const simpleResponse = await fetch(`${API_BASE_URL}/simple-test/`, {
-      method: "GET",
-      headers: {
-        Accept: "application/json",
-      },
+    const response = await fetch(`${API_BASE_URL}/ml/status/`, {
+      method: "HEAD",
       cache: "no-cache",
     });
-
-    if (simpleResponse.ok) {
-      const data = await simpleResponse.json();
-      console.log("API connection successful (simple):", data);
-      return true;
-    }
-
-    // Fall back to regular test endpoint if simple one fails
-    const response = await fetch(`${API_BASE_URL}/test/`, {
-      method: "GET",
-      headers: {
-        Accept: "application/json",
-      },
-      cache: "no-cache",
-    });
-
-    if (response.ok) {
-      const data = await response.json();
-      console.log("API connection successful:", data);
-      return true;
-    }
-
-    console.warn("API responded with status:", response.status);
-    return false;
+    return response.ok;
   } catch (error) {
     console.error("API connection check failed:", error);
     return false;

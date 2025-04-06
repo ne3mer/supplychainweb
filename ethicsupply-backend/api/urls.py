@@ -1,52 +1,9 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
-from rest_framework.decorators import api_view
-from rest_framework.response import Response
-from django.http import JsonResponse
-from .views import (
-    SupplierViewSet,
-    SupplierListAPIView,
-    SupplierDetailAPIView,
-    DashboardAPIView,
-    SupplyChainGraphAPIView,
-    TestAPIView,
-    SimpleTestAPIView,
-)
+from .views import SupplierViewSet, dashboard_view, supply_chain_graph_view
 
-# Set up router for ViewSets
 router = DefaultRouter()
-router.register(r'suppliers-viewset', SupplierViewSet, basename='suppliers-viewset')
-
-# Simple test endpoint for debugging
-@api_view(['GET', 'OPTIONS'])
-def test_endpoint(request):
-    if request.method == 'OPTIONS':
-        return Response({})
-        
-    response_data = {
-        "status": "success",
-        "message": "API is working correctly",
-        "cors": "CORS headers should be applied automatically",
-        "request_headers": {k: v for k, v in request.headers.items()},
-        "origin": request.headers.get('Origin', 'No origin header')
-    }
-    
-    return Response(response_data)
-
-# Fallback test endpoint that doesn't use DRF
-def simple_test(request):
-    response = JsonResponse({
-        "status": "success",
-        "message": "Simple test endpoint working",
-        "method": request.method
-    })
-    
-    # Manually add CORS headers
-    response["Access-Control-Allow-Origin"] = "*"
-    response["Access-Control-Allow-Methods"] = "GET, OPTIONS"
-    response["Access-Control-Allow-Headers"] = "Content-Type, Authorization"
-    
-    return response
+router.register(r'suppliers', SupplierViewSet)
 
 # The DefaultRouter will automatically create the URL patterns for:
 # GET/POST /suppliers/
@@ -63,14 +20,7 @@ def simple_test(request):
 # POST /suppliers/create_scorecard_settings/
 
 urlpatterns = [
-    # Include router URLs
     path('', include(router.urls)),
-    
-    # API view URLs
-    path('suppliers/', SupplierListAPIView.as_view(), name='supplier-list'),
-    path('suppliers/<int:pk>/', SupplierDetailAPIView.as_view(), name='supplier-detail'),
-    path('dashboard/', DashboardAPIView.as_view(), name='dashboard'),
-    path('supply-chain-graph/', SupplyChainGraphAPIView.as_view(), name='supply-chain-graph'),
-    path('test/', TestAPIView.as_view(), name='test'),
-    path('simple-test/', SimpleTestAPIView.as_view(), name='simple-test'),
+    path('dashboard/', dashboard_view, name='dashboard'),
+    path('supply-chain-graph/', supply_chain_graph_view, name='supply_chain_graph'),
 ] 
