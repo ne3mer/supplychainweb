@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { getDashboardData } from "../services/api";
+import { getDashboardData, checkApiConnection } from "../services/api";
 import {
   GlobeAltIcon,
   ScaleIcon,
@@ -85,12 +85,30 @@ const Dashboard = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [usingMockData, setUsingMockData] = useState(false);
+  const [apiConnected, setApiConnected] = useState<boolean | null>(null);
+
+  // Check API connection status
+  const checkConnection = async () => {
+    const isConnected = await checkApiConnection();
+    setApiConnected(isConnected);
+    return isConnected;
+  };
 
   useEffect(() => {
     const fetchData = async () => {
       try {
         setLoading(true);
         setError(null);
+
+        // First check connection
+        const isConnected = await checkConnection();
+        if (!isConnected) {
+          setError(
+            "Cannot connect to the backend server. Please make sure the Django server is running at http://localhost:8000"
+          );
+          return;
+        }
+
         const dashboardData = await getDashboardData();
         console.log("Dashboard data received:", dashboardData);
         setData(dashboardData);
@@ -100,7 +118,7 @@ const Dashboard = () => {
       } catch (error) {
         console.error("Error fetching dashboard data:", error);
         setError(
-          "Failed to connect to the API server. Please make sure the backend server is running at http://localhost:8000"
+          "Failed to fetch data from API. Please make sure the backend server is running at http://localhost:8000"
         );
         // Don't automatically fall back to mock data
         setUsingMockData(false);

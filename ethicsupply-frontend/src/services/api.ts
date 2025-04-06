@@ -1787,3 +1787,17 @@ function getMockMLStatus(): MLStatus {
     isMockData: true,
   };
 }
+
+// Export a function to check if the API is available
+export const checkApiConnection = async (): Promise<boolean> => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/ml/status/`, {
+      method: "HEAD",
+      cache: "no-cache",
+    });
+    return response.ok;
+  } catch (error) {
+    console.error("API connection check failed:", error);
+    return false;
+  }
+};

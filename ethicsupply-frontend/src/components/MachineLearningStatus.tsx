@@ -4,12 +4,14 @@ import {
   BeakerIcon,
   CheckCircleIcon,
   ExclamationCircleIcon,
+  ServerIcon,
 } from "@heroicons/react/24/outline";
 import {
   getMLStatus,
   MLModelStatus,
   MLSystemStatus,
   MLStatus,
+  checkApiConnection,
 } from "../services/api";
 
 // Interface for the ML status props
@@ -35,12 +37,30 @@ const MachineLearningStatus: React.FC<MachineLearningStatusProps> = ({
     new Date().toLocaleTimeString()
   );
   const [usingMockData, setUsingMockData] = useState(false);
+  const [apiConnected, setApiConnected] = useState<boolean | null>(null);
 
-  // Fetch ML status from the API
+  // Check if API is connected
+  const checkConnection = async () => {
+    const isConnected = await checkApiConnection();
+    setApiConnected(isConnected);
+    return isConnected;
+  };
+
+  // Enhanced fetch ML status with connection check
   const fetchMLStatus = async () => {
     try {
       setLoading(true);
       setError(null);
+
+      // First check connection
+      const isConnected = await checkConnection();
+      if (!isConnected) {
+        setError(
+          "Cannot connect to backend server. Please ensure the server is running."
+        );
+        return;
+      }
+
       const mlStatus = await getMLStatus();
       setModels(mlStatus.models);
       setSystemStatus(mlStatus.systemStatus);
@@ -51,7 +71,6 @@ const MachineLearningStatus: React.FC<MachineLearningStatusProps> = ({
       setError(
         "Failed to connect to ML API. Please ensure the backend server is running."
       );
-      // Don't automatically fall back to mock data
       setUsingMockData(false);
     } finally {
       setLoading(false);
@@ -94,6 +113,18 @@ const MachineLearningStatus: React.FC<MachineLearningStatusProps> = ({
           <BeakerIcon className="h-5 w-5 mr-2" />
           <h3 className="font-medium">Machine Learning Pipeline Status</h3>
           {loading && <ArrowPathIcon className="h-4 w-4 ml-2 animate-spin" />}
+          {apiConnected !== null && (
+            <div className="ml-2 flex items-center">
+              <div
+                className={`h-2 w-2 rounded-full mr-1 ${
+                  apiConnected ? "bg-green-400" : "bg-red-400"
+                }`}
+              ></div>
+              <span className="text-xs">
+                {apiConnected ? "Connected" : "Disconnected"}
+              </span>
+            </div>
+          )}
         </div>
         <div className="flex items-center">
           {usingMockData && (
