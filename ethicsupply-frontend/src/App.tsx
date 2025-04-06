@@ -10,6 +10,7 @@ import SupplierScorecard from "./pages/SupplierScorecard";
 import AddSupplier from "./pages/AddSupplier";
 import SupplierAnalytics from "./pages/SupplierAnalytics";
 import SupplierAssessment from "./pages/enhanced/SupplierAssessment";
+import GeoRiskMapping from "./pages/GeoRiskMapping";
 
 function App() {
   return (
@@ -37,6 +38,7 @@ function App() {
               path="/supplier-assessment"
               element={<SupplierAssessment />}
             />
+            <Route path="/geo-risk-mapping" element={<GeoRiskMapping />} />
           </Routes>
         </main>
       </div>

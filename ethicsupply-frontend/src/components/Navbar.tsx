@@ -6,6 +6,7 @@ import {
   LightBulbIcon,
   UserGroupIcon,
   DocumentMagnifyingGlassIcon,
+  GlobeAltIcon,
 } from "@heroicons/react/24/outline";
 
 const NavigationBar = () => {
@@ -20,6 +21,7 @@ const NavigationBar = () => {
       href: "/supplier-assessment",
       icon: DocumentMagnifyingGlassIcon,
     },
+    { name: "Risk Map", href: "/geo-risk-mapping", icon: GlobeAltIcon },
     { name: "Recommendations", href: "/recommendations", icon: LightBulbIcon },
   ];
 
