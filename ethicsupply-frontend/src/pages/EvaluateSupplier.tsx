@@ -4,12 +4,9 @@ import { useSearchParams } from "react-router-dom";
 import {
   BuildingOfficeIcon,
   GlobeAltIcon,
-  ScaleIcon,
   UserGroupIcon,
   LightBulbIcon,
   TruckIcon,
-  ClockIcon,
-  CheckCircleIcon,
   SparklesIcon,
   InformationCircleIcon,
   XCircleIcon,
@@ -413,48 +410,47 @@ const EvaluateSupplier = () => {
             <form onSubmit={handleSubmit} className="space-y-6">
               <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 mb-8">
                 {textFields.map((field) => (
-                  <div key={field.name}>
+                  <div key={field.name} className="col-span-1">
                     <label
                       htmlFor={field.name}
                       className="block text-sm font-medium text-gray-700"
                     >
-                      {field.label}
-                    </label>
-                    <div className="mt-1 relative rounded-md shadow-sm">
-                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                      <div className="flex items-center">
                         <field.icon
-                          className="h-5 w-5 text-gray-400"
+                          className="h-5 w-5 mr-2 text-gray-500"
                           aria-hidden="true"
                         />
+                        {field.label}
                       </div>
-                      {field.type === "select" ? (
-                        <select
-                          name={field.name}
-                          id={field.name}
-                          value={formData[field.name]}
-                          onChange={handleChange}
-                          required
-                          className="focus:ring-emerald-500 focus:border-emerald-500 block w-full pl-10 sm:text-sm border-gray-300 rounded-md"
-                        >
-                          <option value="">Select a {field.label}</option>
-                          {field.options.map((option) => (
-                            <option key={option} value={option}>
-                              {option}
-                            </option>
-                          ))}
-                        </select>
-                      ) : (
-                        <input
-                          type={field.type}
-                          name={field.name}
-                          id={field.name}
-                          value={formData[field.name]}
-                          onChange={handleChange}
-                          required
-                          className="focus:ring-emerald-500 focus:border-emerald-500 block w-full pl-10 sm:text-sm border-gray-300 rounded-md"
-                        />
-                      )}
-                    </div>
+                    </label>
+
+                    {field.type === "text" && (
+                      <input
+                        type="text"
+                        name={field.name}
+                        id={field.name}
+                        value={formData[field.name]}
+                        onChange={handleChange}
+                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500"
+                      />
+                    )}
+
+                    {field.type === "select" && field.options && (
+                      <select
+                        name={field.name}
+                        id={field.name}
+                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500"
+                        value={formData[field.name]}
+                        onChange={handleChange}
+                      >
+                        <option value="">Select {field.label}</option>
+                        {field.options.map((option) => (
+                          <option key={option} value={option}>
+                            {option}
+                          </option>
+                        ))}
+                      </select>
+                    )}
                   </div>
                 ))}
               </div>
