@@ -15,7 +15,7 @@ const About = () => {
           <div className="bg-gradient-to-r from-emerald-600 to-teal-600 px-6 py-8 text-white">
             <h1 className="text-3xl font-bold">About This Project</h1>
             <p className="mt-2 text-emerald-100">
-              EthicSupply: AI-driven ethical supply chain management system
+              OptiEthic: AI-driven ethical supply chain management system
             </p>
           </div>
 
@@ -94,7 +94,7 @@ const About = () => {
                   Project Overview
                 </h2>
                 <p className="text-gray-700">
-                  EthicSupply is an AI-powered platform designed to help
+                  OptiEthic is an AI-powered platform designed to help
                   businesses make ethical decisions about their supply chains.
                   The system evaluates suppliers based on environmental, social,
                   and governance criteria, providing comprehensive insights and

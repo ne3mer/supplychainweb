@@ -286,7 +286,7 @@ const LandingPage = () => {
               </span>
             </div>
             <h1 className="text-4xl sm:text-5xl md:text-7xl font-bold mb-4 md:mb-6 bg-clip-text text-transparent bg-gradient-to-r from-purple-400 via-pink-500 to-red-500">
-              EthicSupply
+              OptiEthic
             </h1>
             <p className="text-lg sm:text-xl md:text-2xl text-gray-300 mb-6 md:mb-8 max-w-3xl mx-auto">
               Transforming supply chains with AI-powered ethical intelligence
@@ -449,7 +449,7 @@ const LandingPage = () => {
           className="text-center mb-12"
         >
           <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
-            How EthicSupply Works
+            How OptiEthic Works
           </h2>
           <p className="text-gray-300 max-w-3xl mx-auto">
             Our platform leverages AI and data analytics to transform how
@@ -660,7 +660,7 @@ const LandingPage = () => {
               </div>
 
               <p className="text-gray-400 text-sm mt-8">
-                © {new Date().getFullYear()} EthicSupply. All rights reserved.
+                © {new Date().getFullYear()} OptiEthic. All rights reserved.
               </p>
             </div>
           </motion.div>

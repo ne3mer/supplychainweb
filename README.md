@@ -1,6 +1,6 @@
-# EthicSupply
+# OptiEthic
 
-EthicSupply is a web application designed to help businesses evaluate and monitor the ethical and environmental performance of their suppliers. The platform leverages AI to provide ethical scoring, recommendations, and sustainability insights.
+OptiEthic is a web application designed to help businesses evaluate and monitor the ethical and environmental performance of their suppliers. The platform leverages AI to provide ethical scoring, recommendations, and sustainability insights.
 
 ## Features
 

@@ -186,9 +186,7 @@ const AddSupplier = () => {
             </span>
           </div>
           <div className="text-sm text-blue-100">
-            <span className="font-medium">
-              EthicSupply Sustainability Report
-            </span>
+            <span className="font-medium">OptiEthic Sustainability Report</span>
             <span className="block mt-1">
               Helping your supply chain reach carbon neutrality by 2030
             </span>

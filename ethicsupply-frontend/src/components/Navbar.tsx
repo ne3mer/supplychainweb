@@ -57,17 +57,12 @@ const Navbar = () => {
       links: [
         { name: "Suppliers List", path: "/suppliers" },
         { name: "Add Supplier", path: "/add-supplier" },
-        { name: "Evaluate Supplier", path: "/evaluate-supplier" },
       ],
     },
     {
       group: "Analytics",
       icon: <BarChart3 className="h-5 w-5" />,
-      links: [
-        { name: "Supplier Analytics", path: "/supplier-analytics" },
-        { name: "Supplier Scorecard", path: "/supplier-scorecard" },
-        { name: "Recommendations", path: "/recommendations" },
-      ],
+      links: [{ name: "Recommendations", path: "/recommendations" }],
     },
     {
       group: "Visualization",
@@ -97,7 +92,7 @@ const Navbar = () => {
                   <Activity className="h-5 w-5 text-white" />
                 </div>
                 <span className="font-bold text-gray-900 dark:text-white text-lg tracking-tight">
-                  EthicSupply
+                  OptiEthic
                 </span>
               </Link>
             </div>

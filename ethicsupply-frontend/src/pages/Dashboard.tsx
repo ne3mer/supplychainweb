@@ -14,6 +14,7 @@ import {
   SparklesIcon,
   LightBulbIcon,
   CheckCircleIcon,
+  Activity,
 } from "@heroicons/react/24/outline";
 import {
   ResponsiveContainer,
@@ -297,7 +298,7 @@ const Dashboard = () => {
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center">
           <div>
             <h1 className="text-2xl font-bold text-white">
-              EthicSupply Sustainability Report
+              OptiEthic Sustainability Report
             </h1>
             <p className="mt-1 text-emerald-100">
               Helping your supply chain reach carbon neutrality by 2030
@@ -837,7 +838,7 @@ const Dashboard = () => {
             <div className="flex flex-col md:flex-row justify-between items-center">
               <div>
                 <h3 className="text-lg font-medium">
-                  EthicSupply Sustainability Report
+                  OptiEthic Sustainability Report
                 </h3>
                 <p className="text-sm text-teal-100 mt-1">
                   Helping your supply chain reach carbon neutrality by 2030

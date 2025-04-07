@@ -1,4 +1,4 @@
-// Configuration variables for the EthicSupply frontend application
+// Configuration variables for the OptiEthic frontend application
 
 /**
  * Base URL for API requests
