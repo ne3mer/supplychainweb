@@ -1,12 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
-import {
-  motion,
-  useScroll,
-  useTransform,
-  useSpring,
-  useInView,
-} from "framer-motion";
+import { motion, useScroll, useTransform, useSpring } from "framer-motion";
+import { useInView } from "react-intersection-observer";
 import {
   Brain,
   Zap,
@@ -29,7 +24,8 @@ const LandingPage = () => {
     stiffness: 100,
     damping: 30,
   });
-  const [ref, inView] = useInView({
+
+  const { ref, inView } = useInView({
     triggerOnce: true,
     threshold: 0.1,
   });
