@@ -11,7 +11,7 @@ export const API_BASE_URL = "http://localhost:8000/api";
  * Feature flags to enable/disable certain features
  */
 export const FEATURES = {
-  ENABLE_MOCK_DATA: true, // When true, fallback to mock data if API fails
+  ENABLE_MOCK_DATA: false, // When true, fallback to mock data if API fails
   ENABLE_ANALYTICS: true, // Analytics features
   ENABLE_ML_FEATURES: true, // Machine learning features
 };
