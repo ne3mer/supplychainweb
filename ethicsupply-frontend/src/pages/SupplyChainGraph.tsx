@@ -8,14 +8,9 @@ import {
 } from "../services/api";
 import ForceGraph3D from "react-force-graph-3d";
 import ForceGraph2D from "react-force-graph-2d";
-import { useInView } from "react-intersection-observer";
 import * as THREE from "three";
 import {
   Network,
-  Factory,
-  Truck,
-  Store,
-  Package,
   BarChart3,
   Maximize,
   Minimize,
@@ -144,23 +139,15 @@ const SupplyChainGraph = () => {
   // UI state
   const [view3D, setView3D] = useState<boolean>(false);
   const [darkMode, setDarkMode] = useState<boolean>(false);
-  const [showControls, setShowControls] = useState<boolean>(true);
   const [nodeSize, setNodeSize] = useState<number>(1);
   const [linkWidth, setLinkWidth] = useState<number>(1);
   const [showLabels, setShowLabels] = useState<boolean>(true);
   const [showLegend, setShowLegend] = useState<boolean>(true);
   const [filterPanelOpen, setFilterPanelOpen] = useState<boolean>(false);
-  const [analyticsPanelOpen, setAnalyticsPanelOpen] = useState<boolean>(false);
   const [isFullscreen, setIsFullscreen] = useState<boolean>(false);
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [colorByType, setColorByType] = useState<boolean>(true);
   const [colorByScore, setColorByScore] = useState<boolean>(false);
-
-  // Animation states for UI elements
-  const { ref: animationRef, inView: elementsInView } = useInView({
-    triggerOnce: true,
-    threshold: 0.1,
-  });
 
   // Load data
   useEffect(() => {
@@ -335,24 +322,6 @@ const SupplyChainGraph = () => {
     },
     [darkMode]
   );
-
-  // Get node icon by type
-  const getNodeIcon = useCallback((type: string) => {
-    switch (type) {
-      case "rawMaterial":
-        return Package;
-      case "supplier":
-        return Truck;
-      case "manufacturer":
-        return Factory;
-      case "wholesaler":
-        return Store;
-      case "retailer":
-        return Store;
-      default:
-        return null;
-    }
-  }, []);
 
   // Handle node hover
   const handleNodeHover = useCallback(
