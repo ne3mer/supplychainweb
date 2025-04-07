@@ -1,4 +1,5 @@
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback, useMemo } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   GlobeAltIcon,
   ArrowPathIcon,
@@ -11,11 +12,67 @@ import {
   GraphLink,
   GraphData,
 } from "../services/api";
+import ForceGraph3D from "react-force-graph-3d";
 import ForceGraph2D from "react-force-graph-2d";
+import { useInView } from "react-intersection-observer";
+import * as THREE from "three";
+import {
+  Network,
+  Factory,
+  Truck,
+  Store,
+  Package,
+  Leaf,
+  BarChart3,
+  Maximize,
+  Minimize,
+  AlertTriangle,
+  RefreshCw,
+  Info,
+  Eye,
+  EyeOff,
+  Filter,
+  Zap,
+  Sliders,
+  ChevronDown,
+  ChevronUp,
+  Search,
+} from "lucide-react";
+
+// Simple SpriteText replacement since we don't have the actual package
+class SpriteText {
+  constructor(text: string) {
+    const canvas = document.createElement("canvas");
+    const context = canvas.getContext("2d");
+    if (context) {
+      context.font = "24px Arial";
+      context.fillStyle = "white";
+      context.fillText(text, 5, 20);
+    }
+
+    const texture = new THREE.CanvasTexture(canvas);
+    const material = new THREE.SpriteMaterial({ map: texture });
+    return new THREE.Sprite(material);
+  }
+
+  // Properties that will be set after creation
+  color: string = "#ffffff";
+  textHeight: number = 8;
+  position = { x: 0, y: 0, z: 0 };
+}
+
+// Extending the GraphData interface to include isMockData
+interface ExtendedGraphData extends GraphData {
+  isMockData?: boolean;
+}
 
 const SupplyChainGraph = () => {
-  const graphRef = useRef(null);
-  const [graphData, setGraphData] = useState<GraphData>({
+  // Refs for the graph components
+  const graph2DRef = useRef(null);
+  const graph3DRef = useRef(null);
+
+  // State management
+  const [graphData, setGraphData] = useState<ExtendedGraphData>({
     nodes: [],
     links: [],
   });
@@ -30,6 +87,27 @@ const SupplyChainGraph = () => {
   const [highlightLinks, setHighlightLinks] = useState(new Set());
   const [hoverNode, setHoverNode] = useState<GraphNode | null>(null);
 
+  // UI state
+  const [view3D, setView3D] = useState<boolean>(false);
+  const [darkMode, setDarkMode] = useState<boolean>(false);
+  const [showControls, setShowControls] = useState<boolean>(true);
+  const [nodeSize, setNodeSize] = useState<number>(1);
+  const [linkWidth, setLinkWidth] = useState<number>(1);
+  const [showLabels, setShowLabels] = useState<boolean>(true);
+  const [showLegend, setShowLegend] = useState<boolean>(true);
+  const [filterPanelOpen, setFilterPanelOpen] = useState<boolean>(false);
+  const [analyticsPanelOpen, setAnalyticsPanelOpen] = useState<boolean>(false);
+  const [isFullscreen, setIsFullscreen] = useState<boolean>(false);
+  const [searchTerm, setSearchTerm] = useState<string>("");
+  const [colorByType, setColorByType] = useState<boolean>(true);
+  const [colorByScore, setColorByScore] = useState<boolean>(false);
+
+  // Animation states for UI elements
+  const [ref, inView] = useInView({
+    triggerOnce: true,
+    threshold: 0.1,
+  });
+
   // Load data
   useEffect(() => {
     const fetchData = async () => {
@@ -40,14 +118,23 @@ const SupplyChainGraph = () => {
         const processedLinks = data.links.map((link) => ({
           ...link,
           source:
-            typeof link.source === "object" ? link.source.id : link.source,
+            typeof link.source === "object" &&
+            link.source !== null &&
+            "id" in link.source
+              ? link.source.id
+              : link.source,
           target:
-            typeof link.target === "object" ? link.target.id : link.target,
+            typeof link.target === "object" &&
+            link.target !== null &&
+            "id" in link.target
+              ? link.target.id
+              : link.target,
         }));
 
         setGraphData({
           nodes: data.nodes,
           links: processedLinks,
+          isMockData: data.isMockData,
         });
         setUsingMockData(!!data.isMockData);
         setError(null);
@@ -63,41 +150,66 @@ const SupplyChainGraph = () => {
   }, []);
 
   // Function to compute if a full chain is ethical
-  const isFullChainEthical = (nodeId: string): boolean => {
-    // For a retailer, check if all connections back to raw materials are ethical
-    const node = graphData.nodes.find((n) => n.id === nodeId);
-    if (!node) return false;
+  const isFullChainEthical = useCallback(
+    (nodeId: string): boolean => {
+      // For a retailer, check if all connections back to raw materials are ethical
+      const node = graphData.nodes.find((n) => n.id === nodeId);
+      if (!node) return false;
 
-    // If this is a raw material, it's the start of the chain
-    if (node.type === "rawMaterial") return true;
+      // If this is a raw material, it's the start of the chain
+      if (node.type === "rawMaterial") return true;
 
-    // Get all incoming links
-    const incomingLinks = graphData.links.filter(
-      (link) => link.target === nodeId
-    );
+      // Get all incoming links
+      const incomingLinks = graphData.links.filter((link) => {
+        const target =
+          typeof link.target === "object" &&
+          link.target !== null &&
+          "id" in link.target
+            ? link.target.id
+            : link.target;
+        return target === nodeId;
+      });
 
-    // If no incoming links, or any aren't ethical, the chain isn't fully ethical
-    if (incomingLinks.length === 0) return false;
-    if (incomingLinks.some((link) => link.ethical === false)) return false;
+      // If no incoming links, or any aren't ethical, the chain isn't fully ethical
+      if (incomingLinks.length === 0) return false;
+      if (incomingLinks.some((link) => link.ethical === false)) return false;
 
-    // Check all sources recursively
-    return incomingLinks.every((link) =>
-      isFullChainEthical(
-        typeof link.source === "string" ? link.source : link.source.toString()
-      )
-    );
-  };
+      // Check all sources recursively
+      return incomingLinks.every((link) => {
+        const source =
+          typeof link.source === "object" &&
+          link.source !== null &&
+          "id" in link.source
+            ? link.source.id
+            : link.source;
+        return isFullChainEthical(
+          typeof source === "string" ? source : String(source)
+        );
+      });
+    },
+    [graphData]
+  );
 
-  // Filter nodes based on ethical score
+  // Filter nodes based on search term and ethical score
   const getFilteredGraphData = useCallback(() => {
-    if (filterEthicalScore === 0 && !showEthicalPathsOnly) {
-      return graphData;
+    let filteredNodes = graphData.nodes;
+
+    // Filter by search term
+    if (searchTerm) {
+      const lowerSearchTerm = searchTerm.toLowerCase();
+      filteredNodes = filteredNodes.filter(
+        (node) =>
+          node.name.toLowerCase().includes(lowerSearchTerm) ||
+          (node.country && node.country.toLowerCase().includes(lowerSearchTerm))
+      );
     }
 
-    // Filter nodes based on ethical score threshold
-    const filteredNodes = graphData.nodes.filter(
-      (node) => (node.ethical_score || 0) >= filterEthicalScore
-    );
+    // Filter by ethical score
+    if (filterEthicalScore > 0) {
+      filteredNodes = filteredNodes.filter(
+        (node) => (node.ethical_score || 0) >= filterEthicalScore
+      );
+    }
 
     // Get IDs of filtered nodes
     const filteredNodeIds = new Set(filteredNodes.map((node) => node.id));
@@ -105,9 +217,18 @@ const SupplyChainGraph = () => {
     // Filter links to only include connections between filtered nodes
     let filteredLinks = graphData.links.filter((link) => {
       const sourceId =
-        typeof link.source === "object" ? link.source.id : link.source;
+        typeof link.source === "object" &&
+        link.source !== null &&
+        "id" in link.source
+          ? link.source.id
+          : link.source;
       const targetId =
-        typeof link.target === "object" ? link.target.id : link.target;
+        typeof link.target === "object" &&
+        link.target !== null &&
+        "id" in link.target
+          ? link.target.id
+          : link.target;
+
       return filteredNodeIds.has(sourceId) && filteredNodeIds.has(targetId);
     });
 
@@ -120,42 +241,76 @@ const SupplyChainGraph = () => {
       nodes: filteredNodes,
       links: filteredLinks,
     };
-  }, [graphData, filterEthicalScore, showEthicalPathsOnly]);
+  }, [graphData, filterEthicalScore, showEthicalPathsOnly, searchTerm]);
+
+  // Memoized filtered data to prevent unnecessary recalculations
+  const filteredGraphData = useMemo(
+    () => getFilteredGraphData(),
+    [getFilteredGraphData]
+  );
 
   // Node color based on type and ethical score
-  const getNodeColor = useCallback((node) => {
-    // Base color on node type
-    const baseColors = {
-      rawMaterial: "#8B5CF6", // Purple
-      supplier: "#3B82F6", // Blue
-      manufacturer: "#10B981", // Green
-      wholesaler: "#F59E0B", // Amber
-      distributor: "#6366F1", // Indigo
-      retailer: "#EC4899", // Pink
-    };
+  const getNodeColor = useCallback(
+    (node: GraphNode) => {
+      if (!colorByType && colorByScore && node.ethical_score !== undefined) {
+        // Color by ethical score
+        const score = node.ethical_score;
+        if (score >= 80) return "#059669"; // Green for high score
+        if (score >= 60) return "#059669"; // Green-yellow for good score
+        if (score >= 40) return "#D97706"; // Yellow for medium score
+        return "#DC2626"; // Red for low score
+      }
 
-    // Adjust color based on ethical score
-    if (node.type === "supplier" || node.type === "manufacturer") {
-      const score = node.ethical_score || 50;
-      return score >= 70
-        ? "#059669" // Green for high score
-        : score >= 50
-        ? "#D97706" // Amber for medium
-        : "#DC2626"; // Red for low score
-    }
+      // Base color on node type
+      const baseColors = {
+        rawMaterial: "#8B5CF6", // Purple
+        supplier: "#3B82F6", // Blue
+        manufacturer: "#10B981", // Green
+        wholesaler: "#F59E0B", // Amber
+        distributor: "#6366F1", // Indigo
+        retailer: "#EC4899", // Pink
+      };
 
-    // Return base color for different node types
-    return baseColors[node.type] || "#9CA3AF";
-  }, []);
+      return baseColors[node.type] || "#9CA3AF";
+    },
+    [colorByType, colorByScore]
+  );
 
   // Link color based on ethical status
-  const getLinkColor = useCallback((link) => {
-    return link.ethical ? "#059669" : "#DC2626";
+  const getLinkColor = useCallback(
+    (link: GraphLink) => {
+      return link.ethical
+        ? darkMode
+          ? "#10B981"
+          : "#059669" // Green in dark/light mode
+        : darkMode
+        ? "#EF4444"
+        : "#DC2626"; // Red in dark/light mode
+    },
+    [darkMode]
+  );
+
+  // Get node icon by type
+  const getNodeIcon = useCallback((type) => {
+    switch (type) {
+      case "rawMaterial":
+        return Package;
+      case "supplier":
+        return Truck;
+      case "manufacturer":
+        return Factory;
+      case "wholesaler":
+        return Store;
+      case "retailer":
+        return Store;
+      default:
+        return null;
+    }
   }, []);
 
   // Handle node hover
   const handleNodeHover = useCallback(
-    (node) => {
+    (node: GraphNode | null) => {
       setHoverNode(node);
 
       if (!node) {
@@ -171,9 +326,17 @@ const SupplyChainGraph = () => {
       // Add connected nodes and links in both directions
       graphData.links.forEach((link) => {
         const sourceId =
-          typeof link.source === "object" ? link.source.id : link.source;
+          typeof link.source === "object" &&
+          link.source !== null &&
+          "id" in link.source
+            ? link.source.id
+            : link.source;
         const targetId =
-          typeof link.target === "object" ? link.target.id : link.target;
+          typeof link.target === "object" &&
+          link.target !== null &&
+          "id" in link.target
+            ? link.target.id
+            : link.target;
 
         if (sourceId === node.id) {
           connectedNodes.add(targetId);
@@ -192,36 +355,99 @@ const SupplyChainGraph = () => {
   );
 
   // Handle node click
-  const handleNodeClick = useCallback((node) => {
-    setSelectedNode(node);
+  const handleNodeClick = useCallback(
+    (node: GraphNode) => {
+      setSelectedNode(node);
 
-    if (graphRef.current) {
-      // Zoom in on the selected node
-      graphRef.current.centerAt(node.x, node.y, 1000);
-      graphRef.current.zoom(2.5, 1000);
-    }
-  }, []);
+      if (view3D && graph3DRef.current) {
+        // Zoom in on the selected node
+        const distance = 100;
+        const distRatio = 1 + distance / Math.hypot(node.x, node.y, node.z);
+
+        graph3DRef.current.cameraPosition(
+          {
+            x: node.x * distRatio,
+            y: node.y * distRatio,
+            z: node.z * distRatio,
+          },
+          node,
+          1000
+        );
+      } else if (!view3D && graph2DRef.current) {
+        // Zoom in on the selected node in 2D
+        graph2DRef.current.centerAt(node.x, node.y, 1000);
+        graph2DRef.current.zoom(2.5, 1000);
+      }
+    },
+    [view3D]
+  );
 
   // Handle background click to deselect node
   const handleBackgroundClick = useCallback(() => {
     setSelectedNode(null);
 
-    if (graphRef.current) {
-      // Reset zoom
-      graphRef.current.centerAt(0, 0, 1000);
-      graphRef.current.zoom(1, 1000);
+    if (view3D && graph3DRef.current) {
+      // Reset camera in 3D
+      graph3DRef.current.cameraPosition(
+        { x: 0, y: 0, z: 500 },
+        { x: 0, y: 0, z: 0 },
+        1000
+      );
+    } else if (!view3D && graph2DRef.current) {
+      // Reset zoom in 2D
+      graph2DRef.current.centerAt(0, 0, 1000);
+      graph2DRef.current.zoom(1, 1000);
     }
-  }, []);
+  }, [view3D]);
 
-  // Custom node canvasing
-  const paintNode = useCallback(
-    (node, ctx, globalScale) => {
+  // Custom node object for 3D view
+  const nodeThreeObject = useCallback(
+    (node) => {
       const isHighlighted = highlightNodes.has(node.id);
       const isSelected = selectedNode && selectedNode.id === node.id;
 
-      // Calculate node size based on type and if it's highlighted
+      // Calculate node size based on type, if it's highlighted, and the user size setting
       let size =
-        node.type === "rawMaterial"
+        (node.type === "rawMaterial" ? 5 : node.type === "retailer" ? 8 : 6) *
+        nodeSize;
+
+      // Increase size if highlighted or selected
+      if (isHighlighted) size *= 1.2;
+      if (isSelected) size *= 1.4;
+
+      // Create a sphere
+      const sphere = new THREE.Mesh(
+        new THREE.SphereGeometry(size),
+        new THREE.MeshLambertMaterial({
+          color: getNodeColor(node),
+          transparent: !isHighlighted && !isSelected,
+          opacity: !isHighlighted && !isSelected ? 0.8 : 1.0,
+        })
+      );
+
+      // Add a text label if needed
+      if (showLabels || isHighlighted || isSelected) {
+        const sprite = new SpriteText(node.name);
+        sprite.color = darkMode ? "#ffffff" : "#000000";
+        sprite.textHeight = isSelected ? 10 : 8;
+        sprite.position.y = size + 10;
+        sphere.add(sprite);
+      }
+
+      return sphere;
+    },
+    [getNodeColor, highlightNodes, selectedNode, nodeSize, showLabels, darkMode]
+  );
+
+  // Custom node canvasing for 2D view
+  const paintNode = useCallback(
+    (node: GraphNode, ctx: CanvasRenderingContext2D, globalScale: number) => {
+      const isHighlighted = highlightNodes.has(node.id);
+      const isSelected = selectedNode && selectedNode.id === node.id;
+
+      // Calculate node size based on type, if it's highlighted, and user size setting
+      let size =
+        (node.type === "rawMaterial"
           ? 6
           : node.type === "supplier"
           ? 8
@@ -231,7 +457,7 @@ const SupplyChainGraph = () => {
           ? 7
           : node.type === "retailer"
           ? 9
-          : 6;
+          : 6) * nodeSize;
 
       // Increase size if highlighted or selected
       if (isHighlighted) size *= 1.2;
@@ -242,41 +468,51 @@ const SupplyChainGraph = () => {
 
       // Draw node
       ctx.beginPath();
-      ctx.arc(node.x, node.y, size, 0, 2 * Math.PI);
+      ctx.arc(node.x || 0, node.y || 0, size, 0, 2 * Math.PI);
       ctx.fillStyle = color;
       ctx.fill();
 
       // Draw border if highlighted or selected
       if (isHighlighted || isSelected) {
-        ctx.strokeStyle = "#ffffff";
+        ctx.strokeStyle = darkMode ? "#ffffff" : "#000000";
         ctx.lineWidth = isSelected ? 2 : 1.5;
         ctx.stroke();
       }
 
-      // Add label for larger nodes or when selected/highlighted
-      if (size > 6 || isSelected || isHighlighted) {
+      // Add label if enabled or node is highlighted/selected
+      if (showLabels || isSelected || isHighlighted) {
         ctx.font = `${Math.max(8, 12 / globalScale)}px Arial`;
         ctx.textAlign = "center";
         ctx.textBaseline = "middle";
-        ctx.fillStyle = "#ffffff";
-        ctx.fillText(node.name, node.x, node.y + size + 8 / globalScale);
+        ctx.fillStyle = darkMode ? "#ffffff" : "#000000";
+        ctx.fillText(
+          node.name,
+          node.x || 0,
+          (node.y || 0) + size + 8 / globalScale
+        );
       }
     },
-    [getNodeColor, highlightNodes, selectedNode]
+    [getNodeColor, highlightNodes, selectedNode, nodeSize, showLabels, darkMode]
   );
 
-  // Custom link rendering
+  // Custom link rendering for 2D view
   const paintLink = useCallback(
-    (link, ctx) => {
+    (link: GraphLink, ctx: CanvasRenderingContext2D) => {
       const isHighlighted = highlightLinks.has(link);
       const color = getLinkColor(link);
 
-      // Draw link
+      // Extract coordinates
+      const sourceX = "x" in link.source ? link.source.x || 0 : 0;
+      const sourceY = "y" in link.source ? link.source.y || 0 : 0;
+      const targetX = "x" in link.target ? link.target.x || 0 : 0;
+      const targetY = "y" in link.target ? link.target.y || 0 : 0;
+
+      // Draw link with width based on user setting
       ctx.beginPath();
-      ctx.moveTo(link.source.x, link.source.y);
-      ctx.lineTo(link.target.x, link.target.y);
+      ctx.moveTo(sourceX, sourceY);
+      ctx.lineTo(targetX, targetY);
       ctx.strokeStyle = color;
-      ctx.lineWidth = isHighlighted ? 2.5 : 1.5;
+      ctx.lineWidth = isHighlighted ? 2.5 * linkWidth : 1.5 * linkWidth;
 
       // Add dashed effect for non-ethical links
       if (!link.ethical) {
@@ -292,8 +528,8 @@ const SupplyChainGraph = () => {
 
       // Draw direction arrow if highlighted
       if (isHighlighted) {
-        const deltaX = link.target.x - link.source.x;
-        const deltaY = link.target.y - link.source.y;
+        const deltaX = targetX - sourceX;
+        const deltaY = targetY - sourceY;
         const angle = Math.atan2(deltaY, deltaX);
 
         // Position the arrow near the target node
@@ -302,8 +538,8 @@ const SupplyChainGraph = () => {
         const targetNodeSize = 8; // Approximate
 
         // Calculate position to draw arrow (before the target node)
-        const posX = link.source.x + deltaX * (1 - targetNodeSize / distance);
-        const posY = link.source.y + deltaY * (1 - targetNodeSize / distance);
+        const posX = sourceX + deltaX * (1 - targetNodeSize / distance);
+        const posY = sourceY + deltaY * (1 - targetNodeSize / distance);
 
         ctx.beginPath();
         ctx.moveTo(posX, posY);
@@ -320,297 +556,683 @@ const SupplyChainGraph = () => {
         ctx.fill();
       }
     },
-    [getLinkColor, highlightLinks]
+    [getLinkColor, highlightLinks, linkWidth]
   );
 
+  // Toggle fullscreen mode
+  const toggleFullscreen = useCallback(() => {
+    if (!document.fullscreenElement) {
+      document.documentElement.requestFullscreen().catch((err) => {
+        console.error(`Error attempting to enable fullscreen: ${err.message}`);
+      });
+      setIsFullscreen(true);
+    } else {
+      if (document.exitFullscreen) {
+        document.exitFullscreen();
+        setIsFullscreen(false);
+      }
+    }
+  }, []);
+
   return (
-    <div className="container mx-auto py-6 px-4">
-      <div className="flex flex-col md:flex-row justify-between items-start mb-6">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900 flex items-center">
-            <GlobeAltIcon className="h-6 w-6 text-indigo-600 mr-2" />
-            Supply Chain Relationship Graph
-          </h1>
-          <p className="text-gray-600 mt-1">
-            Visualize supplier connections and trace materials through your
-            supply chain
-          </p>
-          {usingMockData && (
-            <p className="text-xs text-amber-600 mt-1 flex items-center">
-              <InformationCircleIcon className="h-4 w-4 mr-1" />
-              Using demonstration data. Connect to the API for real supply chain
-              data.
-            </p>
-          )}
-        </div>
-
-        <div className="flex flex-wrap space-x-2 mt-4 md:mt-0">
-          {/* Ethical score filter */}
-          <div className="relative">
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Min. Ethical Score
-            </label>
-            <input
-              type="range"
-              min="0"
-              max="100"
-              step="5"
-              value={filterEthicalScore}
-              onChange={(e) =>
-                setFilterEthicalScore(parseInt(e.target.value, 10))
-              }
-              className="w-32 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
-            />
-            <span className="ml-2 text-sm text-gray-600">
-              {filterEthicalScore}
-            </span>
-          </div>
-
-          {/* Toggle ethical paths only */}
-          <div className="relative">
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Ethical Paths Only
-            </label>
-            <div className="flex items-center">
-              <input
-                type="checkbox"
-                checked={showEthicalPathsOnly}
-                onChange={() => setShowEthicalPathsOnly(!showEthicalPathsOnly)}
-                className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
+    <div
+      className={`min-h-screen ${
+        darkMode ? "bg-gray-900 text-white" : "bg-gray-50 text-gray-900"
+      } transition-colors duration-300`}
+    >
+      {/* Header Section */}
+      <div className="container mx-auto py-6 px-4">
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+          className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6"
+        >
+          <div>
+            <h1 className="text-2xl md:text-3xl font-bold flex items-center">
+              <Network
+                className={`h-8 w-8 ${
+                  darkMode ? "text-blue-400" : "text-blue-600"
+                } mr-2`}
               />
-              <span className="ml-2 text-sm text-gray-600">
-                Show only ethical connections
-              </span>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Legend */}
-      <div className="bg-white p-4 rounded-lg shadow mb-4">
-        <h2 className="text-sm font-medium text-gray-700 mb-2">Legend</h2>
-        <div className="flex flex-wrap gap-3">
-          <div className="flex items-center">
-            <span className="w-3 h-3 rounded-full bg-purple-500 mr-1"></span>
-            <span className="text-xs">Raw Material</span>
-          </div>
-          <div className="flex items-center">
-            <span className="w-3 h-3 rounded-full bg-blue-500 mr-1"></span>
-            <span className="text-xs">Supplier</span>
-          </div>
-          <div className="flex items-center">
-            <span className="w-3 h-3 rounded-full bg-green-500 mr-1"></span>
-            <span className="text-xs">Manufacturer</span>
-          </div>
-          <div className="flex items-center">
-            <span className="w-3 h-3 rounded-full bg-amber-500 mr-1"></span>
-            <span className="text-xs">Wholesaler</span>
-          </div>
-          <div className="flex items-center">
-            <span className="w-3 h-3 rounded-full bg-pink-500 mr-1"></span>
-            <span className="text-xs">Retailer</span>
-          </div>
-          <div className="border-l border-gray-300 pl-2 flex items-center">
-            <span className="w-6 h-1 bg-green-600 mr-1"></span>
-            <span className="text-xs">Ethical Link</span>
-          </div>
-          <div className="flex items-center">
-            <span className="w-6 h-1 border-t-2 border-dashed border-red-600 mr-1"></span>
-            <span className="text-xs">Non-ethical Link</span>
-          </div>
-        </div>
-      </div>
-
-      {/* Main content */}
-      <div className="bg-white rounded-lg shadow overflow-hidden">
-        {loading ? (
-          <div className="p-12 text-center">
-            <ArrowPathIcon className="h-12 w-12 text-gray-400 animate-spin mx-auto" />
-            <p className="mt-4 text-gray-600">Loading supply chain data...</p>
-          </div>
-        ) : error ? (
-          <div className="p-12 text-center">
-            <ExclamationTriangleIcon className="h-12 w-12 text-red-500 mx-auto" />
-            <p className="mt-4 text-red-500">{error}</p>
-            <button
-              onClick={() => window.location.reload()}
-              className="mt-4 inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+              Supply Chain Relationship Graph
+            </h1>
+            <p
+              className={`mt-1 ${darkMode ? "text-gray-300" : "text-gray-600"}`}
             >
-              <ArrowPathIcon className="h-4 w-4 mr-2" />
-              Retry
-            </button>
-          </div>
-        ) : (
-          <div className="relative" style={{ height: "70vh" }}>
-            {getFilteredGraphData().nodes.length > 0 ? (
-              <>
-                <ForceGraph2D
-                  ref={graphRef}
-                  graphData={getFilteredGraphData()}
-                  nodeAutoColorBy="type"
-                  linkDirectionalArrowLength={0}
-                  linkDirectionalArrowRelPos={1}
-                  linkCurvature={0}
-                  nodeCanvasObject={paintNode}
-                  linkCanvasObject={paintLink}
-                  onNodeHover={handleNodeHover}
-                  onNodeClick={handleNodeClick}
-                  onBackgroundClick={handleBackgroundClick}
-                  cooldownTicks={100}
-                  d3AlphaDecay={0.02}
-                  d3VelocityDecay={0.2}
-                  d3Force={
-                    ("link",
-                    (link) => {
-                      // Adjust link strength based on type
-                      link.strength((l) => (l.ethical ? 0.7 : 0.3));
-                    })
-                  }
-                  nodeRelSize={6}
-                  width={800}
-                  height={600}
-                  backgroundColor="#ffffff"
-                />
-
-                {/* Hover tooltip */}
-                {hoverNode && (
-                  <div className="absolute top-2 left-2 bg-white p-2 rounded-md shadow-lg border border-gray-200 text-xs">
-                    <div className="font-bold">{hoverNode.name}</div>
-                    <div>
-                      Type: <span className="capitalize">{hoverNode.type}</span>
-                    </div>
-                    <div>Country: {hoverNode.country}</div>
-                    {hoverNode.ethical_score && (
-                      <div>Ethical Score: {hoverNode.ethical_score}</div>
-                    )}
-                  </div>
-                )}
-              </>
-            ) : (
-              <div className="flex items-center justify-center h-full">
-                <p className="text-gray-500">
-                  No nodes match the current filters.
-                </p>
-              </div>
+              Interactive visualization of your entire supply chain network
+            </p>
+            {usingMockData && (
+              <p className="text-xs text-amber-500 mt-1 flex items-center">
+                <Info className="h-4 w-4 mr-1" />
+                Using demonstration data. Connect to the API for real supply
+                chain data.
+              </p>
             )}
+          </div>
 
-            {/* Selected node info panel */}
-            {selectedNode && (
-              <div className="absolute top-4 right-4 w-72 bg-white p-4 rounded-lg shadow-lg border border-gray-200">
-                <div className="flex justify-between items-start mb-2">
-                  <h3 className="text-lg font-semibold">{selectedNode.name}</h3>
-                  <button
-                    onClick={() => setSelectedNode(null)}
-                    className="text-gray-400 hover:text-gray-600"
-                  >
-                    <span className="sr-only">Close</span>
-                    &times;
-                  </button>
+          {/* Main Controls */}
+          <div className="flex flex-wrap gap-3 mt-4 md:mt-0">
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={() => setView3D(!view3D)}
+              className={`px-3 py-2 rounded-lg shadow-sm flex items-center ${
+                darkMode
+                  ? "bg-gray-800 text-blue-400 hover:bg-gray-700"
+                  : "bg-white text-blue-600 hover:bg-gray-50"
+              }`}
+            >
+              {view3D ? "2D View" : "3D View"}
+            </motion.button>
+
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={() => setDarkMode(!darkMode)}
+              className={`px-3 py-2 rounded-lg shadow-sm flex items-center ${
+                darkMode
+                  ? "bg-gray-800 text-blue-400 hover:bg-gray-700"
+                  : "bg-white text-blue-600 hover:bg-gray-50"
+              }`}
+            >
+              {darkMode ? "Light Mode" : "Dark Mode"}
+            </motion.button>
+
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={toggleFullscreen}
+              className={`px-3 py-2 rounded-lg shadow-sm flex items-center ${
+                darkMode
+                  ? "bg-gray-800 text-blue-400 hover:bg-gray-700"
+                  : "bg-white text-blue-600 hover:bg-gray-50"
+              }`}
+            >
+              {isFullscreen ? (
+                <Minimize className="w-5 h-5" />
+              ) : (
+                <Maximize className="w-5 h-5" />
+              )}
+            </motion.button>
+
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={() => setFilterPanelOpen(!filterPanelOpen)}
+              className={`px-3 py-2 rounded-lg shadow-sm flex items-center ${
+                darkMode
+                  ? "bg-gray-800 text-blue-400 hover:bg-gray-700"
+                  : "bg-white text-blue-600 hover:bg-gray-50"
+              }`}
+            >
+              <Filter className="w-5 h-5 mr-1" />
+              Filters
+            </motion.button>
+          </div>
+        </motion.div>
+
+        {/* Search and Filter Panel */}
+        <AnimatePresence>
+          {filterPanelOpen && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: "auto" }}
+              exit={{ opacity: 0, height: 0 }}
+              transition={{ duration: 0.3 }}
+              className={`mb-6 rounded-lg shadow-sm overflow-hidden ${
+                darkMode ? "bg-gray-800" : "bg-white"
+              }`}
+            >
+              <div className="p-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                  {/* Search */}
+                  <div>
+                    <label
+                      className={`block text-sm font-medium mb-2 ${
+                        darkMode ? "text-gray-300" : "text-gray-700"
+                      }`}
+                    >
+                      Search Suppliers
+                    </label>
+                    <div className="relative">
+                      <input
+                        type="text"
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        placeholder="Search by name or country"
+                        className={`w-full px-4 py-2 rounded-lg border ${
+                          darkMode
+                            ? "bg-gray-700 border-gray-600 text-white placeholder-gray-400"
+                            : "bg-white border-gray-300 text-gray-900 placeholder-gray-500"
+                        }`}
+                      />
+                      <Search className="absolute right-3 top-2.5 w-5 h-5 text-gray-400" />
+                    </div>
+                  </div>
+
+                  {/* Ethical Score Filter */}
+                  <div>
+                    <label
+                      className={`block text-sm font-medium mb-2 ${
+                        darkMode ? "text-gray-300" : "text-gray-700"
+                      }`}
+                    >
+                      Min. Ethical Score: {filterEthicalScore}
+                    </label>
+                    <input
+                      type="range"
+                      min="0"
+                      max="100"
+                      step="5"
+                      value={filterEthicalScore}
+                      onChange={(e) =>
+                        setFilterEthicalScore(parseInt(e.target.value, 10))
+                      }
+                      className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+                    />
+                  </div>
+
+                  {/* Toggle Ethical Paths */}
+                  <div className="flex items-center">
+                    <input
+                      type="checkbox"
+                      id="ethical-paths"
+                      checked={showEthicalPathsOnly}
+                      onChange={() =>
+                        setShowEthicalPathsOnly(!showEthicalPathsOnly)
+                      }
+                      className="h-4 w-4 rounded"
+                    />
+                    <label
+                      htmlFor="ethical-paths"
+                      className={`ml-2 block text-sm ${
+                        darkMode ? "text-gray-300" : "text-gray-700"
+                      }`}
+                    >
+                      Show only ethical connections
+                    </label>
+                  </div>
+
+                  {/* Visualization Options */}
+                  <div>
+                    <label
+                      className={`block text-sm font-medium mb-2 ${
+                        darkMode ? "text-gray-300" : "text-gray-700"
+                      }`}
+                    >
+                      Visualization Options
+                    </label>
+                    <div className="flex flex-wrap gap-2">
+                      <button
+                        onClick={() => setShowLabels(!showLabels)}
+                        className={`px-2 py-1 text-xs rounded ${
+                          showLabels
+                            ? "bg-blue-100 text-blue-800"
+                            : "bg-gray-100 text-gray-800"
+                        }`}
+                      >
+                        {showLabels ? (
+                          <Eye className="w-3 h-3 inline mr-1" />
+                        ) : (
+                          <EyeOff className="w-3 h-3 inline mr-1" />
+                        )}
+                        Labels
+                      </button>
+                      <button
+                        onClick={() => setColorByScore(!colorByScore)}
+                        className={`px-2 py-1 text-xs rounded ${
+                          colorByScore
+                            ? "bg-blue-100 text-blue-800"
+                            : "bg-gray-100 text-gray-800"
+                        }`}
+                      >
+                        <BarChart3 className="w-3 h-3 inline mr-1" />
+                        Score Colors
+                      </button>
+                      <button
+                        onClick={() => setColorByType(!colorByType)}
+                        className={`px-2 py-1 text-xs rounded ${
+                          colorByType
+                            ? "bg-blue-100 text-blue-800"
+                            : "bg-gray-100 text-gray-800"
+                        }`}
+                      >
+                        <Filter className="w-3 h-3 inline mr-1" />
+                        Type Colors
+                      </button>
+                    </div>
+                  </div>
                 </div>
-                <div className="space-y-2 text-sm">
-                  <p>
-                    <span className="font-medium">Type:</span>{" "}
-                    <span className="capitalize">{selectedNode.type}</span>
-                  </p>
-                  <p>
-                    <span className="font-medium">Country:</span>{" "}
-                    {selectedNode.country}
-                  </p>
-                  <p>
-                    <span className="font-medium">Ethical Score:</span>{" "}
-                    {selectedNode.ethical_score}
-                  </p>
-                  {selectedNode.type === "supplier" && (
-                    <p>
-                      <span className="font-medium">Is Ethical Chain:</span>{" "}
-                      {isFullChainEthical(selectedNode.id) ? "Yes" : "No"}
-                    </p>
+
+                {/* Advanced controls */}
+                <div className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div>
+                    <label
+                      className={`block text-sm font-medium mb-2 ${
+                        darkMode ? "text-gray-300" : "text-gray-700"
+                      }`}
+                    >
+                      Node Size: {nodeSize.toFixed(1)}
+                    </label>
+                    <input
+                      type="range"
+                      min="0.5"
+                      max="2"
+                      step="0.1"
+                      value={nodeSize}
+                      onChange={(e) => setNodeSize(parseFloat(e.target.value))}
+                      className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+                    />
+                  </div>
+
+                  <div>
+                    <label
+                      className={`block text-sm font-medium mb-2 ${
+                        darkMode ? "text-gray-300" : "text-gray-700"
+                      }`}
+                    >
+                      Link Width: {linkWidth.toFixed(1)}
+                    </label>
+                    <input
+                      type="range"
+                      min="0.5"
+                      max="2"
+                      step="0.1"
+                      value={linkWidth}
+                      onChange={(e) => setLinkWidth(parseFloat(e.target.value))}
+                      className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+                    />
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Legend */}
+        {showLegend && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.2 }}
+            className={`mb-4 p-4 rounded-lg shadow-sm ${
+              darkMode ? "bg-gray-800" : "bg-white"
+            }`}
+          >
+            <div className="flex justify-between items-center mb-2">
+              <h2
+                className={`text-sm font-medium ${
+                  darkMode ? "text-gray-300" : "text-gray-700"
+                }`}
+              >
+                Legend
+              </h2>
+              <button
+                onClick={() => setShowLegend(false)}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                <span className="sr-only">Close</span>
+                &times;
+              </button>
+            </div>
+            <div className="flex flex-wrap gap-3">
+              <div className="flex items-center">
+                <span className="w-3 h-3 rounded-full bg-purple-500 mr-1"></span>
+                <span
+                  className={`text-xs ${
+                    darkMode ? "text-gray-300" : "text-gray-700"
+                  }`}
+                >
+                  Raw Material
+                </span>
+              </div>
+              <div className="flex items-center">
+                <span className="w-3 h-3 rounded-full bg-blue-500 mr-1"></span>
+                <span
+                  className={`text-xs ${
+                    darkMode ? "text-gray-300" : "text-gray-700"
+                  }`}
+                >
+                  Supplier
+                </span>
+              </div>
+              <div className="flex items-center">
+                <span className="w-3 h-3 rounded-full bg-green-500 mr-1"></span>
+                <span
+                  className={`text-xs ${
+                    darkMode ? "text-gray-300" : "text-gray-700"
+                  }`}
+                >
+                  Manufacturer
+                </span>
+              </div>
+              <div className="flex items-center">
+                <span className="w-3 h-3 rounded-full bg-amber-500 mr-1"></span>
+                <span
+                  className={`text-xs ${
+                    darkMode ? "text-gray-300" : "text-gray-700"
+                  }`}
+                >
+                  Wholesaler
+                </span>
+              </div>
+              <div className="flex items-center">
+                <span className="w-3 h-3 rounded-full bg-pink-500 mr-1"></span>
+                <span
+                  className={`text-xs ${
+                    darkMode ? "text-gray-300" : "text-gray-700"
+                  }`}
+                >
+                  Retailer
+                </span>
+              </div>
+              <div
+                className={`border-l ${
+                  darkMode ? "border-gray-700" : "border-gray-300"
+                } pl-2 flex items-center`}
+              >
+                <span className="w-6 h-1 bg-green-600 mr-1"></span>
+                <span
+                  className={`text-xs ${
+                    darkMode ? "text-gray-300" : "text-gray-700"
+                  }`}
+                >
+                  Ethical Link
+                </span>
+              </div>
+              <div className="flex items-center">
+                <span className="w-6 h-1 border-t-2 border-dashed border-red-600 mr-1"></span>
+                <span
+                  className={`text-xs ${
+                    darkMode ? "text-gray-300" : "text-gray-700"
+                  }`}
+                >
+                  Non-ethical Link
+                </span>
+              </div>
+            </div>
+          </motion.div>
+        )}
+
+        {/* Main content */}
+        <div
+          className={`rounded-lg shadow overflow-hidden ${
+            darkMode ? "bg-gray-800 border border-gray-700" : "bg-white"
+          }`}
+        >
+          {loading ? (
+            <div className="p-12 text-center">
+              <RefreshCw
+                className={`h-12 w-12 ${
+                  darkMode ? "text-gray-500" : "text-gray-400"
+                } animate-spin mx-auto`}
+              />
+              <p
+                className={`mt-4 ${
+                  darkMode ? "text-gray-300" : "text-gray-600"
+                }`}
+              >
+                Loading supply chain data...
+              </p>
+            </div>
+          ) : error ? (
+            <div className="p-12 text-center">
+              <AlertTriangle className="h-12 w-12 text-red-500 mx-auto" />
+              <p className="mt-4 text-red-500">{error}</p>
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={() => window.location.reload()}
+                className="mt-4 inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+              >
+                <RefreshCw className="h-4 w-4 mr-2" />
+                Retry
+              </motion.button>
+            </div>
+          ) : (
+            <div className="relative" style={{ height: "70vh" }}>
+              {filteredGraphData.nodes.length > 0 ? (
+                <>
+                  {/* 3D or 2D Graph based on view selection */}
+                  {view3D ? (
+                    <ForceGraph3D
+                      ref={graph3DRef}
+                      graphData={filteredGraphData}
+                      nodeLabel={(node) =>
+                        `${node.name} (${node.type})\nEthical Score: ${
+                          node.ethical_score || "N/A"
+                        }\nCountry: ${node.country || "Unknown"}`
+                      }
+                      nodeColor={getNodeColor}
+                      nodeThreeObject={nodeThreeObject}
+                      linkColor={getLinkColor}
+                      linkWidth={(link) =>
+                        highlightLinks.has(link) ? 2 * linkWidth : linkWidth
+                      }
+                      linkDirectionalParticles={(link) =>
+                        link.ethical ? 4 : 0
+                      }
+                      linkDirectionalParticleWidth={2}
+                      linkDirectionalParticleSpeed={0.005}
+                      linkDirectionalArrowLength={3.5}
+                      linkDirectionalArrowRelPos={1}
+                      linkCurvature={0.1}
+                      onNodeHover={handleNodeHover}
+                      onNodeClick={handleNodeClick}
+                      onBackgroundClick={handleBackgroundClick}
+                      backgroundColor={darkMode ? "#1F2937" : "#ffffff"}
+                    />
+                  ) : (
+                    <ForceGraph2D
+                      ref={graph2DRef}
+                      graphData={filteredGraphData}
+                      nodeCanvasObject={paintNode}
+                      linkCanvasObject={paintLink}
+                      onNodeHover={handleNodeHover}
+                      onNodeClick={handleNodeClick}
+                      onBackgroundClick={handleBackgroundClick}
+                      cooldownTicks={100}
+                      d3AlphaDecay={0.02}
+                      d3VelocityDecay={0.2}
+                      nodeRelSize={6}
+                      backgroundColor={darkMode ? "#1F2937" : "#ffffff"}
+                    />
                   )}
 
-                  {/* Relationships section */}
-                  <div className="border-t border-gray-200 pt-2 mt-2">
-                    <h4 className="font-medium mb-1">Connections:</h4>
-                    <div className="max-h-40 overflow-y-auto">
-                      {/* List incoming connections */}
-                      {graphData.links
-                        .filter((link) => {
-                          const targetId =
-                            typeof link.target === "object"
-                              ? link.target.id
-                              : link.target;
-                          return targetId === selectedNode.id;
-                        })
-                        .map((link, idx) => {
-                          const sourceId =
-                            typeof link.source === "object"
-                              ? link.source.id
-                              : link.source;
-                          const sourceNode = graphData.nodes.find(
-                            (n) => n.id === sourceId
-                          );
-                          return (
-                            <div key={`in-${idx}`} className="text-xs mb-1">
-                              <span className="mr-1">←</span>
-                              <span
-                                className={
-                                  link.ethical
-                                    ? "text-green-600"
-                                    : "text-red-600"
-                                }
-                              >
-                                {sourceNode?.name || sourceId}
-                              </span>
-                              <span className="text-gray-500">
-                                {" "}
-                                ({sourceNode?.type})
-                              </span>
-                            </div>
-                          );
-                        })}
-
-                      {/* List outgoing connections */}
-                      {graphData.links
-                        .filter((link) => {
-                          const sourceId =
-                            typeof link.source === "object"
-                              ? link.source.id
-                              : link.source;
-                          return sourceId === selectedNode.id;
-                        })
-                        .map((link, idx) => {
-                          const targetId =
-                            typeof link.target === "object"
-                              ? link.target.id
-                              : link.target;
-                          const targetNode = graphData.nodes.find(
-                            (n) => n.id === targetId
-                          );
-                          return (
-                            <div key={`out-${idx}`} className="text-xs mb-1">
-                              <span className="mr-1">→</span>
-                              <span
-                                className={
-                                  link.ethical
-                                    ? "text-green-600"
-                                    : "text-red-600"
-                                }
-                              >
-                                {targetNode?.name || targetId}
-                              </span>
-                              <span className="text-gray-500">
-                                {" "}
-                                ({targetNode?.type})
-                              </span>
-                            </div>
-                          );
-                        })}
+                  {/* Hover tooltip */}
+                  {hoverNode && (
+                    <div
+                      className={`absolute top-2 left-2 p-2 rounded-md shadow-lg border text-xs z-10 ${
+                        darkMode
+                          ? "bg-gray-800 border-gray-700 text-white"
+                          : "bg-white border-gray-200 text-gray-800"
+                      }`}
+                    >
+                      <div className="font-bold">{hoverNode.name}</div>
+                      <div>
+                        Type:{" "}
+                        <span className="capitalize">{hoverNode.type}</span>
+                      </div>
+                      <div>Country: {hoverNode.country}</div>
+                      {hoverNode.ethical_score && (
+                        <div>Ethical Score: {hoverNode.ethical_score}</div>
+                      )}
                     </div>
-                  </div>
+                  )}
+
+                  {/* Selected node info panel */}
+                  <AnimatePresence>
+                    {selectedNode && (
+                      <motion.div
+                        initial={{ opacity: 0, x: 20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        exit={{ opacity: 0, x: 20 }}
+                        transition={{ duration: 0.3 }}
+                        className={`absolute top-4 right-4 w-72 p-4 rounded-lg shadow-lg border z-10 ${
+                          darkMode
+                            ? "bg-gray-800 border-gray-700 text-white"
+                            : "bg-white border-gray-200 text-gray-800"
+                        }`}
+                      >
+                        <div className="flex justify-between items-start mb-2">
+                          <h3 className="text-lg font-semibold">
+                            {selectedNode.name}
+                          </h3>
+                          <button
+                            onClick={() => setSelectedNode(null)}
+                            className="text-gray-400 hover:text-gray-600"
+                          >
+                            <span className="sr-only">Close</span>
+                            &times;
+                          </button>
+                        </div>
+                        <div className="space-y-2 text-sm">
+                          <p>
+                            <span className="font-medium">Type:</span>{" "}
+                            <span className="capitalize">
+                              {selectedNode.type}
+                            </span>
+                          </p>
+                          <p>
+                            <span className="font-medium">Country:</span>{" "}
+                            {selectedNode.country}
+                          </p>
+                          <p>
+                            <span className="font-medium">Ethical Score:</span>{" "}
+                            {selectedNode.ethical_score}
+                          </p>
+                          {selectedNode.type === "supplier" && (
+                            <p>
+                              <span className="font-medium">
+                                Is Ethical Chain:
+                              </span>{" "}
+                              {isFullChainEthical(selectedNode.id)
+                                ? "Yes"
+                                : "No"}
+                            </p>
+                          )}
+
+                          {/* Relationships section */}
+                          <div
+                            className={`border-t pt-2 mt-2 ${
+                              darkMode ? "border-gray-700" : "border-gray-200"
+                            }`}
+                          >
+                            <h4 className="font-medium mb-1">Connections:</h4>
+                            <div className="max-h-40 overflow-y-auto">
+                              {/* List incoming connections */}
+                              {graphData.links
+                                .filter((link) => {
+                                  const targetId =
+                                    typeof link.target === "object"
+                                      ? link.target.id
+                                      : link.target;
+                                  return targetId === selectedNode.id;
+                                })
+                                .map((link, idx) => {
+                                  const sourceId =
+                                    typeof link.source === "object"
+                                      ? link.source.id
+                                      : link.source;
+                                  const sourceNode = graphData.nodes.find(
+                                    (n) => n.id === sourceId
+                                  );
+                                  return (
+                                    <div
+                                      key={`in-${idx}`}
+                                      className="text-xs mb-1"
+                                    >
+                                      <span className="mr-1">←</span>
+                                      <span
+                                        className={
+                                          link.ethical
+                                            ? "text-green-600"
+                                            : "text-red-600"
+                                        }
+                                      >
+                                        {sourceNode?.name || sourceId}
+                                      </span>
+                                      <span
+                                        className={`${
+                                          darkMode
+                                            ? "text-gray-400"
+                                            : "text-gray-500"
+                                        }`}
+                                      >
+                                        {" "}
+                                        ({sourceNode?.type})
+                                      </span>
+                                    </div>
+                                  );
+                                })}
+
+                              {/* List outgoing connections */}
+                              {graphData.links
+                                .filter((link) => {
+                                  const sourceId =
+                                    typeof link.source === "object"
+                                      ? link.source.id
+                                      : link.source;
+                                  return sourceId === selectedNode.id;
+                                })
+                                .map((link, idx) => {
+                                  const targetId =
+                                    typeof link.target === "object"
+                                      ? link.target.id
+                                      : link.target;
+                                  const targetNode = graphData.nodes.find(
+                                    (n) => n.id === targetId
+                                  );
+                                  return (
+                                    <div
+                                      key={`out-${idx}`}
+                                      className="text-xs mb-1"
+                                    >
+                                      <span className="mr-1">→</span>
+                                      <span
+                                        className={
+                                          link.ethical
+                                            ? "text-green-600"
+                                            : "text-red-600"
+                                        }
+                                      >
+                                        {targetNode?.name || targetId}
+                                      </span>
+                                      <span
+                                        className={`${
+                                          darkMode
+                                            ? "text-gray-400"
+                                            : "text-gray-500"
+                                        }`}
+                                      >
+                                        {" "}
+                                        ({targetNode?.type})
+                                      </span>
+                                    </div>
+                                  );
+                                })}
+                            </div>
+                          </div>
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </>
+              ) : (
+                <div className="flex items-center justify-center h-full">
+                  <p
+                    className={`${
+                      darkMode ? "text-gray-400" : "text-gray-500"
+                    }`}
+                  >
+                    No nodes match the current filters.
+                  </p>
                 </div>
-              </div>
-            )}
-          </div>
-        )}
+              )}
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
