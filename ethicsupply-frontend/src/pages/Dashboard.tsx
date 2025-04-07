@@ -199,33 +199,9 @@ interface DashboardData {
 const apiEndpoint = "/api/dashboard/";
 
 const Dashboard: React.FC = () => {
-  const [data, setData] = useState<DashboardData>({
-    total_suppliers: 0,
-    avg_ethical_score: 0,
-    avg_co2_emissions: 0,
-    suppliers_by_country: {},
-    ethical_score_distribution: [],
-    co2_emissions_by_industry: [],
-    risk_breakdown: {},
-    water_usage_trend: [],
-    renewable_energy_adoption: [],
-    sustainable_practices: [],
-    sustainability_metrics: [],
-    recent_suppliers: [],
-    industry_distribution: {},
-    compliance_rate_trend: [],
-  });
-  const [error, setError] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [usingMockData, setUsingMockData] = useState<boolean>(false);
-  const [apiConnected, setApiConnected] = useState<boolean | null>(null);
-
-  const [onboardingPending, setOnboardingPending] = useState(0);
-  const [complianceRate, setComplianceRate] = useState(0);
-
   const [suppliers, setSuppliers] = useState<Array<any>>([]);
-  const [isLoading, setIsLoading] = useState(true);
-
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [totalSuppliers, setTotalSuppliers] = useState(0);
   const [avgEthicalScore, setAvgEthicalScore] = useState(0);
   const [co2Emissions, setCo2Emissions] = useState(0);
@@ -240,6 +216,33 @@ const Dashboard: React.FC = () => {
   >([]);
   const [co2ByIndustry, setCo2ByIndustry] = useState<
     Array<{ name: string; value: number }>
+  >([]);
+  const [complianceRate, setComplianceRate] = useState<
+    Array<{ month: string; rate: number }>
+  >([]);
+  const [onboardingPending, setOnboardingPending] = useState(0);
+  const [apiConnected, setApiConnected] = useState<boolean | null>(null);
+  const [waterUsageData, setWaterUsageData] = useState<
+    Array<{ month: string; usage: number }>
+  >([]);
+  const [renewableEnergyData, setRenewableEnergyData] = useState<
+    Array<{ name: string; value: number }>
+  >([]);
+  const [sustainablePracticesData, setSustainablePracticesData] = useState<
+    Array<{ practice: string; adoption: number; target: number }>
+  >([]);
+  const [sustainabilityMetricsData, setSustainabilityMetricsData] = useState<
+    Array<{ metric: string; current: number; industry: number }>
+  >([]);
+  const [recentSuppliers, setRecentSuppliers] = useState<
+    Array<{
+      id: number;
+      name: string;
+      country: string;
+      ethical_score: number;
+      trend: string;
+      date: string;
+    }>
   >([]);
 
   // Chart state for tooltips
