@@ -65,7 +65,6 @@ import ChartMetricsExplainer from "../components/ChartMetricsExplainer";
 import InsightsPanel, { chartInsights } from "../components/InsightsPanel";
 import { CircularProgressbar, buildStyles } from "react-circular-progressbar";
 import "react-circular-progressbar/dist/styles.css";
-import { getDashboardData, checkApiConnection } from "../services/api";
 
 // Constant needed for pie chart calculations
 const RADIAN = Math.PI / 180;
