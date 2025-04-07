@@ -1230,14 +1230,24 @@ def supply_chain_graph_view(request):
         
         # Create nodes for each supplier
         for supplier in suppliers:
-            nodes.append({
-                'id': f's{supplier["id"]}',
-                'name': supplier['name'],
-                'type': 'supplier',
-                'country': supplier['country'],
-                'ethical_score': supplier.get('ethical_score', 50),
-                'level': 2  # Suppliers are at level 2
-            })
+            try:
+                # Check that required fields exist and handle any potential KeyError
+                supplier_id = supplier.get("id", 0)
+                supplier_name = supplier.get("name", "Unknown Supplier")
+                supplier_country = supplier.get("country", "Unknown")
+                
+                nodes.append({
+                    'id': f's{supplier_id}',
+                    'name': supplier_name,
+                    'type': 'supplier',
+                    'country': supplier_country,
+                    'ethical_score': supplier.get('ethical_score', 50),
+                    'level': 2  # Suppliers are at level 2
+                })
+            except Exception as supplier_error:
+                print(f"Error processing supplier: {supplier_error}")
+                # Skip this supplier and continue with others
+                continue
         
         # Create sample raw materials (in a real implementation, these would come from a database)
         raw_materials = [
@@ -1276,46 +1286,51 @@ def supply_chain_graph_view(request):
         # This is where we'd use real relationships from a database in a production system
         # For now, we'll create semi-random connections based on supplier properties
         for supplier in suppliers:
-            supplier_id = f's{supplier["id"]}'
-            
-            # Link to raw materials based on industry
-            industry = supplier.get('industry', '').lower()
-            ethical_score = supplier.get('ethical_score')
-            # Ensure ethical_score is not None before comparison
-            if ethical_score is None:
-                ethical_score = 50
-            
-            # Default to ethical unless score is low
-            is_ethical_source = ethical_score >= 60
-            
-            # Connect suppliers to appropriate raw materials based on industry
-            if 'textile' in industry or 'apparel' in industry:
-                links.append({'source': 'rm1', 'target': supplier_id, 'ethical': is_ethical_source})
-            elif 'tech' in industry or 'electronic' in industry:
-                links.append({'source': 'rm4', 'target': supplier_id, 'ethical': is_ethical_source})
-            elif 'metal' in industry or 'manufacturing' in industry:
-                links.append({'source': 'rm2', 'target': supplier_id, 'ethical': is_ethical_source})
-            elif 'wood' in industry or 'furniture' in industry:
-                links.append({'source': 'rm3', 'target': supplier_id, 'ethical': is_ethical_source})
-            elif 'chemical' in industry or 'energy' in industry:
-                links.append({'source': 'rm5', 'target': supplier_id, 'ethical': is_ethical_source})
-            else:
-                # If no specific industry match, connect to a random raw material
-                random_rm = random.choice(raw_materials)
-                links.append({'source': random_rm['id'], 'target': supplier_id, 'ethical': is_ethical_source})
-            
-            # Connect suppliers to manufacturers
-            # Here we'll make somewhat logical connections based on supplier ethical score and industry
-            if ethical_score >= 75:  # High ethical score goes to eco-friendly manufacturer
-                links.append({'source': supplier_id, 'target': 'm1', 'ethical': True})
-            elif 'tech' in industry or 'electronic' in industry:
-                links.append({'source': supplier_id, 'target': 'm2', 'ethical': is_ethical_source})
-            elif 'wood' in industry or 'furniture' in industry:
-                links.append({'source': supplier_id, 'target': 'm3', 'ethical': is_ethical_source})
-            else:
-                # Random manufacturer connection for other industries
-                random_manufacturer = random.choice(manufacturers)
-                links.append({'source': supplier_id, 'target': random_manufacturer['id'], 'ethical': is_ethical_source})
+            try:
+                supplier_id = f's{supplier.get("id", 0)}'
+                
+                # Link to raw materials based on industry
+                industry = supplier.get('industry', '').lower() if supplier.get('industry') else ''
+                ethical_score = supplier.get('ethical_score')
+                # Ensure ethical_score is not None before comparison
+                if ethical_score is None:
+                    ethical_score = 50
+                
+                # Default to ethical unless score is low
+                is_ethical_source = ethical_score >= 60
+                
+                # Connect suppliers to appropriate raw materials based on industry
+                if industry and ('textile' in industry or 'apparel' in industry):
+                    links.append({'source': 'rm1', 'target': supplier_id, 'ethical': is_ethical_source})
+                elif industry and ('tech' in industry or 'electronic' in industry):
+                    links.append({'source': 'rm4', 'target': supplier_id, 'ethical': is_ethical_source})
+                elif industry and ('metal' in industry or 'manufacturing' in industry):
+                    links.append({'source': 'rm2', 'target': supplier_id, 'ethical': is_ethical_source})
+                elif industry and ('wood' in industry or 'furniture' in industry):
+                    links.append({'source': 'rm3', 'target': supplier_id, 'ethical': is_ethical_source})
+                elif industry and ('chemical' in industry or 'energy' in industry):
+                    links.append({'source': 'rm5', 'target': supplier_id, 'ethical': is_ethical_source})
+                else:
+                    # If no specific industry match, connect to a random raw material
+                    random_rm = random.choice(raw_materials)
+                    links.append({'source': random_rm['id'], 'target': supplier_id, 'ethical': is_ethical_source})
+                
+                # Connect suppliers to manufacturers
+                # Here we'll make somewhat logical connections based on supplier ethical score and industry
+                if ethical_score >= 75:  # High ethical score goes to eco-friendly manufacturer
+                    links.append({'source': supplier_id, 'target': 'm1', 'ethical': True})
+                elif industry and ('tech' in industry or 'electronic' in industry):
+                    links.append({'source': supplier_id, 'target': 'm2', 'ethical': is_ethical_source})
+                elif industry and ('wood' in industry or 'furniture' in industry):
+                    links.append({'source': supplier_id, 'target': 'm3', 'ethical': is_ethical_source})
+                else:
+                    # Random manufacturer connection for other industries
+                    random_manufacturer = random.choice(manufacturers)
+                    links.append({'source': supplier_id, 'target': random_manufacturer['id'], 'ethical': is_ethical_source})
+            except Exception as link_error:
+                print(f"Error creating links for supplier: {link_error}")
+                # Skip this supplier's links and continue with others
+                continue
         
         # Create links from manufacturers to wholesalers
         links.append({'source': 'm1', 'target': 'w1', 'ethical': True})
@@ -1333,7 +1348,9 @@ def supply_chain_graph_view(request):
         })
         
     except Exception as e:
+        import traceback
         print(f"Error generating supply chain graph: {str(e)}")
+        print(traceback.format_exc())
         return Response(
             {"error": "Failed to generate supply chain graph data"},
             status=status.HTTP_500_INTERNAL_SERVER_ERROR
