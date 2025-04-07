@@ -12,6 +12,39 @@ from rest_framework.views import APIView
 from datetime import datetime, timedelta
 import random
 
+@api_view(['GET'])
+def health_check(request):
+    """
+    Simple endpoint to check if the API is working
+    """
+    return Response({
+        "status": "ok",
+        "message": "API is working correctly in HTTP mode"
+    })
+
+@api_view(['GET', 'POST'])
+def supplier_list(request):
+    """Sample supplier list endpoint for testing"""
+    if request.method == 'GET':
+        # Return some sample data
+        return Response([
+            {
+                "id": 1,
+                "name": "Test Supplier",
+                "country": "United States",
+                "ethical_score": 85
+            }
+        ])
+    return Response({"message": "POST request received"})
+
+@api_view(['POST'])
+def evaluate_supplier(request):
+    """Sample evaluation endpoint for testing"""
+    return Response({
+        "message": "Evaluation received",
+        "data": request.data
+    })
+
 class SupplierViewSet(viewsets.ModelViewSet):
     queryset = Supplier.objects.all()
     serializer_class = SupplierSerializer

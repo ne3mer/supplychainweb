@@ -414,9 +414,9 @@ function createDrone(scene, x, y, z) {
     metalness: 0.1,
     roughness: 0.8,
   });
-  const package = new THREE.Mesh(packageGeometry, packageMaterial);
-  package.position.y = -0.3;
-  droneGroup.add(package);
+  const packageMesh = new THREE.Mesh(packageGeometry, packageMaterial);
+  packageMesh.position.y = -0.3;
+  droneGroup.add(packageMesh);
 
   // Camera (representing monitoring & oversight)
   const cameraGeometry = new THREE.CylinderGeometry(0.1, 0.1, 0.1, 16);

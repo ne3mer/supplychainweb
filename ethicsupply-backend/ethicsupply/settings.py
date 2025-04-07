@@ -10,7 +10,8 @@ SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-your-secret-key-here'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.environ.get('DEBUG', 'False') == 'True'
 
-ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', 'localhost,127.0.0.1,optiethic-backend.onrender.com').split(',')
+# Update ALLOWED_HOSTS to include Vercel URLs
+ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', 'localhost,127.0.0.1,optiethic-backend.onrender.com,.vercel.app').split(',')
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -57,13 +58,17 @@ TEMPLATES = [
 WSGI_APPLICATION = 'ethicsupply.wsgi.application'
 
 # Database Configuration
-# If DATABASE_URL is set, use that, otherwise use SQLite
+# For Vercel, use SQLite by default and PostgreSQL if DATABASE_URL is provided
 DATABASE_URL = os.environ.get('DATABASE_URL')
 if DATABASE_URL:
-    # PostgreSQL configuration
+    # PostgreSQL configuration with psycopg3
     import dj_database_url
     DATABASES = {
-        'default': dj_database_url.config(default=DATABASE_URL, conn_max_age=600)
+        'default': dj_database_url.config(
+            default=DATABASE_URL,
+            conn_max_age=600,
+            engine='django.db.backends.postgresql'
+        )
     }
 else:
     # SQLite fallback
@@ -114,18 +119,42 @@ REST_FRAMEWORK = {
     'PAGE_SIZE': 10
 }
 
-# CORS settings
-CORS_ALLOWED_ORIGINS = os.environ.get('CORS_ALLOWED_ORIGINS', 'http://localhost:5173,http://127.0.0.1:5173').split(',')
+# CORS settings - updated to include Vercel domains
+CORS_ALLOWED_ORIGINS = os.environ.get('CORS_ALLOWED_ORIGINS', 'http://localhost:5174,http://127.0.0.1:5173,http://localhost:5174,http://127.0.0.1:5174,https://*.vercel.app').split(',')
 CORS_ALLOW_ALL_ORIGINS = DEBUG  # Allow all origins in development, but not in production
 CORS_ALLOW_CREDENTIALS = True
+CORS_ALLOW_METHODS = [
+    'DELETE',
+    'GET',
+    'OPTIONS',
+    'PATCH',
+    'POST',
+    'PUT',
+]
+CORS_ALLOW_HEADERS = [
+    'accept',
+    'accept-encoding',
+    'authorization',
+    'content-type',
+    'dnt',
+    'origin',
+    'user-agent',
+    'x-csrftoken',
+    'x-requested-with',
+]
 
 # Security settings for production
+# Disable SSL redirect for Vercel since it handles HTTPS
 if not DEBUG:
-    SECURE_SSL_REDIRECT = True
+    SECURE_SSL_REDIRECT = False  # Vercel handles HTTPS
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
     SECURE_BROWSER_XSS_FILTER = True
     SECURE_CONTENT_TYPE_NOSNIFF = True
     SECURE_HSTS_SECONDS = 31536000  # 1 year
     SECURE_HSTS_INCLUDE_SUBDOMAINS = True
-    SECURE_HSTS_PRELOAD = True 
+    SECURE_HSTS_PRELOAD = True
+else:
+    SECURE_SSL_REDIRECT = False
+    SESSION_COOKIE_SECURE = False
+    CSRF_COOKIE_SECURE = False 
