@@ -380,15 +380,15 @@ const Dashboard = () => {
         },
         ethical_score_distribution: [
           { range: "0-20", count: 0 },
-          { range: "21-40", count: 0 },
+          { range: "21-40", count: 2 },
           { range: "41-60", count: 2 },
-          { range: "61-80", count: 7 },
+          { range: "61-80", count: 5 },
           { range: "81-100", count: 3 },
         ],
         co2_emissions_by_industry: [
-          { name: "Consumer Goods", value: 4.3 },
-          { name: "Electronics", value: 20.4 },
           { name: "Food & Beverage", value: 128.7 },
+          { name: "Electronics", value: 20.4 },
+          { name: "Consumer Goods", value: 4.3 },
           { name: "Apparel", value: 2.5 },
           { name: "Home Appliances", value: 18.5 },
         ],
@@ -398,10 +398,41 @@ const Dashboard = () => {
           "High Risk": 2,
           "Critical Risk": 1,
         },
-        water_usage_trend: waterUsageTrendData,
-        renewable_energy_adoption: renewableEnergyData,
-        sustainable_practices: sustainablePracticesData,
-        sustainability_metrics: sustainabilityMetricsData,
+        water_usage_trend: [
+          { month: "Jan", usage: 135 },
+          { month: "Feb", usage: 128 },
+          { month: "Mar", usage: 124 },
+          { month: "Apr", usage: 118 },
+          { month: "May", usage: 113 },
+          { month: "Jun", usage: 108 },
+          { month: "Jul", usage: 102 },
+          { month: "Aug", usage: 94 },
+          { month: "Sep", usage: 89 },
+          { month: "Oct", usage: 86 },
+          { month: "Nov", usage: 82 },
+          { month: "Dec", usage: 79 },
+        ],
+        renewable_energy_adoption: [
+          { name: "Solar", value: 38 },
+          { name: "Wind", value: 27 },
+          { name: "Hydro", value: 12 },
+          { name: "Biomass", value: 6 },
+          { name: "Traditional", value: 17 },
+        ],
+        sustainable_practices: [
+          { practice: "Recycling", adoption: 92, target: 95 },
+          { practice: "Emissions Reduction", adoption: 68, target: 80 },
+          { practice: "Water Conservation", adoption: 76, target: 85 },
+          { practice: "Renewable Energy", adoption: 83, target: 90 },
+          { practice: "Zero Waste", adoption: 54, target: 75 },
+        ],
+        sustainability_metrics: [
+          { metric: "Carbon Footprint", current: 82, industry: 68 },
+          { metric: "Water Usage", current: 76, industry: 62 },
+          { metric: "Waste Reduction", current: 91, industry: 59 },
+          { metric: "Energy Efficiency", current: 84, industry: 71 },
+          { metric: "Social Impact", current: 70, industry: 58 },
+        ],
         recent_suppliers: [
           {
             id: 1,
@@ -487,22 +518,22 @@ const Dashboard = () => {
       });
 
       // Set ethical score distribution data
-      setEthicalScoreDistribution([0, 0, 2, 7, 3]);
+      setEthicalScoreDistribution([0, 2, 2, 5, 3]);
 
       // Set CO2 emissions by industry
       setCo2ByIndustry([
-        { industry: "Consumer Goods", emissions: 4.3 },
-        { industry: "Electronics", emissions: 20.4 },
         { industry: "Food & Beverage", emissions: 128.7 },
+        { industry: "Electronics", emissions: 20.4 },
+        { industry: "Consumer Goods", emissions: 4.3 },
         { industry: "Apparel", emissions: 2.5 },
         { industry: "Home Appliances", emissions: 18.5 },
       ]);
 
       // Generate random number for onboarding pending suppliers (between 3-15)
-      setOnboardingPending(Math.floor(Math.random() * 12) + 3);
+      setOnboardingPending(8);
 
-      // Calculate compliance rate - percentage of suppliers with ethical score >= 70
-      setComplianceRate(70); // Example value, can be calculated from mockData if needed
+      // Set compliance rate
+      setComplianceRate(82);
     };
 
     fetchData();
@@ -863,7 +894,7 @@ const Dashboard = () => {
                   }
                 >
                   {Object.entries(riskBreakdown).map(([name], index) => {
-                    const colorMap = {
+                    const colorMap: Record<string, string> = {
                       "Low Risk": "#10B981",
                       "Medium Risk": "#F59E0B",
                       "High Risk": "#EF4444",
@@ -875,7 +906,7 @@ const Dashboard = () => {
                   })}
                 </Pie>
                 <Tooltip
-                  formatter={(value) => [`${value} suppliers`, "Count"]}
+                  formatter={(value: number) => [`${value} suppliers`, "Count"]}
                 />
                 <Legend />
               </PieChart>
@@ -914,7 +945,7 @@ const Dashboard = () => {
                   width={80}
                 />
                 <Tooltip
-                  formatter={(value) => [`${value} suppliers`, "Count"]}
+                  formatter={(value: number) => [`${value} suppliers`, "Count"]}
                 />
                 <Bar dataKey="value" fill="#3B82F6">
                   {Object.entries(industryDistribution).map((_, index) => (
@@ -965,7 +996,7 @@ const Dashboard = () => {
               <XAxis dataKey="month" />
               <YAxis domain={[50, 100]} tickFormatter={(tick) => `${tick}%`} />
               <Tooltip
-                formatter={(value) => [`${value}%`, "Compliance Rate"]}
+                formatter={(value: number) => [`${value}%`, "Compliance Rate"]}
               />
               <Area
                 type="monotone"
@@ -1019,54 +1050,65 @@ const Dashboard = () => {
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {data?.recent_suppliers?.map((supplier) => (
-                <tr key={supplier.id} className="hover:bg-gray-50">
-                  <td className="px-6 py-3 whitespace-nowrap">
-                    <div className="text-sm font-medium text-gray-900">
-                      {supplier.name}
-                    </div>
-                  </td>
-                  <td className="px-6 py-3 whitespace-nowrap">
-                    <div className="text-sm text-gray-500">
-                      {supplier.country}
-                    </div>
-                  </td>
-                  <td className="px-6 py-3 whitespace-nowrap">
-                    <div
-                      className={`text-sm font-medium ${
-                        supplier.ethical_score >= 80
-                          ? "text-green-600"
-                          : supplier.ethical_score >= 60
-                          ? "text-blue-600"
-                          : supplier.ethical_score >= 40
-                          ? "text-yellow-600"
-                          : "text-red-600"
-                      }`}
-                    >
-                      {supplier.ethical_score}/100
-                    </div>
-                  </td>
-                  <td className="px-6 py-3 whitespace-nowrap">
-                    <div
-                      className={`text-sm font-medium flex items-center ${
-                        supplier.trend.startsWith("+")
-                          ? "text-green-600"
-                          : "text-red-600"
-                      }`}
-                    >
-                      {supplier.trend.startsWith("+") ? (
-                        <ArrowUpIcon className="h-4 w-4 mr-1" />
-                      ) : (
-                        <ArrowDownIcon className="h-4 w-4 mr-1" />
-                      )}
-                      {supplier.trend}
-                    </div>
-                  </td>
-                  <td className="px-6 py-3 whitespace-nowrap text-sm text-gray-500">
-                    {supplier.date}
+              {data?.recent_suppliers && data.recent_suppliers.length > 0 ? (
+                data.recent_suppliers.map((supplier) => (
+                  <tr key={supplier.id} className="hover:bg-gray-50">
+                    <td className="px-6 py-3 whitespace-nowrap">
+                      <div className="text-sm font-medium text-gray-900">
+                        {supplier.name}
+                      </div>
+                    </td>
+                    <td className="px-6 py-3 whitespace-nowrap">
+                      <div className="text-sm text-gray-500">
+                        {supplier.country}
+                      </div>
+                    </td>
+                    <td className="px-6 py-3 whitespace-nowrap">
+                      <div
+                        className={`text-sm font-medium ${
+                          supplier.ethical_score >= 80
+                            ? "text-green-600"
+                            : supplier.ethical_score >= 60
+                            ? "text-blue-600"
+                            : supplier.ethical_score >= 40
+                            ? "text-yellow-600"
+                            : "text-red-600"
+                        }`}
+                      >
+                        {supplier.ethical_score}/100
+                      </div>
+                    </td>
+                    <td className="px-6 py-3 whitespace-nowrap">
+                      <div
+                        className={`text-sm font-medium flex items-center ${
+                          supplier.trend.startsWith("+")
+                            ? "text-green-600"
+                            : "text-red-600"
+                        }`}
+                      >
+                        {supplier.trend.startsWith("+") ? (
+                          <ArrowUpIcon className="h-4 w-4 mr-1" />
+                        ) : (
+                          <ArrowDownIcon className="h-4 w-4 mr-1" />
+                        )}
+                        {supplier.trend}
+                      </div>
+                    </td>
+                    <td className="px-6 py-3 whitespace-nowrap text-sm text-gray-500">
+                      {supplier.date}
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td
+                    colSpan={5}
+                    className="px-6 py-4 text-center text-sm text-gray-500"
+                  >
+                    No recent supplier data available
                   </td>
                 </tr>
-              ))}
+              )}
             </tbody>
           </table>
         </div>
