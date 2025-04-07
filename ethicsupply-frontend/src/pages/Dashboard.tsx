@@ -98,6 +98,18 @@ const chartInfoContent = {
     title: "Sustainability Performance",
     description: "Your sustainability metrics compared to industry averages.",
   },
+  riskBreakdown: {
+    title: "Risk Breakdown",
+    description: "Distribution of suppliers by risk category",
+  },
+  industryDistribution: {
+    title: "Industry Distribution",
+    description: "Breakdown of suppliers by industry sector",
+  },
+  complianceRate: {
+    title: "Compliance Rate Trend",
+    description: "Monthly supplier compliance rate over the past year",
+  },
 };
 
 // Define colors for charts
@@ -161,6 +173,29 @@ interface DashboardData {
   suppliers_by_country: Record<string, number>;
   ethical_score_distribution: Array<{ range: string; count: number }>;
   co2_emissions_by_industry: Array<{ name: string; value: number }>;
+  risk_breakdown: { [key: string]: number };
+  water_usage_trend: Array<{ month: string; usage: number }>;
+  renewable_energy_adoption: Array<{ name: string; value: number }>;
+  sustainable_practices: Array<{
+    practice: string;
+    adoption: number;
+    target: number;
+  }>;
+  sustainability_metrics: Array<{
+    metric: string;
+    current: number;
+    industry: number;
+  }>;
+  recent_suppliers: Array<{
+    id: number;
+    name: string;
+    country: string;
+    ethical_score: number;
+    trend: string;
+    date: string;
+  }>;
+  industry_distribution: Record<string, number>;
+  compliance_rate_trend: Array<{ month: string; rate: number }>;
   isMockData?: boolean;
 }
 
@@ -174,6 +209,14 @@ const Dashboard = () => {
     suppliers_by_country: {},
     ethical_score_distribution: [],
     co2_emissions_by_industry: [],
+    risk_breakdown: {},
+    water_usage_trend: [],
+    renewable_energy_adoption: [],
+    sustainable_practices: [],
+    sustainability_metrics: [],
+    recent_suppliers: [],
+    industry_distribution: {},
+    compliance_rate_trend: [],
   });
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -349,9 +392,111 @@ const Dashboard = () => {
           { name: "Apparel", value: 2.5 },
           { name: "Home Appliances", value: 18.5 },
         ],
+        risk_breakdown: {
+          "Low Risk": 5,
+          "Medium Risk": 4,
+          "High Risk": 2,
+          "Critical Risk": 1,
+        },
+        water_usage_trend: waterUsageTrendData,
+        renewable_energy_adoption: renewableEnergyData,
+        sustainable_practices: sustainablePracticesData,
+        sustainability_metrics: sustainabilityMetricsData,
+        recent_suppliers: [
+          {
+            id: 1,
+            name: "TechGlobal Inc.",
+            country: "United States",
+            ethical_score: 82,
+            trend: "+2.4%",
+            date: "2025-04-01",
+          },
+          {
+            id: 2,
+            name: "EcoFabrics Ltd.",
+            country: "United Kingdom",
+            ethical_score: 78,
+            trend: "+1.5%",
+            date: "2025-03-28",
+          },
+          {
+            id: 3,
+            name: "GreenSource Materials",
+            country: "Germany",
+            ethical_score: 91,
+            trend: "+4.2%",
+            date: "2025-03-25",
+          },
+          {
+            id: 4,
+            name: "Pacific Components",
+            country: "Taiwan",
+            ethical_score: 65,
+            trend: "-1.3%",
+            date: "2025-03-22",
+          },
+          {
+            id: 5,
+            name: "Global Foods Co.",
+            country: "France",
+            ethical_score: 73,
+            trend: "+0.8%",
+            date: "2025-03-20",
+          },
+        ],
+        industry_distribution: {
+          Electronics: 4,
+          "Consumer Goods": 3,
+          "Food & Beverage": 2,
+          Apparel: 2,
+          Automotive: 1,
+        },
+        compliance_rate_trend: [
+          { month: "Jan", rate: 63 },
+          { month: "Feb", rate: 67 },
+          { month: "Mar", rate: 68 },
+          { month: "Apr", rate: 72 },
+          { month: "May", rate: 74 },
+          { month: "Jun", rate: 69 },
+          { month: "Jul", rate: 73 },
+          { month: "Aug", rate: 75 },
+          { month: "Sep", rate: 78 },
+          { month: "Oct", rate: 82 },
+          { month: "Nov", rate: 86 },
+          { month: "Dec", rate: 90 },
+        ],
         isMockData: true,
       };
       setData(mockData);
+
+      // Set risk breakdown data
+      setRiskBreakdown({
+        "Low Risk": 5,
+        "Medium Risk": 4,
+        "High Risk": 2,
+        "Critical Risk": 1,
+      });
+
+      // Set industry distribution data
+      setIndustryDistribution({
+        Electronics: 4,
+        "Consumer Goods": 3,
+        "Food & Beverage": 2,
+        Apparel: 2,
+        Automotive: 1,
+      });
+
+      // Set ethical score distribution data
+      setEthicalScoreDistribution([0, 0, 2, 7, 3]);
+
+      // Set CO2 emissions by industry
+      setCo2ByIndustry([
+        { industry: "Consumer Goods", emissions: 4.3 },
+        { industry: "Electronics", emissions: 20.4 },
+        { industry: "Food & Beverage", emissions: 128.7 },
+        { industry: "Apparel", emissions: 2.5 },
+        { industry: "Home Appliances", emissions: 18.5 },
+      ]);
 
       // Generate random number for onboarding pending suppliers (between 3-15)
       setOnboardingPending(Math.floor(Math.random() * 12) + 3);
@@ -683,81 +828,247 @@ const Dashboard = () => {
         </div>
       </div>
 
-      {/* Additional Charts Row */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      {/* Risk Breakdown & Industry Distribution Row */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+        {/* Risk Breakdown Chart */}
         <div className="dashboard-card">
-          <h3 className="text-lg font-semibold text-gray-800 mb-4">
-            Industry Distribution
-          </h3>
+          <div className="flex justify-between items-start mb-4">
+            <div>
+              <h3 className="text-lg font-semibold text-gray-800">
+                Risk Breakdown
+              </h3>
+              <p className="text-sm text-gray-500">
+                Distribution of suppliers by risk category
+              </p>
+            </div>
+            <ChartInfoOverlay content={chartInfoContent.riskBreakdown} />
+          </div>
+          <div className="h-64">
+            <ResponsiveContainer width="100%" height="100%">
+              <PieChart>
+                <Pie
+                  data={Object.entries(riskBreakdown).map(([name, value]) => ({
+                    name,
+                    value,
+                  }))}
+                  cx="50%"
+                  cy="50%"
+                  labelLine={false}
+                  outerRadius={80}
+                  fill="#8884d8"
+                  dataKey="value"
+                  nameKey="name"
+                  label={({ name, percent }) =>
+                    `${name}: ${(percent * 100).toFixed(0)}%`
+                  }
+                >
+                  {Object.entries(riskBreakdown).map(([name], index) => {
+                    const colorMap = {
+                      "Low Risk": "#10B981",
+                      "Medium Risk": "#F59E0B",
+                      "High Risk": "#EF4444",
+                      "Critical Risk": "#7F1D1D",
+                    };
+                    const color =
+                      colorMap[name] || COLORS[index % COLORS.length];
+                    return <Cell key={`cell-${index}`} fill={color} />;
+                  })}
+                </Pie>
+                <Tooltip
+                  formatter={(value) => [`${value} suppliers`, "Count"]}
+                />
+                <Legend />
+              </PieChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+
+        {/* Industry Distribution Chart */}
+        <div className="dashboard-card">
+          <div className="flex justify-between items-start mb-4">
+            <div>
+              <h3 className="text-lg font-semibold text-gray-800">
+                Industry Distribution
+              </h3>
+              <p className="text-sm text-gray-500">
+                Breakdown of suppliers by industry sector
+              </p>
+            </div>
+            <ChartInfoOverlay content={chartInfoContent.industryDistribution} />
+          </div>
           <div className="h-64">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart
-                layout="vertical"
-                data={Object.entries(data.suppliers_by_country).map(
-                  ([country, count]) => ({
-                    country,
-                    count,
-                  })
+                data={Object.entries(industryDistribution).map(
+                  ([name, value]) => ({ name, value })
                 )}
+                layout="vertical"
                 margin={{ top: 5, right: 30, left: 80, bottom: 5 }}
               >
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis type="number" />
                 <YAxis
-                  dataKey="country"
                   type="category"
+                  dataKey="name"
                   tick={{ fontSize: 12 }}
                   width={80}
                 />
                 <Tooltip
                   formatter={(value) => [`${value} suppliers`, "Count"]}
                 />
-                <Bar dataKey="count" fill="#8884d8" radius={[0, 4, 4, 0]}>
-                  {Object.entries(data.suppliers_by_country).map(
-                    (entry, index) => (
-                      <Cell
-                        key={`cell-${index}`}
-                        fill={COLORS[index % COLORS.length]}
-                      />
-                    )
-                  )}
+                <Bar dataKey="value" fill="#3B82F6">
+                  {Object.entries(industryDistribution).map((_, index) => (
+                    <Cell
+                      key={`cell-${index}`}
+                      fill={COLORS[index % COLORS.length]}
+                    />
+                  ))}
                 </Bar>
               </BarChart>
             </ResponsiveContainer>
           </div>
         </div>
+      </div>
 
-        <div className="dashboard-card">
-          <h3 className="text-lg font-semibold text-gray-800 mb-4">
-            Risk Breakdown
-          </h3>
-          <div className="h-64">
-            <ResponsiveContainer width="100%" height="100%">
-              <RadarChart
-                cx="50%"
-                cy="50%"
-                outerRadius="80%"
-                data={Object.entries(riskBreakdown).map(([risk, count]) => ({
-                  risk,
-                  count,
-                }))}
-              >
-                <PolarGrid />
-                <PolarAngleAxis dataKey="risk" tick={{ fontSize: 12 }} />
-                <PolarRadiusAxis angle={30} domain={[0, "auto"]} />
-                <Radar
-                  name="Risk Count"
-                  dataKey="count"
-                  stroke="#8884d8"
-                  fill="#8884d8"
-                  fillOpacity={0.6}
-                />
-                <Tooltip
-                  formatter={(value) => [`${value} suppliers`, "Affected"]}
-                />
-              </RadarChart>
-            </ResponsiveContainer>
+      {/* Compliance Rate Trend */}
+      <div className="dashboard-card mt-6">
+        <div className="flex justify-between items-start mb-4">
+          <div>
+            <h3 className="text-lg font-semibold text-gray-800">
+              Compliance Rate Trend
+            </h3>
+            <p className="text-sm text-gray-500">
+              Monthly supplier compliance rate over the past year
+            </p>
           </div>
+          <ChartInfoOverlay content={chartInfoContent.complianceRate} />
+        </div>
+        <div className="h-64">
+          <ResponsiveContainer width="100%" height="100%">
+            <AreaChart
+              data={data?.compliance_rate_trend || []}
+              margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
+            >
+              <defs>
+                <linearGradient
+                  id="colorCompliance"
+                  x1="0"
+                  y1="0"
+                  x2="0"
+                  y2="1"
+                >
+                  <stop offset="5%" stopColor="#3B82F6" stopOpacity={0.8} />
+                  <stop offset="95%" stopColor="#3B82F6" stopOpacity={0.1} />
+                </linearGradient>
+              </defs>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="month" />
+              <YAxis domain={[50, 100]} tickFormatter={(tick) => `${tick}%`} />
+              <Tooltip
+                formatter={(value) => [`${value}%`, "Compliance Rate"]}
+              />
+              <Area
+                type="monotone"
+                dataKey="rate"
+                stroke="#3B82F6"
+                fillOpacity={1}
+                fill="url(#colorCompliance)"
+              />
+              <ReferenceLine
+                y={70}
+                stroke="#10B981"
+                strokeDasharray="3 3"
+                label="Target"
+              />
+            </AreaChart>
+          </ResponsiveContainer>
+        </div>
+      </div>
+
+      {/* Recent Suppliers */}
+      <div className="dashboard-card mt-6">
+        <div className="flex justify-between items-center mb-4">
+          <div>
+            <h3 className="text-lg font-semibold text-gray-800">
+              Recent Suppliers
+            </h3>
+            <p className="text-sm text-gray-500">
+              Latest supplier evaluations and updates
+            </p>
+          </div>
+          <Link
+            to="/suppliers"
+            className="text-sm text-indigo-600 flex items-center hover:text-indigo-800"
+          >
+            View all suppliers <ArrowRightIcon className="h-4 w-4 ml-1" />
+          </Link>
+        </div>
+        <div className="overflow-x-auto">
+          <table className="min-w-full">
+            <thead>
+              <tr className="bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 border-b border-gray-200">Name</th>
+                <th className="px-6 py-3 border-b border-gray-200">Country</th>
+                <th className="px-6 py-3 border-b border-gray-200">
+                  Ethical Score
+                </th>
+                <th className="px-6 py-3 border-b border-gray-200">Trend</th>
+                <th className="px-6 py-3 border-b border-gray-200">
+                  Date Added
+                </th>
+              </tr>
+            </thead>
+            <tbody className="bg-white divide-y divide-gray-200">
+              {data?.recent_suppliers?.map((supplier) => (
+                <tr key={supplier.id} className="hover:bg-gray-50">
+                  <td className="px-6 py-3 whitespace-nowrap">
+                    <div className="text-sm font-medium text-gray-900">
+                      {supplier.name}
+                    </div>
+                  </td>
+                  <td className="px-6 py-3 whitespace-nowrap">
+                    <div className="text-sm text-gray-500">
+                      {supplier.country}
+                    </div>
+                  </td>
+                  <td className="px-6 py-3 whitespace-nowrap">
+                    <div
+                      className={`text-sm font-medium ${
+                        supplier.ethical_score >= 80
+                          ? "text-green-600"
+                          : supplier.ethical_score >= 60
+                          ? "text-blue-600"
+                          : supplier.ethical_score >= 40
+                          ? "text-yellow-600"
+                          : "text-red-600"
+                      }`}
+                    >
+                      {supplier.ethical_score}/100
+                    </div>
+                  </td>
+                  <td className="px-6 py-3 whitespace-nowrap">
+                    <div
+                      className={`text-sm font-medium flex items-center ${
+                        supplier.trend.startsWith("+")
+                          ? "text-green-600"
+                          : "text-red-600"
+                      }`}
+                    >
+                      {supplier.trend.startsWith("+") ? (
+                        <ArrowUpIcon className="h-4 w-4 mr-1" />
+                      ) : (
+                        <ArrowDownIcon className="h-4 w-4 mr-1" />
+                      )}
+                      {supplier.trend}
+                    </div>
+                  </td>
+                  <td className="px-6 py-3 whitespace-nowrap text-sm text-gray-500">
+                    {supplier.date}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
       </div>
 
