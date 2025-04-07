@@ -65,6 +65,10 @@ import ChartMetricsExplainer from "../components/ChartMetricsExplainer";
 import InsightsPanel, { chartInsights } from "../components/InsightsPanel";
 import { CircularProgressbar, buildStyles } from "react-circular-progressbar";
 import "react-circular-progressbar/dist/styles.css";
+import { getDashboardData, checkApiConnection } from "../services/api";
+
+// Constant needed for pie chart calculations
+const RADIAN = Math.PI / 180;
 
 // Define chart info content
 const chartInfoContent = {
@@ -278,26 +282,23 @@ const Dashboard = () => {
         setApiConnected(connected);
 
         if (connected) {
-          // Real API call
+          // Real API call using the service function
           try {
-            const response = await fetch("/api/dashboard/");
+            const dashboardData = await getDashboardData();
+            if (dashboardData) {
+              setData(dashboardData);
+              setUsingMockData(!!dashboardData.isMockData);
 
-            // Check if response is valid JSON
-            const contentType = response.headers.get("content-type");
-            if (contentType && contentType.includes("application/json")) {
-              if (response.ok) {
-                const result = await response.json();
-                setData(result);
-                setUsingMockData(false);
-              } else {
-                throw new Error(`API returned status ${response.status}`);
+              // If we have data but it's mock data, set the mock-related states
+              if (dashboardData.isMockData) {
+                // Generate random number for onboarding pending suppliers (between 3-15)
+                setOnboardingPending(Math.floor(Math.random() * 12) + 3);
+
+                // Calculate compliance rate - percentage of suppliers with ethical score >= 70
+                setComplianceRate(70); // Example value, can be calculated from mockData if needed
               }
             } else {
-              console.error(
-                "Received non-JSON response from server",
-                contentType
-              );
-              throw new Error("Server returned non-JSON response");
+              throw new Error("No dashboard data returned");
             }
           } catch (error) {
             console.error("Error fetching dashboard data:", error);
