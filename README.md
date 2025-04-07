@@ -1,6 +1,99 @@
-# OptiEthic
+# OptiEthic - Ethical Supply Chain Management
 
-OptiEthic is a web application designed to help businesses evaluate and monitor the ethical and environmental performance of their suppliers. The platform leverages AI to provide ethical scoring, recommendations, and sustainability insights.
+A full-stack application for managing and analyzing ethical supply chains.
+
+## Project Structure
+
+- **ethicsupply-frontend**: React frontend built with Vite, TypeScript, and Tailwind CSS
+- **ethicsupply-backend**: Django REST API backend
+
+## Deployment Guide for Render.com
+
+### Set Up Your Render Account
+
+1. Sign up for a free account at [Render.com](https://render.com)
+2. Connect your GitHub repository
+
+### Deploy the Backend API
+
+1. In your Render dashboard, click "New" and select "Web Service"
+2. Connect your GitHub repository
+3. Configure the service:
+
+   - **Name**: optiethic-backend
+   - **Runtime**: Python
+   - **Build Command**: `pip install -r requirements.txt`
+   - **Start Command**: `gunicorn ethicsupply.wsgi:application`
+   - **Root Directory**: `ethicsupply-backend`
+
+4. Add environment variables:
+
+   - `DEBUG`: False
+   - `SECRET_KEY`: (generate a secure random string)
+   - `ALLOWED_HOSTS`: your-backend-app.onrender.com
+   - `CORS_ALLOWED_ORIGINS`: https://your-frontend-app.onrender.com
+
+5. Create a PostgreSQL database:
+
+   - In your Render dashboard, click "New" and select "PostgreSQL"
+   - Name it "optiethic-db"
+   - After creation, copy the "Internal Database URL"
+   - Add it as an environment variable for your Web Service:
+     - `DATABASE_URL`: (the copied PostgreSQL URL)
+
+6. Deploy the service
+
+### Deploy the Frontend
+
+1. In your Render dashboard, click "New" and select "Static Site"
+2. Connect your GitHub repository
+3. Configure the service:
+
+   - **Name**: optiethic-frontend
+   - **Build Command**: `npm install && npm run build`
+   - **Publish Directory**: `dist`
+   - **Root Directory**: `ethicsupply-frontend`
+
+4. Add environment variables:
+
+   - `VITE_API_URL`: https://your-backend-app.onrender.com/api
+   - `VITE_ENABLE_MOCK_DATA`: false
+
+5. Add a redirect rule to handle client-side routing:
+
+   - In the "Redirects/Rewrites" section, add a rule:
+   - Source: `/*`
+   - Destination: `/index.html`
+   - Type: Rewrite
+
+6. Deploy the service
+
+### Verify Deployment
+
+1. Wait for both deployments to complete (this may take a few minutes)
+2. Visit your frontend URL (e.g., https://optiethic-frontend.onrender.com)
+3. The application should connect to the backend API and function properly
+
+## Local Development
+
+### Backend Setup
+
+```bash
+cd ethicsupply-backend
+python -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
+python manage.py migrate
+python manage.py runserver
+```
+
+### Frontend Setup
+
+```bash
+cd ethicsupply-frontend
+npm install
+npm run dev
+```
 
 ## Features
 
@@ -23,62 +116,6 @@ OptiEthic is a web application designed to help businesses evaluate and monitor 
 - Tailwind CSS for styling
 - Recharts for data visualization
 - Heroicons for UI icons
-
-## Setup Instructions
-
-### Backend Setup
-
-1. Navigate to the backend directory:
-
-   ```
-   cd ethicsupply-backend
-   ```
-
-2. Create and activate a virtual environment:
-
-   ```
-   python -m venv venv
-   source venv/bin/activate  # On Windows: venv\Scripts\activate
-   ```
-
-3. Install dependencies:
-
-   ```
-   pip install -r requirements.txt
-   ```
-
-4. Run migrations:
-
-   ```
-   python manage.py migrate
-   ```
-
-5. Start the development server:
-   ```
-   python manage.py runserver
-   ```
-
-### Frontend Setup
-
-1. Navigate to the frontend directory:
-
-   ```
-   cd ethicsupply-frontend
-   ```
-
-2. Install dependencies:
-
-   ```
-   npm install
-   ```
-
-3. Start the development server:
-
-   ```
-   npm run dev
-   ```
-
-4. The application will be available at `http://localhost:5173` (or another port if 5173 is in use)
 
 ## API Endpoints
 

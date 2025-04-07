@@ -15,7 +15,7 @@
     "@types/bootstrap": "^5.2.10",
     "@types/react-router-dom": "^5.3.3",
     "@types/three": "^0.175.0",
-    "aframe": "^1.7.1",
+    "aframe": "1.4.2",
     "axios": "^1.8.4",
     "bootstrap": "^5.3.5",
     "framer-motion": "^11.0.3",
@@ -49,5 +49,8 @@
     "typescript": "~5.7.2",
     "typescript-eslint": "^8.24.1",
     "vite": "^6.2.0"
+  },
+  "resolutions": {
+    "three-bmfont-text": "npm:three-bmfont-text@^3.0.1"
   }
 }
