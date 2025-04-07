@@ -814,7 +814,7 @@ function generateWeaknesses(data: SupplierEvaluation): string[] {
   return weaknesses;
 }
 
-function generateOpportunities(data: SupplierEvaluation): string[] {
+function generateOpportunities(_data: SupplierEvaluation): string[] {
   return [
     "Implement advanced emissions tracking technology",
     "Develop comprehensive sustainability reporting framework",
