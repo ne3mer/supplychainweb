@@ -25,7 +25,18 @@ router.register(r'suppliers', SupplierViewSet)
 def health_check(request):
     return Response({"status": "healthy"})
 
+@api_view(['GET'])
+def api_root(request):
+    return Response({
+        "suppliers": "https://optiethic-backend.onrender.com/api/suppliers/",
+        "dashboard": "https://optiethic-backend.onrender.com/api/dashboard/",
+        "supply_chain_graph": "https://optiethic-backend.onrender.com/api/supply-chain-graph/",
+        "health_check": "https://optiethic-backend.onrender.com/api/health-check/",
+        "ml_status": "https://optiethic-backend.onrender.com/api/ml/status/"
+    })
+
 urlpatterns = [
+    path('', api_root, name='api-root'),
     path('', include(router.urls)),
     path('dashboard/', dashboard_view, name='dashboard'),
     path('supply-chain-graph/', supply_chain_graph_view, name='supply_chain_graph'),
