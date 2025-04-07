@@ -3,10 +3,7 @@ import { Fragment, useState } from "react";
 import {
   HomeIcon,
   ChartBarIcon,
-  ClipboardDocumentCheckIcon,
-  LightBulbIcon,
   UserGroupIcon,
-  DocumentMagnifyingGlassIcon,
   GlobeAltIcon,
   ChartBarSquareIcon,
   InformationCircleIcon,
@@ -15,6 +12,7 @@ import {
   UserCircleIcon,
   ArrowRightOnRectangleIcon,
   Cog6ToothIcon,
+  LightBulbIcon,
 } from "@heroicons/react/24/outline";
 
 const NavigationBar = () => {
@@ -109,7 +107,7 @@ const NavigationBar = () => {
                   <div className="origin-top-right absolute right-0 mt-2 w-48 rounded-md shadow-lg py-1 bg-white ring-1 ring-black ring-opacity-5 focus:outline-none z-50 transition-all duration-200 transform opacity-100 scale-100">
                     <Link
                       to="/profile"
-                      className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center"
+                      className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                       onClick={() => setProfileOpen(false)}
                     >
                       <UserCircleIcon className="h-4 w-4 mr-2 text-gray-500" />
@@ -117,14 +115,14 @@ const NavigationBar = () => {
                     </Link>
                     <Link
                       to="/settings"
-                      className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center"
+                      className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                       onClick={() => setProfileOpen(false)}
                     >
                       <Cog6ToothIcon className="h-4 w-4 mr-2 text-gray-500" />
                       Settings
                     </Link>
                     <button
-                      className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center"
+                      className="flex items-center w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                       onClick={() => setProfileOpen(false)}
                     >
                       <ArrowRightOnRectangleIcon className="h-4 w-4 mr-2 text-gray-500" />
@@ -213,20 +211,20 @@ const NavigationBar = () => {
               <div className="mt-3 space-y-1 px-2">
                 <Link
                   to="/profile"
-                  className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:bg-gray-100 hover:text-gray-900"
+                  className="flex items-center px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:bg-gray-100 hover:text-gray-900"
                   onClick={() => setMobileMenuOpen(false)}
                 >
                   Your Profile
                 </Link>
                 <Link
                   to="/settings"
-                  className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:bg-gray-100 hover:text-gray-900"
+                  className="flex items-center px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:bg-gray-100 hover:text-gray-900"
                   onClick={() => setMobileMenuOpen(false)}
                 >
                   Settings
                 </Link>
                 <button
-                  className="w-full text-left block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:bg-gray-100 hover:text-gray-900"
+                  className="flex items-center w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:bg-gray-100 hover:text-gray-900"
                   onClick={() => setMobileMenuOpen(false)}
                 >
                   Sign out
