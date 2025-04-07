@@ -1,11 +1,6 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import {
-  GlobeAltIcon,
-  ArrowPathIcon,
-  InformationCircleIcon,
-  ExclamationTriangleIcon,
-} from "@heroicons/react/24/outline";
+import { GlobeAltIcon } from "@heroicons/react/24/outline";
 import {
   getSupplyChainGraphData,
   GraphNode,
@@ -22,7 +17,6 @@ import {
   Truck,
   Store,
   Package,
-  Leaf,
   BarChart3,
   Maximize,
   Minimize,
@@ -39,8 +33,32 @@ import {
   Search,
 } from "lucide-react";
 
-// Simple SpriteText replacement since we don't have the actual package
+// Extended interfaces to fix typing issues
+interface NodeObject extends GraphNode {
+  x?: number;
+  y?: number;
+  z?: number;
+}
+
+interface LinkObject extends GraphLink {
+  source: string | NodeObject;
+  target: string | NodeObject;
+}
+
+// Extended graph data interface
+interface ExtendedGraphData extends GraphData {
+  isMockData?: boolean;
+  nodes: NodeObject[];
+  links: LinkObject[];
+}
+
+// Simple SpriteText implementation for text labels
 class SpriteText {
+  sprite: THREE.Sprite;
+  color: string = "#ffffff";
+  textHeight: number = 8;
+  position: { x: number; y: number; z: number } = { x: 0, y: 0, z: 0 };
+
   constructor(text: string) {
     const canvas = document.createElement("canvas");
     const context = canvas.getContext("2d");
@@ -52,24 +70,15 @@ class SpriteText {
 
     const texture = new THREE.CanvasTexture(canvas);
     const material = new THREE.SpriteMaterial({ map: texture });
-    return new THREE.Sprite(material);
+    this.sprite = new THREE.Sprite(material);
+    return this;
   }
-
-  // Properties that will be set after creation
-  color: string = "#ffffff";
-  textHeight: number = 8;
-  position = { x: 0, y: 0, z: 0 };
-}
-
-// Extending the GraphData interface to include isMockData
-interface ExtendedGraphData extends GraphData {
-  isMockData?: boolean;
 }
 
 const SupplyChainGraph = () => {
   // Refs for the graph components
-  const graph2DRef = useRef(null);
-  const graph3DRef = useRef(null);
+  const graph2DRef = useRef<any>(null);
+  const graph3DRef = useRef<any>(null);
 
   // State management
   const [graphData, setGraphData] = useState<ExtendedGraphData>({
@@ -78,14 +87,14 @@ const SupplyChainGraph = () => {
   });
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-  const [selectedNode, setSelectedNode] = useState<GraphNode | null>(null);
+  const [selectedNode, setSelectedNode] = useState<NodeObject | null>(null);
   const [filterEthicalScore, setFilterEthicalScore] = useState<number>(0);
   const [showEthicalPathsOnly, setShowEthicalPathsOnly] =
     useState<boolean>(false);
   const [usingMockData, setUsingMockData] = useState<boolean>(false);
   const [highlightNodes, setHighlightNodes] = useState(new Set());
   const [highlightLinks, setHighlightLinks] = useState(new Set());
-  const [hoverNode, setHoverNode] = useState<GraphNode | null>(null);
+  const [hoverNode, setHoverNode] = useState<NodeObject | null>(null);
 
   // UI state
   const [view3D, setView3D] = useState<boolean>(false);
@@ -103,7 +112,7 @@ const SupplyChainGraph = () => {
   const [colorByScore, setColorByScore] = useState<boolean>(false);
 
   // Animation states for UI elements
-  const [ref, inView] = useInView({
+  const { ref: animationRef, inView: elementsInView } = useInView({
     triggerOnce: true,
     threshold: 0.1,
   });
@@ -132,8 +141,8 @@ const SupplyChainGraph = () => {
         }));
 
         setGraphData({
-          nodes: data.nodes,
-          links: processedLinks,
+          nodes: data.nodes as NodeObject[],
+          links: processedLinks as LinkObject[],
           isMockData: data.isMockData,
         });
         setUsingMockData(!!data.isMockData);
@@ -162,9 +171,7 @@ const SupplyChainGraph = () => {
       // Get all incoming links
       const incomingLinks = graphData.links.filter((link) => {
         const target =
-          typeof link.target === "object" &&
-          link.target !== null &&
-          "id" in link.target
+          typeof link.target === "object" && link.target !== null
             ? link.target.id
             : link.target;
         return target === nodeId;
@@ -177,9 +184,7 @@ const SupplyChainGraph = () => {
       // Check all sources recursively
       return incomingLinks.every((link) => {
         const source =
-          typeof link.source === "object" &&
-          link.source !== null &&
-          "id" in link.source
+          typeof link.source === "object" && link.source !== null
             ? link.source.id
             : link.source;
         return isFullChainEthical(
@@ -217,15 +222,11 @@ const SupplyChainGraph = () => {
     // Filter links to only include connections between filtered nodes
     let filteredLinks = graphData.links.filter((link) => {
       const sourceId =
-        typeof link.source === "object" &&
-        link.source !== null &&
-        "id" in link.source
+        typeof link.source === "object" && link.source !== null
           ? link.source.id
           : link.source;
       const targetId =
-        typeof link.target === "object" &&
-        link.target !== null &&
-        "id" in link.target
+        typeof link.target === "object" && link.target !== null
           ? link.target.id
           : link.target;
 
@@ -251,7 +252,7 @@ const SupplyChainGraph = () => {
 
   // Node color based on type and ethical score
   const getNodeColor = useCallback(
-    (node: GraphNode) => {
+    (node: NodeObject) => {
       if (!colorByType && colorByScore && node.ethical_score !== undefined) {
         // Color by ethical score
         const score = node.ethical_score;
@@ -262,7 +263,7 @@ const SupplyChainGraph = () => {
       }
 
       // Base color on node type
-      const baseColors = {
+      const baseColors: Record<string, string> = {
         rawMaterial: "#8B5CF6", // Purple
         supplier: "#3B82F6", // Blue
         manufacturer: "#10B981", // Green
@@ -278,7 +279,7 @@ const SupplyChainGraph = () => {
 
   // Link color based on ethical status
   const getLinkColor = useCallback(
-    (link: GraphLink) => {
+    (link: LinkObject) => {
       return link.ethical
         ? darkMode
           ? "#10B981"
@@ -291,7 +292,7 @@ const SupplyChainGraph = () => {
   );
 
   // Get node icon by type
-  const getNodeIcon = useCallback((type) => {
+  const getNodeIcon = useCallback((type: string) => {
     switch (type) {
       case "rawMaterial":
         return Package;
@@ -310,7 +311,7 @@ const SupplyChainGraph = () => {
 
   // Handle node hover
   const handleNodeHover = useCallback(
-    (node: GraphNode | null) => {
+    (node: NodeObject | null) => {
       setHoverNode(node);
 
       if (!node) {
@@ -326,15 +327,11 @@ const SupplyChainGraph = () => {
       // Add connected nodes and links in both directions
       graphData.links.forEach((link) => {
         const sourceId =
-          typeof link.source === "object" &&
-          link.source !== null &&
-          "id" in link.source
+          typeof link.source === "object" && link.source !== null
             ? link.source.id
             : link.source;
         const targetId =
-          typeof link.target === "object" &&
-          link.target !== null &&
-          "id" in link.target
+          typeof link.target === "object" && link.target !== null
             ? link.target.id
             : link.target;
 
@@ -356,26 +353,27 @@ const SupplyChainGraph = () => {
 
   // Handle node click
   const handleNodeClick = useCallback(
-    (node: GraphNode) => {
+    (node: NodeObject) => {
       setSelectedNode(node);
 
       if (view3D && graph3DRef.current) {
         // Zoom in on the selected node
         const distance = 100;
-        const distRatio = 1 + distance / Math.hypot(node.x, node.y, node.z);
+        const distRatio =
+          1 + distance / Math.hypot(node.x || 0, node.y || 0, node.z || 0);
 
         graph3DRef.current.cameraPosition(
           {
-            x: node.x * distRatio,
-            y: node.y * distRatio,
-            z: node.z * distRatio,
+            x: (node.x || 0) * distRatio,
+            y: (node.y || 0) * distRatio,
+            z: (node.z || 0) * distRatio,
           },
           node,
           1000
         );
       } else if (!view3D && graph2DRef.current) {
         // Zoom in on the selected node in 2D
-        graph2DRef.current.centerAt(node.x, node.y, 1000);
+        graph2DRef.current.centerAt(node.x || 0, node.y || 0, 1000);
         graph2DRef.current.zoom(2.5, 1000);
       }
     },
@@ -402,7 +400,7 @@ const SupplyChainGraph = () => {
 
   // Custom node object for 3D view
   const nodeThreeObject = useCallback(
-    (node) => {
+    (node: NodeObject) => {
       const isHighlighted = highlightNodes.has(node.id);
       const isSelected = selectedNode && selectedNode.id === node.id;
 
@@ -431,7 +429,7 @@ const SupplyChainGraph = () => {
         sprite.color = darkMode ? "#ffffff" : "#000000";
         sprite.textHeight = isSelected ? 10 : 8;
         sprite.position.y = size + 10;
-        sphere.add(sprite);
+        sphere.add(sprite.sprite);
       }
 
       return sphere;
@@ -441,7 +439,7 @@ const SupplyChainGraph = () => {
 
   // Custom node canvasing for 2D view
   const paintNode = useCallback(
-    (node: GraphNode, ctx: CanvasRenderingContext2D, globalScale: number) => {
+    (node: NodeObject, ctx: CanvasRenderingContext2D, globalScale: number) => {
       const isHighlighted = highlightNodes.has(node.id);
       const isSelected = selectedNode && selectedNode.id === node.id;
 
@@ -497,15 +495,18 @@ const SupplyChainGraph = () => {
 
   // Custom link rendering for 2D view
   const paintLink = useCallback(
-    (link: GraphLink, ctx: CanvasRenderingContext2D) => {
+    (link: LinkObject, ctx: CanvasRenderingContext2D) => {
       const isHighlighted = highlightLinks.has(link);
       const color = getLinkColor(link);
 
       // Extract coordinates
-      const sourceX = "x" in link.source ? link.source.x || 0 : 0;
-      const sourceY = "y" in link.source ? link.source.y || 0 : 0;
-      const targetX = "x" in link.target ? link.target.x || 0 : 0;
-      const targetY = "y" in link.target ? link.target.y || 0 : 0;
+      const source = link.source as any;
+      const target = link.target as any;
+
+      const sourceX = source.x !== undefined ? source.x : 0;
+      const sourceY = source.y !== undefined ? source.y : 0;
+      const targetX = target.x !== undefined ? target.x : 0;
+      const targetY = target.y !== undefined ? target.y : 0;
 
       // Draw link with width based on user setting
       ctx.beginPath();
@@ -1125,14 +1126,16 @@ const SupplyChainGraph = () => {
                               {graphData.links
                                 .filter((link) => {
                                   const targetId =
-                                    typeof link.target === "object"
+                                    typeof link.target === "object" &&
+                                    link.target
                                       ? link.target.id
                                       : link.target;
                                   return targetId === selectedNode.id;
                                 })
                                 .map((link, idx) => {
                                   const sourceId =
-                                    typeof link.source === "object"
+                                    typeof link.source === "object" &&
+                                    link.source
                                       ? link.source.id
                                       : link.source;
                                   const sourceNode = graphData.nodes.find(
@@ -1171,14 +1174,16 @@ const SupplyChainGraph = () => {
                               {graphData.links
                                 .filter((link) => {
                                   const sourceId =
-                                    typeof link.source === "object"
+                                    typeof link.source === "object" &&
+                                    link.source
                                       ? link.source.id
                                       : link.source;
                                   return sourceId === selectedNode.id;
                                 })
                                 .map((link, idx) => {
                                   const targetId =
-                                    typeof link.target === "object"
+                                    typeof link.target === "object" &&
+                                    link.target
                                       ? link.target.id
                                       : link.target;
                                   const targetNode = graphData.nodes.find(
