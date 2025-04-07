@@ -1,6 +1,4 @@
-import axios from "axios";
-
-// Define the API URL in one place for easy updates
+// API URL and service functions for the application
 // Using port 8000 for the Django server
 const API_BASE_URL = "http://localhost:8000/api";
 
@@ -32,6 +30,7 @@ export interface SupplierEvaluation {
   name: string;
   country: string;
   industry: string;
+  ethical_score?: number;
 
   // Environmental Metrics
   co2_emissions: number; // Carbon emissions in tons
@@ -140,8 +139,8 @@ export interface ImprovementScenario {
   description: string;
   changes: Record<string, number>;
   impact: {
-    current_scores: any;
-    predicted_scores: any;
+    current_scores: Record<string, number>;
+    predicted_scores: Record<string, number>;
     improvements: Record<string, number>;
   };
 }
@@ -257,13 +256,6 @@ export interface SupplierAnalytics {
     }[];
   };
 }
-
-const api = axios.create({
-  baseURL: API_BASE_URL,
-  headers: {
-    "Content-Type": "application/json",
-  },
-});
 
 // Mock data for suppliers
 const mockSuppliers: Supplier[] = [
@@ -572,8 +564,12 @@ export const evaluateSupplier = async (
 
     // If the error is related to the API not being available, return mock data
     if (
-      error.message?.includes("Failed to fetch") ||
-      error.message?.includes("NetworkError")
+      typeof error === "object" &&
+      error !== null &&
+      "message" in error &&
+      typeof error.message === "string" &&
+      (error.message.includes("Failed to fetch") ||
+        error.message.includes("NetworkError"))
     ) {
       console.warn("Evaluation API endpoint not available. Using mock data.");
       return createMockEvaluationResult(supplierData);
@@ -626,7 +622,7 @@ function createMockEvaluationResult(
     assessment: {
       strengths: strengths.slice(0, 3),
       weaknesses: weaknesses.slice(0, 3),
-      opportunities: generateOpportunities(supplierData),
+      opportunities: generateOpportunities(),
       threats: generateThreats(supplierData),
     },
 
@@ -814,7 +810,7 @@ function generateWeaknesses(data: SupplierEvaluation): string[] {
   return weaknesses;
 }
 
-function generateOpportunities(_data: SupplierEvaluation): string[] {
+function generateOpportunities(): string[] {
   return [
     "Implement advanced emissions tracking technology",
     "Develop comprehensive sustainability reporting framework",
@@ -884,8 +880,16 @@ function generateThreats(data: SupplierEvaluation): string[] {
   return threats.slice(0, 3);
 }
 
-function generateRiskFactors(data: SupplierEvaluation): any[] {
-  const riskFactors = [];
+// Define a more specific type for risk factors
+interface RiskFactor {
+  factor: string;
+  severity: string;
+  probability: string;
+  mitigation: string;
+}
+
+function generateRiskFactors(data: SupplierEvaluation): RiskFactor[] {
+  const riskFactors: RiskFactor[] = [];
 
   // Environmental risks
   if ((data.co2_emissions || 50) > 70) {
@@ -1020,11 +1024,44 @@ export const getRecommendations = async () => {
       // Return sorted mock suppliers if the endpoint is not available
       return mockSuppliers
         .sort((a, b) => (b.ethical_score || 0) - (a.ethical_score || 0))
-        .map((supplier) => ({
-          ...supplier,
-          recommendation: generateMockRecommendation(supplier),
-          isMockData: true,
-        }));
+        .map((supplier) => {
+          // Create a partial SupplierEvaluation from Supplier data
+          const supplierEval: SupplierEvaluation = {
+            name: supplier.name,
+            country: supplier.country,
+            industry: supplier.industry || "Unknown",
+            ethical_score: supplier.ethical_score || 50,
+            co2_emissions: supplier.co2_emissions,
+            water_usage: 0,
+            energy_efficiency: 0,
+            waste_management_score: supplier.waste_management_score,
+            renewable_energy_percent: 0,
+            pollution_control: 0,
+            wage_fairness: supplier.wage_fairness,
+            human_rights_index: supplier.human_rights_index,
+            diversity_inclusion_score: 0,
+            community_engagement: 0,
+            worker_safety: 0,
+            transparency_score: 0,
+            corruption_risk: 0,
+            board_diversity: 0,
+            ethics_program: 0,
+            compliance_systems: 0,
+            delivery_efficiency: supplier.delivery_efficiency,
+            quality_control_score: 0,
+            supplier_diversity: 0,
+            traceability: 0,
+            geopolitical_risk: 0,
+            climate_risk: 0,
+            labor_dispute_risk: 0,
+          };
+
+          return {
+            ...supplier,
+            recommendation: generateMockRecommendation(supplierEval),
+            isMockData: true,
+          };
+        });
     }
 
     const data = await response.json();
@@ -1054,21 +1091,87 @@ export const getRecommendations = async () => {
     console.warn("API returned empty recommendations data. Using mock data.");
     return mockSuppliers
       .sort((a, b) => (b.ethical_score || 0) - (a.ethical_score || 0))
-      .map((supplier) => ({
-        ...supplier,
-        recommendation: generateMockRecommendation(supplier),
-        isMockData: true,
-      }));
+      .map((supplier) => {
+        // Create a partial SupplierEvaluation from Supplier data
+        const supplierEval: SupplierEvaluation = {
+          name: supplier.name,
+          country: supplier.country,
+          industry: supplier.industry || "Unknown",
+          ethical_score: supplier.ethical_score || 50,
+          co2_emissions: supplier.co2_emissions,
+          water_usage: 0,
+          energy_efficiency: 0,
+          waste_management_score: supplier.waste_management_score,
+          renewable_energy_percent: 0,
+          pollution_control: 0,
+          wage_fairness: supplier.wage_fairness,
+          human_rights_index: supplier.human_rights_index,
+          diversity_inclusion_score: 0,
+          community_engagement: 0,
+          worker_safety: 0,
+          transparency_score: 0,
+          corruption_risk: 0,
+          board_diversity: 0,
+          ethics_program: 0,
+          compliance_systems: 0,
+          delivery_efficiency: supplier.delivery_efficiency,
+          quality_control_score: 0,
+          supplier_diversity: 0,
+          traceability: 0,
+          geopolitical_risk: 0,
+          climate_risk: 0,
+          labor_dispute_risk: 0,
+        };
+
+        return {
+          ...supplier,
+          recommendation: generateMockRecommendation(supplierEval),
+          isMockData: true,
+        };
+      });
   } catch (error) {
     console.error("Error fetching recommendations:", error);
     // Return sorted mock suppliers in case of error
     return mockSuppliers
       .sort((a, b) => (b.ethical_score || 0) - (a.ethical_score || 0))
-      .map((supplier) => ({
-        ...supplier,
-        recommendation: generateMockRecommendation(supplier),
-        isMockData: true,
-      }));
+      .map((supplier) => {
+        // Create a partial SupplierEvaluation from Supplier data
+        const supplierEval: SupplierEvaluation = {
+          name: supplier.name,
+          country: supplier.country,
+          industry: supplier.industry || "Unknown",
+          ethical_score: supplier.ethical_score || 50,
+          co2_emissions: supplier.co2_emissions,
+          water_usage: 0,
+          energy_efficiency: 0,
+          waste_management_score: supplier.waste_management_score,
+          renewable_energy_percent: 0,
+          pollution_control: 0,
+          wage_fairness: supplier.wage_fairness,
+          human_rights_index: supplier.human_rights_index,
+          diversity_inclusion_score: 0,
+          community_engagement: 0,
+          worker_safety: 0,
+          transparency_score: 0,
+          corruption_risk: 0,
+          board_diversity: 0,
+          ethics_program: 0,
+          compliance_systems: 0,
+          delivery_efficiency: supplier.delivery_efficiency,
+          quality_control_score: 0,
+          supplier_diversity: 0,
+          traceability: 0,
+          geopolitical_risk: 0,
+          climate_risk: 0,
+          labor_dispute_risk: 0,
+        };
+
+        return {
+          ...supplier,
+          recommendation: generateMockRecommendation(supplierEval),
+          isMockData: true,
+        };
+      });
   }
 };
 
@@ -1161,7 +1264,7 @@ export const getDetailedAnalysis = async (
 export const simulateChanges = async (
   supplierId: number,
   changes: Record<string, number>
-): Promise<any> => {
+): Promise<Record<string, any>> => {
   try {
     console.log(`Simulating changes for supplier ${supplierId}:`, changes);
     const response = await fetch(
@@ -1321,7 +1424,7 @@ function getMockDetailedAnalysis(supplierId: number): DetailedAnalysis {
 function getMockSimulationResult(
   supplierId: number,
   changes: Record<string, number>
-): any {
+): Record<string, any> {
   const supplier =
     mockSuppliers.find((s) => s.id === supplierId) || mockSuppliers[0];
   const currentScore = supplier.ethical_score || 75;
@@ -1389,7 +1492,9 @@ function getMockSimulationResult(
 }
 
 // Add this new function to handle adding suppliers
-export const addSupplier = async (supplierData: any): Promise<Supplier> => {
+export const addSupplier = async (
+  supplierData: Record<string, any>
+): Promise<Supplier> => {
   try {
     console.log("Adding new supplier to API:", supplierData);
     const response = await fetch(`${API_BASE_URL}/suppliers/`, {
@@ -1453,8 +1558,12 @@ export const addSupplier = async (supplierData: any): Promise<Supplier> => {
 
     // If the error is related to the API not being available, create a mock supplier
     if (
-      error.message?.includes("Failed to fetch") ||
-      error.message?.includes("NetworkError")
+      typeof error === "object" &&
+      error !== null &&
+      "message" in error &&
+      typeof error.message === "string" &&
+      (error.message.includes("Failed to fetch") ||
+        error.message.includes("NetworkError"))
     ) {
       console.warn(
         "Add supplier API endpoint not available. Creating mock supplier."
@@ -1491,7 +1600,7 @@ export const addSupplier = async (supplierData: any): Promise<Supplier> => {
 };
 
 // Helper functions for mock supplier creation
-const calculateMockEthicalScore = (data: any): number => {
+const calculateMockEthicalScore = (data: Record<string, any>): number => {
   // Simple algorithm to calculate a mock ethical score based on input data
   const scores = [
     data.co2_emissions ? Math.max(0, 100 - data.co2_emissions) / 100 : 0.5,
@@ -1514,7 +1623,7 @@ const calculateMockEthicalScore = (data: any): number => {
   );
 };
 
-const calculateMockEnvironmentalScore = (data: any): number => {
+const calculateMockEnvironmentalScore = (data: Record<string, any>): number => {
   const scores = [
     data.co2_emissions ? Math.max(0, 100 - data.co2_emissions) / 100 : 0.5,
     data.waste_management_score || 0.5,
@@ -1529,7 +1638,7 @@ const calculateMockEnvironmentalScore = (data: any): number => {
   );
 };
 
-const calculateMockSocialScore = (data: any): number => {
+const calculateMockSocialScore = (data: Record<string, any>): number => {
   const scores = [
     data.wage_fairness || 0.5,
     data.human_rights_index || 0.5,
@@ -1544,7 +1653,7 @@ const calculateMockSocialScore = (data: any): number => {
   );
 };
 
-const calculateMockGovernanceScore = (data: any): number => {
+const calculateMockGovernanceScore = (data: Record<string, any>): number => {
   const scores = [
     data.transparency_score || 0.5,
     1 - (data.corruption_risk || 0.5),
@@ -1557,7 +1666,7 @@ const calculateMockGovernanceScore = (data: any): number => {
   );
 };
 
-const calculateMockRiskLevel = (data: any): string => {
+const calculateMockRiskLevel = (data: Record<string, any>): string => {
   const ethicalScore = calculateMockEthicalScore(data);
   if (ethicalScore >= 0.8) return "Low";
   if (ethicalScore >= 0.6) return "Medium";
