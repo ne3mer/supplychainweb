@@ -414,7 +414,7 @@ const EvaluateSupplier = () => {
                     <div className="flex justify-between items-center">
                       <label
                         htmlFor={field.name}
-                        className="block text-sm font-medium text-gray-700 flex items-center"
+                        className="text-sm font-medium text-gray-700 flex items-center"
                       >
                         <field.icon
                           className="h-5 w-5 mr-2 text-gray-500"
