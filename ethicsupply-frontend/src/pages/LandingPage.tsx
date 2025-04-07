@@ -63,6 +63,21 @@ const LandingPage = () => {
   // Leaf opacity based on scroll
   const leafOpacity = useTransform(scrollProgress, [0, 0.5, 1], [0, 1, 0.8]);
 
+  // Pre-calculate transform values for leaves
+  const leafScales = Array.from({ length: 12 }).map((_, i) =>
+    useTransform(scrollProgress, [0, 1], [0.8, 1.2 + (i % 3) * 0.2])
+  );
+
+  // Pre-calculate transform values for pulsing leaves
+  const pulsingLeafScales = Array.from({ length: 15 }).map((_, i) =>
+    useTransform(scrollProgress, [0, 0.5, 1], [0.5, 1 + (i % 4) * 0.3, 0.7])
+  );
+
+  // Pre-calculate particle scales
+  const particleScales = Array.from({ length: 50 }).map((_, i) =>
+    useTransform(scrollProgress, [0, 1], [0.8, 1.2 + Math.random()])
+  );
+
   const features = [
     {
       icon: <Brain className="w-8 h-8" />,
@@ -194,11 +209,7 @@ const LandingPage = () => {
               fill={`hsl(${i * 20 + 180}, 80%, 60%)`}
               style={{
                 opacity: treeHeight > 40 ? leafOpacity : 0,
-                scale: useTransform(
-                  scrollProgress,
-                  [0, 1],
-                  [0.8, 1.2 + (i % 3) * 0.2]
-                ),
+                scale: leafScales[i],
               }}
             />
           );
@@ -220,11 +231,7 @@ const LandingPage = () => {
               fill={`hsl(${i * 25 + 120}, 80%, 60%)`}
               style={{
                 opacity: treeHeight > 60 ? leafOpacity : 0,
-                scale: useTransform(
-                  scrollProgress,
-                  [0, 0.5, 1],
-                  [0.5, 1 + (i % 4) * 0.3, 0.7]
-                ),
+                scale: pulsingLeafScales[i],
               }}
             />
           );
@@ -246,11 +253,7 @@ const LandingPage = () => {
               height: Math.random() * 6 + 2 + "px",
               left: Math.random() * 100 + "%",
               top: Math.random() * 100 + "%",
-              scale: useTransform(
-                scrollProgress,
-                [0, 1],
-                [0.8, 1.2 + Math.random()]
-              ),
+              scale: particleScales[i],
             }}
             animate={{
               y: [0, Math.random() * 100 - 50],
