@@ -237,7 +237,7 @@ const LandingPage = () => {
   );
 
   return (
-    <div className="relative min-h-screen bg-gradient-to-b from-gray-900 via-gray-800 to-black text-white overflow-hidden">
+    <div className="relative min-h-screen bg-gradient-to-b from-slate-900 via-indigo-950 to-purple-950 text-white overflow-hidden">
       {/* Particle background */}
       <div className="absolute inset-0 overflow-hidden">
         {Array.from({ length: 50 }).map((_, i) => (
@@ -268,31 +268,31 @@ const LandingPage = () => {
       <TreeOfLife />
 
       {/* Hero Section */}
-      <div className="relative pt-24 pb-12">
+      <div className="relative pt-16 md:pt-24 pb-12">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 text-center">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
-            className="mb-16"
+            className="mb-12 md:mb-16"
           >
-            <div className="inline-block bg-gradient-to-r from-violet-600 to-indigo-600 px-4 py-1 rounded-full mb-8">
-              <span className="text-white font-medium tracking-wide">
+            <div className="inline-block bg-gradient-to-r from-violet-600 to-indigo-600 px-4 py-1 rounded-full mb-6 md:mb-8">
+              <span className="text-white text-sm md:text-base font-medium tracking-wide">
                 ETHICAL SUPPLY CHAIN
               </span>
             </div>
-            <h1 className="text-5xl md:text-7xl font-bold mb-6 bg-clip-text text-transparent bg-gradient-to-r from-purple-400 via-pink-500 to-red-500">
+            <h1 className="text-4xl sm:text-5xl md:text-7xl font-bold mb-4 md:mb-6 bg-clip-text text-transparent bg-gradient-to-r from-purple-400 via-pink-500 to-red-500">
               EthicSupply
             </h1>
-            <p className="text-xl md:text-2xl text-gray-300 mb-8 max-w-3xl mx-auto">
+            <p className="text-lg sm:text-xl md:text-2xl text-gray-300 mb-6 md:mb-8 max-w-3xl mx-auto">
               Transforming supply chains with AI-powered ethical intelligence
             </p>
-            <motion.div className="flex flex-col md:flex-row gap-4 justify-center">
+            <motion.div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link to="/dashboard">
                 <motion.button
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
-                  className="px-8 py-3 rounded-lg bg-gradient-to-r from-purple-600 to-indigo-600 text-white text-lg font-medium hover:shadow-lg transition-all"
+                  className="w-full sm:w-auto px-6 md:px-8 py-3 rounded-lg bg-gradient-to-r from-purple-600 to-indigo-600 text-white text-base md:text-lg font-medium hover:shadow-lg transition-all"
                 >
                   Explore Platform
                 </motion.button>
@@ -301,7 +301,7 @@ const LandingPage = () => {
                 <motion.button
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
-                  className="px-8 py-3 rounded-lg border border-purple-500 text-purple-400 text-lg font-medium hover:bg-purple-900/20 transition-all"
+                  className="w-full sm:w-auto px-6 md:px-8 py-3 rounded-lg border border-purple-500 text-purple-400 text-base md:text-lg font-medium hover:bg-purple-900/20 transition-all"
                 >
                   Learn More
                 </motion.button>
@@ -329,13 +329,13 @@ const LandingPage = () => {
       <div
         id="features"
         ref={ref}
-        className="max-w-7xl mx-auto px-4 sm:px-6 py-24"
+        className="max-w-7xl mx-auto px-4 sm:px-6 py-16 md:py-24"
       >
         <motion.h2
           initial={{ opacity: 0 }}
           animate={inView ? { opacity: 1 } : { opacity: 0 }}
           transition={{ duration: 0.8 }}
-          className="text-3xl md:text-4xl font-bold text-center mb-12 text-white"
+          className="text-2xl sm:text-3xl md:text-4xl font-bold text-center mb-8 md:mb-12 text-white"
         >
           Advanced Features
         </motion.h2>
@@ -349,7 +349,7 @@ const LandingPage = () => {
               },
             },
           }}
-          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
+          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8"
         >
           {features.map((feature, index) => (
             <motion.div
@@ -359,9 +359,9 @@ const LandingPage = () => {
                 visible: { opacity: 1, y: 0 },
               }}
               transition={{ duration: 0.5, delay: feature.delay }}
-              className="bg-gradient-to-br bg-opacity-10 backdrop-blur-sm p-8 rounded-2xl shadow-xl hover:shadow-2xl border border-gray-800 transition-all"
+              className="bg-gradient-to-br bg-opacity-10 backdrop-blur-sm p-6 md:p-8 rounded-2xl shadow-xl hover:shadow-2xl border border-indigo-900/40 transition-all"
               style={{
-                background: `linear-gradient(135deg, rgba(139, 92, 246, 0.1), rgba(16, 16, 32, 0.6))`,
+                background: `linear-gradient(135deg, rgba(139, 92, 246, 0.15), rgba(16, 16, 32, 0.7))`,
               }}
             >
               <div
@@ -369,7 +369,7 @@ const LandingPage = () => {
               >
                 {feature.icon}
               </div>
-              <h3 className="text-xl font-semibold mb-2 text-white">
+              <h3 className="text-lg md:text-xl font-semibold mb-2 text-white">
                 {feature.title}
               </h3>
               <p className="text-gray-300">{feature.description}</p>
@@ -379,14 +379,14 @@ const LandingPage = () => {
       </div>
 
       {/* Stats Section */}
-      <div className="relative py-24 overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-r from-purple-900/30 to-indigo-900/30 backdrop-blur-sm"></div>
+      <div className="relative py-16 md:py-24 overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-r from-violet-900/40 to-indigo-900/40 backdrop-blur-sm"></div>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 relative">
           <motion.div
             initial={{ opacity: 0 }}
             whileInView={{ opacity: 1 }}
             transition={{ duration: 0.8 }}
-            className="grid grid-cols-1 md:grid-cols-3 gap-8 text-center"
+            className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 md:gap-8 text-center"
           >
             <motion.div
               whileHover={{ scale: 1.05 }}
@@ -436,64 +436,126 @@ const LandingPage = () => {
         </div>
       </div>
 
-      {/* About the Creator Section */}
+      {/* How It Works Section - Replaced personal section */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-24">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8 }}
-          className="backdrop-blur-sm bg-gradient-to-r from-purple-900/10 to-indigo-900/10 p-8 rounded-2xl shadow-xl border border-gray-800 flex flex-col md:flex-row items-center gap-8"
+          className="text-center mb-12"
         >
-          <div className="w-48 h-48 rounded-full overflow-hidden border-4 border-purple-500/30 flex-shrink-0 relative">
-            <div className="absolute inset-0 bg-gradient-to-tr from-purple-500/70 to-pink-500/70 mix-blend-overlay"></div>
-            <img
-              src="https://via.placeholder.com/200x200"
-              alt="Creator"
-              className="w-full h-full object-cover"
-            />
-          </div>
-          <div>
-            <h3 className="text-2xl font-bold text-white mb-4">
-              The Innovator Behind EthicSupply
-            </h3>
-            <p className="text-gray-300 mb-4">
-              Hi, I'm Nima Afshar Far. With expertise in AI and supply chain
-              management, I created EthicSupply to revolutionize how businesses
-              approach supply chain ethics. My mission is to merge cutting-edge
-              technology with responsible business practices.
-            </p>
-            <p className="text-gray-300 mb-6">
-              At the heart of my vision is a desire to help companies build more
-              resilient, ethical, and sustainable supply networks—where
-              decisions balance financial goals with environmental and social
-              responsibility.
-            </p>
-            <div className="flex gap-4">
-              <a
-                href="https://github.com/ne3mer"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-purple-400 hover:text-purple-300 transition-colors"
-              >
-                <Github className="w-6 h-6" />
-              </a>
-              <a
-                href="https://linkedin.com/"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-purple-400 hover:text-purple-300 transition-colors"
-              >
-                <Linkedin className="w-6 h-6" />
-              </a>
-              <a
-                href="mailto:contact@ethicsupply.com"
-                className="text-purple-400 hover:text-purple-300 transition-colors"
-              >
-                <Mail className="w-6 h-6" />
-              </a>
-            </div>
-          </div>
+          <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
+            How EthicSupply Works
+          </h2>
+          <p className="text-gray-300 max-w-3xl mx-auto">
+            Our platform leverages AI and data analytics to transform how
+            businesses approach supply chain management, focusing on ethics,
+            sustainability, and performance.
+          </p>
         </motion.div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          {/* Step 1 */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.1 }}
+            className="backdrop-blur-sm bg-gradient-to-r from-purple-900/10 to-indigo-900/10 p-6 rounded-2xl shadow-lg border border-gray-800"
+          >
+            <div className="h-14 w-14 rounded-full bg-gradient-to-r from-purple-600 to-indigo-600 flex items-center justify-center text-white text-2xl font-bold mb-4 mx-auto">
+              1
+            </div>
+            <h3 className="text-xl font-bold text-white mb-3 text-center">
+              Connect Your Supply Chain
+            </h3>
+            <p className="text-gray-300 text-center mb-4">
+              Import your supplier data or connect directly to your existing
+              systems to create a comprehensive view of your entire supply
+              network.
+            </p>
+            <ul className="space-y-2 text-gray-300">
+              <li className="flex items-center">
+                <div className="h-2 w-2 rounded-full bg-purple-500 mr-2"></div>
+                <span>Data import from multiple sources</span>
+              </li>
+              <li className="flex items-center">
+                <div className="h-2 w-2 rounded-full bg-purple-500 mr-2"></div>
+                <span>API integration capabilities</span>
+              </li>
+              <li className="flex items-center">
+                <div className="h-2 w-2 rounded-full bg-purple-500 mr-2"></div>
+                <span>Automated data cleaning</span>
+              </li>
+            </ul>
+          </motion.div>
+
+          {/* Step 2 */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.2 }}
+            className="backdrop-blur-sm bg-gradient-to-r from-blue-900/10 to-indigo-900/10 p-6 rounded-2xl shadow-lg border border-gray-800"
+          >
+            <div className="h-14 w-14 rounded-full bg-gradient-to-r from-blue-600 to-cyan-600 flex items-center justify-center text-white text-2xl font-bold mb-4 mx-auto">
+              2
+            </div>
+            <h3 className="text-xl font-bold text-white mb-3 text-center">
+              Analyze & Score Suppliers
+            </h3>
+            <p className="text-gray-300 text-center mb-4">
+              Our AI evaluates each supplier against 30+ ethical and
+              sustainability metrics, generating comprehensive scores and
+              insights.
+            </p>
+            <ul className="space-y-2 text-gray-300">
+              <li className="flex items-center">
+                <div className="h-2 w-2 rounded-full bg-blue-500 mr-2"></div>
+                <span>Environmental impact assessment</span>
+              </li>
+              <li className="flex items-center">
+                <div className="h-2 w-2 rounded-full bg-blue-500 mr-2"></div>
+                <span>Social responsibility evaluation</span>
+              </li>
+              <li className="flex items-center">
+                <div className="h-2 w-2 rounded-full bg-blue-500 mr-2"></div>
+                <span>Governance and compliance checks</span>
+              </li>
+            </ul>
+          </motion.div>
+
+          {/* Step 3 */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.3 }}
+            className="backdrop-blur-sm bg-gradient-to-r from-emerald-900/10 to-teal-900/10 p-6 rounded-2xl shadow-lg border border-gray-800"
+          >
+            <div className="h-14 w-14 rounded-full bg-gradient-to-r from-emerald-600 to-teal-600 flex items-center justify-center text-white text-2xl font-bold mb-4 mx-auto">
+              3
+            </div>
+            <h3 className="text-xl font-bold text-white mb-3 text-center">
+              Optimize & Improve
+            </h3>
+            <p className="text-gray-300 text-center mb-4">
+              Receive actionable recommendations to improve your supply chain's
+              ethical performance and minimize risks.
+            </p>
+            <ul className="space-y-2 text-gray-300">
+              <li className="flex items-center">
+                <div className="h-2 w-2 rounded-full bg-emerald-500 mr-2"></div>
+                <span>Risk prediction and mitigation</span>
+              </li>
+              <li className="flex items-center">
+                <div className="h-2 w-2 rounded-full bg-emerald-500 mr-2"></div>
+                <span>AI-generated improvement plans</span>
+              </li>
+              <li className="flex items-center">
+                <div className="h-2 w-2 rounded-full bg-emerald-500 mr-2"></div>
+                <span>Impact simulation tools</span>
+              </li>
+            </ul>
+          </motion.div>
+        </div>
       </div>
 
       {/* CTA Section */}
