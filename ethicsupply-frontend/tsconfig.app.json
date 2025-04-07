@@ -23,8 +23,7 @@
     "noUncheckedSideEffectImports": false,
 
     /* To build despite type errors */
-    "noImplicitAny": false,
-    "suppressImplicitAnyIndexErrors": true
+    "noImplicitAny": false
   },
   "include": ["src"]
 }
