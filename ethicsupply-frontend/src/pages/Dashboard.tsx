@@ -15,6 +15,11 @@ import {
   LightBulbIcon,
   CheckCircleIcon,
   Activity,
+  BuildingOfficeIcon,
+  CheckBadgeIcon,
+  ArrowUpIcon,
+  ArrowDownIcon,
+  ClipboardDocumentCheckIcon,
 } from "@heroicons/react/24/outline";
 import {
   ResponsiveContainer,
@@ -58,6 +63,7 @@ import SustainabilityMetricsTooltip from "../components/tooltips/SustainabilityM
 import ChartInfoOverlay from "../components/ChartInfoOverlay";
 import ChartMetricsExplainer from "../components/ChartMetricsExplainer";
 import InsightsPanel, { chartInsights } from "../components/InsightsPanel";
+import { CircularProgressbar, buildStyles } from "react-circular-progressbar";
 
 // Define chart info content
 const chartInfoContent = {
@@ -271,589 +277,449 @@ const Dashboard = () => {
 
   if (loading) {
     return (
-      <div className="space-y-6">
-        <div>
-          <h1 className="text-2xl font-semibold text-gray-900">
-            Sustainability Dashboard
-          </h1>
-          <p className="mt-2 text-sm text-gray-700">
-            Loading sustainability data...
+      <div className="dashboard-container min-h-screen flex items-center justify-center">
+        <div className="dashboard-card p-8 text-center">
+          <div className="flex justify-center mb-4">
+            <svg
+              className="animate-spin h-10 w-10 text-indigo-600"
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+            >
+              <circle
+                className="opacity-25"
+                cx="12"
+                cy="12"
+                r="10"
+                stroke="currentColor"
+                strokeWidth="4"
+              ></circle>
+              <path
+                className="opacity-75"
+                fill="currentColor"
+                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+              ></path>
+            </svg>
+          </div>
+          <h2 className="text-xl font-semibold text-gray-700">
+            Loading Dashboard Data
+          </h2>
+          <p className="text-gray-500 mt-2">
+            Retrieving your supply chain analytics...
           </p>
         </div>
-        <div className="bg-white shadow rounded-lg">
-          <div className="px-4 py-5 sm:p-6">
-            <div className="flex justify-center">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-600"></div>
-            </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="dashboard-container min-h-screen flex items-center justify-center">
+        <div className="dashboard-card p-8 text-center">
+          <div className="flex justify-center mb-4 text-red-500">
+            <ExclamationCircleIcon className="h-12 w-12" />
           </div>
+          <h2 className="text-xl font-semibold text-gray-700">
+            Error Loading Dashboard
+          </h2>
+          <p className="text-gray-500 mt-2">{error}</p>
+          <button
+            className="mt-4 btn btn-primary"
+            onClick={() => window.location.reload()}
+          >
+            Retry
+          </button>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="space-y-8">
+    <div className="dashboard-container">
       {/* Sustainability Banner */}
-      <div className="bg-gradient-to-r from-emerald-700 to-teal-700 rounded-lg shadow-md p-4 sm:p-6">
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center">
+      <div className="gradient-blue-purple dashboard-header bg-pattern text-white">
+        <div className="absolute top-0 right-0 opacity-20">
+          <svg
+            className="w-24 h-24 md:w-32 md:h-32"
+            viewBox="0 0 24 24"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M12 3V21M3 12H21"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+            />
+            <path
+              d="M7 8L17 16M7 16L17 8"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+            />
+          </svg>
+        </div>
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
           <div>
-            <h1 className="text-2xl font-bold text-white">
-              OptiEthic Sustainability Report
+            <h1 className="text-2xl md:text-3xl font-bold">
+              Supply Chain Sustainability
             </h1>
-            <p className="mt-1 text-emerald-100">
-              Helping your supply chain reach carbon neutrality by 2030
+            <p className="text-blue-100 mt-2 max-w-2xl">
+              Your supply chain sustainability report shows aggregated metrics
+              across all suppliers. This dashboard helps identify risk areas and
+              opportunities for improvement.
             </p>
           </div>
-          <div className="mt-4 sm:mt-0 bg-white bg-opacity-20 rounded-lg px-4 py-3 text-center">
-            <div className="text-3xl font-bold text-white">73.5%</div>
-            <div className="text-xs text-emerald-100">
-              Overall Sustainability Score
+          <div className="flex items-center bg-white/10 backdrop-blur-sm rounded-lg p-4">
+            <div className="mr-3">
+              <div className="text-sm font-medium text-blue-100">
+                Overall Score
+              </div>
+              <div className="text-3xl font-bold">
+                {data?.avg_ethical_score?.toFixed(1) || "0.0"}
+                <span className="text-lg">/100</span>
+              </div>
+            </div>
+            <div className="h-16 w-16">
+              <CircularProgressbar
+                value={data?.avg_ethical_score || 0}
+                text={`${data?.avg_ethical_score?.toFixed(1) || "0.0"}`}
+                styles={buildStyles({
+                  textColor: "white",
+                  pathColor:
+                    data?.avg_ethical_score >= 70 ? "#10B981" : "#FBBF24",
+                  trailColor: "rgba(255,255,255,0.2)",
+                })}
+              />
             </div>
           </div>
         </div>
       </div>
 
-      {/* ML Status Section - Add this right before the stats cards */}
-      <div className="mb-6">
-        <MachineLearningStatus isVisible={true} />
-      </div>
-
-      {loading ? (
-        <div className="flex items-center justify-center h-64">
-          <ArrowPathIcon className="h-8 w-8 text-emerald-500 animate-spin" />
-          <span className="ml-2 text-emerald-700">
-            Loading dashboard data...
-          </span>
-        </div>
-      ) : error ? (
-        <div className="bg-red-50 border-l-4 border-red-400 p-4">
-          <div className="flex flex-col">
-            <div className="flex">
-              <div className="flex-shrink-0">
-                <ExclamationCircleIcon className="h-5 w-5 text-red-400" />
-              </div>
-              <div className="ml-3">
-                <p className="text-sm text-red-700">{error}</p>
-              </div>
+      {/* Key Metrics Row */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="dashboard-card">
+          <div className="flex items-start justify-between">
+            <div>
+              <p className="text-gray-500 text-sm font-medium">
+                Total Suppliers
+              </p>
+              <p className="text-2xl font-bold mt-1">
+                {data?.total_suppliers || 0}
+              </p>
             </div>
-            <div className="mt-4 flex justify-end">
-              <button
-                className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-md text-sm"
-                onClick={() => {
-                  setUsingMockData(true);
-                  setData({
-                    total_suppliers: 12,
-                    avg_ethical_score: 75.3,
-                    avg_co2_emissions: 23.9,
-                    suppliers_by_country: {
-                      "United States": 4,
-                      "United Kingdom": 1,
-                      Taiwan: 1,
-                      "South Korea": 1,
-                      Switzerland: 1,
-                      "Hong Kong": 1,
-                      France: 1,
-                      China: 1,
-                    },
-                    ethical_score_distribution: [
-                      { range: "0-20", count: 0 },
-                      { range: "21-40", count: 0 },
-                      { range: "41-60", count: 2 },
-                      { range: "61-80", count: 7 },
-                      { range: "81-100", count: 3 },
-                    ],
-                    co2_emissions_by_industry: [
-                      { name: "Consumer Goods", value: 4.3 },
-                      { name: "Electronics", value: 20.4 },
-                      { name: "Food & Beverage", value: 128.7 },
-                      { name: "Apparel", value: 2.5 },
-                      { name: "Home Appliances", value: 18.5 },
-                    ],
-                    isMockData: true,
-                  });
-                  setError(null);
-                }}
-              >
-                Use Demo Data Instead
-              </button>
+            <div className="bg-blue-100 p-2 rounded-lg">
+              <BuildingOfficeIcon className="h-6 w-6 text-blue-600" />
             </div>
           </div>
+          <div className="mt-4 flex items-center text-sm">
+            <ArrowUpIcon className="h-4 w-4 text-green-500 mr-1" />
+            <span className="text-green-500 font-medium">
+              +{onboardingPending} pending
+            </span>
+            <span className="text-gray-400 ml-2">vs. last month</span>
+          </div>
         </div>
-      ) : (
-        <div className="space-y-8">
-          {usingMockData ? (
-            <div className="bg-blue-50 border-l-4 border-blue-400 p-4">
-              <div className="flex">
-                <div className="flex-shrink-0">
-                  <ExclamationCircleIcon className="h-5 w-5 text-blue-400" />
-                </div>
-                <div className="ml-3">
-                  <p className="text-sm text-blue-700">
-                    Using demo data. Connect to the API for real-time
-                    information.
-                  </p>
-                </div>
-              </div>
-            </div>
-          ) : (
-            <div className="bg-green-50 border-l-4 border-green-400 p-4">
-              <div className="flex">
-                <div className="flex-shrink-0">
-                  <CheckCircleIcon className="h-5 w-5 text-green-400" />
-                </div>
-                <div className="ml-3">
-                  <p className="text-sm text-green-700">
-                    Connected to API. Displaying real-time information.
-                  </p>
-                </div>
-              </div>
-            </div>
-          )}
 
-          {/* Stats */}
-          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
-            {stats.map((item) => (
+        <div className="dashboard-card">
+          <div className="flex items-start justify-between">
+            <div>
+              <p className="text-gray-500 text-sm font-medium">
+                Avg. Ethical Score
+              </p>
+              <p className="text-2xl font-bold mt-1">
+                {data?.avg_ethical_score?.toFixed(1) || "0.0"}/100
+              </p>
+            </div>
+            <div className="bg-green-100 p-2 rounded-lg">
+              <CheckBadgeIcon className="h-6 w-6 text-green-600" />
+            </div>
+          </div>
+          <div className="mt-4">
+            <div className="w-full bg-gray-200 rounded-full h-2">
               <div
-                key={item.name}
-                className={`relative overflow-hidden rounded-lg ${item.bgColor} px-4 pt-5 pb-12 shadow sm:px-6 sm:pt-6 transition-transform duration-300 hover:scale-105`}
+                className={`h-2 rounded-full ${
+                  data?.avg_ethical_score >= 80
+                    ? "bg-green-500"
+                    : data?.avg_ethical_score >= 60
+                    ? "bg-yellow-500"
+                    : "bg-red-500"
+                }`}
+                style={{
+                  width: `${data?.avg_ethical_score?.toFixed(1) || "0.0"}%`,
+                }}
+              ></div>
+            </div>
+          </div>
+        </div>
+
+        <div className="dashboard-card">
+          <div className="flex items-start justify-between">
+            <div>
+              <p className="text-gray-500 text-sm font-medium">CO₂ Emissions</p>
+              <p className="text-2xl font-bold mt-1">
+                {data?.avg_co2_emissions?.toLocaleString() || "0"} tonnes
+              </p>
+            </div>
+            <div className="bg-yellow-100 p-2 rounded-lg">
+              <CloudIcon className="h-6 w-6 text-yellow-600" />
+            </div>
+          </div>
+          <div className="mt-4 flex items-center text-sm">
+            <ArrowDownIcon className="h-4 w-4 text-green-500 mr-1" />
+            <span className="text-green-500 font-medium">-12%</span>
+            <span className="text-gray-400 ml-2">vs. last year</span>
+          </div>
+        </div>
+
+        <div className="dashboard-card">
+          <div className="flex items-start justify-between">
+            <div>
+              <p className="text-gray-500 text-sm font-medium">
+                Compliance Rate
+              </p>
+              <p className="text-2xl font-bold mt-1">{complianceRate}%</p>
+            </div>
+            <div className="bg-purple-100 p-2 rounded-lg">
+              <ClipboardDocumentCheckIcon className="h-6 w-6 text-purple-600" />
+            </div>
+          </div>
+          <div className="mt-4 flex items-center text-sm">
+            <ArrowUpIcon className="h-4 w-4 text-green-500 mr-1" />
+            <span className="text-green-500 font-medium">+5%</span>
+            <span className="text-gray-400 ml-2">vs. last quarter</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Charts Row */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="dashboard-card">
+          <h3 className="text-lg font-semibold text-gray-800 mb-4">
+            Ethical Score Distribution
+          </h3>
+          <div className="h-64">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart
+                data={data.ethical_score_distribution.map(
+                  ({ range, count }) => ({
+                    range,
+                    count,
+                  })
+                )}
+                margin={{ top: 5, right: 20, left: 0, bottom: 25 }}
               >
-                <dt>
-                  <div className={`absolute rounded-md ${item.iconBg} p-3`}>
-                    <item.icon
-                      className="h-6 w-6 text-white"
-                      aria-hidden="true"
-                    />
-                  </div>
-                  <p className="ml-16 truncate text-sm font-medium text-gray-700">
-                    {item.name}
-                  </p>
-                </dt>
-                <dd className="ml-16 flex items-baseline pb-6 sm:pb-7">
-                  <p className="text-2xl font-semibold text-gray-900">
-                    {item.value}
-                  </p>
-                  <p
-                    className={`ml-2 flex items-baseline text-sm font-semibold ${
-                      item.changeType === "positive"
-                        ? "text-green-600"
-                        : "text-red-600"
-                    }`}
-                  >
-                    {item.change}
-                  </p>
-                </dd>
-              </div>
-            ))}
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis
+                  dataKey="range"
+                  tick={{ fontSize: 12 }}
+                  interval={0}
+                  angle={-45}
+                  textAnchor="end"
+                />
+                <YAxis tick={{ fontSize: 12 }} />
+                <Tooltip
+                  formatter={(value) => [`${value} suppliers`, "Count"]}
+                  labelFormatter={(label) => `Score ${label}`}
+                />
+                <Bar dataKey="count" fill="#6366F1" radius={[4, 4, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
           </div>
+        </div>
 
-          {/* Machine Learning Status Section */}
-          <div className="mb-6">
-            <MachineLearningStatus isVisible={true} />
-          </div>
+        <div className="dashboard-card">
+          <h3 className="text-lg font-semibold text-gray-800 mb-4">
+            CO₂ Emissions by Industry
+          </h3>
+          <div className="h-64">
+            <ResponsiveContainer width="100%" height="100%">
+              <PieChart>
+                <Pie
+                  data={data.co2_emissions_by_industry.map(
+                    ({ name, value }) => ({
+                      name,
+                      value,
+                    })
+                  )}
+                  cx="50%"
+                  cy="50%"
+                  labelLine={false}
+                  outerRadius={80}
+                  fill="#8884d8"
+                  dataKey="value"
+                  label={({
+                    cx,
+                    cy,
+                    midAngle,
+                    innerRadius,
+                    outerRadius,
+                    percent,
+                  }) => {
+                    const radius =
+                      innerRadius + (outerRadius - innerRadius) * 0.5;
+                    const x = cx + radius * Math.cos(-midAngle * RADIAN);
+                    const y = cy + radius * Math.sin(-midAngle * RADIAN);
 
-          {/* Charts Row 1 */}
-          <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-            {/* Ethical Score Distribution */}
-            <div className="rounded-lg bg-white p-6 shadow-md hover:shadow-lg transition-shadow duration-300">
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center">
-                  <ScaleIcon className="h-6 w-6 text-emerald-500 mr-2" />
-                  <h2 className="text-lg font-medium text-gray-900">
-                    Ethical Score Distribution
-                    <ChartMetricsExplainer metricKey="ethical_score" />
-                  </h2>
-                </div>
-                <ChartInfoOverlay {...chartInfoContent.ethicalScore} />
-              </div>
-
-              {/* Chart description */}
-              <div className="mb-4 px-3 py-2 bg-emerald-50 border-l-4 border-emerald-200 rounded-r-md">
-                <p className="text-sm text-gray-700">
-                  This chart shows how suppliers are distributed across ethical
-                  score ranges. Higher scores (61-100) indicate better ethical
-                  practices.
-                </p>
-              </div>
-
-              <div className="mt-4 h-80">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={data.ethical_score_distribution || []}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-                    <XAxis dataKey="range" />
-                    <YAxis />
-                    <Tooltip content={<EthicalScoreTooltip />} />
-                    <Bar dataKey="count" fill="#10b981" radius={[4, 4, 0, 0]}>
-                      {(data.ethical_score_distribution || []).map(
-                        (entry, index) => (
-                          <Cell
-                            key={`cell-${index}`}
-                            fill={
-                              entry.range === "81-100"
-                                ? "#059669"
-                                : entry.range === "61-80"
-                                ? "#10b981"
-                                : entry.range === "41-60"
-                                ? "#14b8a6"
-                                : entry.range === "21-40"
-                                ? "#f59e0b"
-                                : "#ef4444"
-                            }
-                          />
-                        )
-                      )}
-                    </Bar>
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
-
-              {/* Insights panel */}
-              <InsightsPanel
-                title="Ethical Score Distribution Insights"
-                insights={chartInsights.ethicalScore}
-              />
-            </div>
-
-            {/* CO₂ Emissions by Industry */}
-            <div className="rounded-lg bg-white p-6 shadow-md hover:shadow-lg transition-shadow duration-300">
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center">
-                  <CloudIcon className="h-6 w-6 text-blue-500 mr-2" />
-                  <h2 className="text-lg font-medium text-gray-900">
-                    CO₂ Emissions by Industry
-                    <ChartMetricsExplainer metricKey="co2_emissions" />
-                  </h2>
-                </div>
-                <ChartInfoOverlay {...chartInfoContent.co2Emissions} />
-              </div>
-
-              {/* Chart description */}
-              <div className="mb-4 px-3 py-2 bg-blue-50 border-l-4 border-blue-200 rounded-r-md">
-                <p className="text-sm text-gray-700">
-                  This chart displays CO₂ emissions across different industry
-                  sectors in your supply chain, helping identify high-impact
-                  areas for reduction initiatives.
-                </p>
-              </div>
-
-              <div className="mt-4 h-80">
-                <ResponsiveContainer width="100%" height="100%">
-                  <PieChart>
-                    <Pie
-                      data={data.co2_emissions_by_industry || []}
-                      cx="50%"
-                      cy="50%"
-                      labelLine={true}
-                      outerRadius={80}
-                      fill="#8884d8"
-                      dataKey="value"
-                    >
-                      {(data.co2_emissions_by_industry || []).map(
-                        (entry, index) => (
-                          <Cell
-                            key={`cell-${index}`}
-                            fill={COLORS[index % COLORS.length]}
-                          />
-                        )
-                      )}
-                    </Pie>
-                    <Tooltip content={<CO2EmissionsTooltip />} />
-                    <Legend />
-                  </PieChart>
-                </ResponsiveContainer>
-              </div>
-
-              {/* Insights panel */}
-              <InsightsPanel
-                title="CO₂ Emissions Insights"
-                insights={chartInsights.co2Emissions}
-              />
-            </div>
-          </div>
-
-          {/* Charts Row 2 - Sustainability Charts */}
-          <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-            {/* Water Usage Trend */}
-            <div className="rounded-lg bg-white p-6 shadow-md hover:shadow-lg transition-shadow duration-300">
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center">
-                  <CloudIcon className="h-6 w-6 text-cyan-500 mr-2" />
-                  <h2 className="text-lg font-medium text-gray-900">
-                    Water Usage Trend (Gallons/Unit)
-                    <ChartMetricsExplainer metricKey="water_usage" />
-                  </h2>
-                </div>
-                <ChartInfoOverlay {...chartInfoContent.waterUsage} />
-              </div>
-
-              {/* Chart description */}
-              <div className="mb-4 px-3 py-2 bg-cyan-50 border-l-4 border-cyan-200 rounded-r-md">
-                <p className="text-sm text-gray-700">
-                  This chart tracks water consumption per production unit over
-                  time, with the green reference line showing your target
-                  threshold. The downward trend indicates successful
-                  conservation efforts.
-                </p>
-              </div>
-
-              <div className="mt-4 h-80">
-                <ResponsiveContainer width="100%" height="100%">
-                  <AreaChart
-                    data={waterUsageTrendData}
-                    margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
-                  >
-                    <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-                    <XAxis dataKey="month" />
-                    <YAxis />
-                    <Tooltip content={<WaterUsageTooltip />} />
-                    <defs>
-                      <linearGradient
-                        id="waterGradient"
-                        x1="0"
-                        y1="0"
-                        x2="0"
-                        y2="1"
+                    return (
+                      <text
+                        x={x}
+                        y={y}
+                        fill="white"
+                        textAnchor={x > cx ? "start" : "end"}
+                        dominantBaseline="central"
+                        fontSize={12}
                       >
-                        <stop
-                          offset="5%"
-                          stopColor="#0ea5e9"
-                          stopOpacity={0.8}
-                        />
-                        <stop
-                          offset="95%"
-                          stopColor="#0ea5e9"
-                          stopOpacity={0.1}
-                        />
-                      </linearGradient>
-                    </defs>
-                    <Area
-                      type="monotone"
-                      dataKey="usage"
-                      stroke="#0ea5e9"
-                      fillOpacity={1}
-                      fill="url(#waterGradient)"
+                        {`${(percent * 100).toFixed(0)}%`}
+                      </text>
+                    );
+                  }}
+                >
+                  {data.co2_emissions_by_industry.map((entry, index) => (
+                    <Cell
+                      key={`cell-${index}`}
+                      fill={COLORS[index % COLORS.length]}
                     />
-                    <ReferenceLine
-                      y={100}
-                      label={{
-                        value: "Target",
-                        position: "insideTopRight",
-                        fill: "#10b981",
-                      }}
-                      stroke="#10b981"
-                      strokeDasharray="3 3"
-                    />
-                  </AreaChart>
-                </ResponsiveContainer>
-              </div>
-
-              {/* Insights panel */}
-              <InsightsPanel
-                title="Water Usage Trend Insights"
-                insights={chartInsights.waterUsage}
-                showByDefault={true}
-              />
-            </div>
-
-            {/* Renewable Energy Adoption */}
-            <div className="rounded-lg bg-white p-6 shadow-md hover:shadow-lg transition-shadow duration-300">
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center">
-                  <LightBulbIcon className="h-6 w-6 text-amber-500 mr-2" />
-                  <h2 className="text-lg font-medium text-gray-900">
-                    Renewable Energy Adoption
-                    <ChartMetricsExplainer metricKey="renewable_energy" />
-                  </h2>
-                </div>
-                <ChartInfoOverlay {...chartInfoContent.renewableEnergy} />
-              </div>
-
-              {/* Chart description */}
-              <div className="mb-4 px-3 py-2 bg-amber-50 border-l-4 border-amber-200 rounded-r-md">
-                <p className="text-sm text-gray-700">
-                  This chart shows the breakdown of energy sources across your
-                  supply chain. Renewable sources (solar, wind, hydro, biomass)
-                  now account for 83% of total energy usage.
-                </p>
-              </div>
-
-              <div className="mt-4 h-80">
-                <ResponsiveContainer width="100%" height="100%">
-                  <PieChart>
-                    <Pie
-                      data={renewableEnergyData}
-                      cx="50%"
-                      cy="50%"
-                      labelLine={true}
-                      outerRadius={80}
-                      innerRadius={40}
-                      fill="#8884d8"
-                      dataKey="value"
-                      label={({ name, percent }) =>
-                        `${name} ${(percent * 100).toFixed(0)}%`
-                      }
-                    >
-                      {renewableEnergyData.map((entry, index) => (
-                        <Cell
-                          key={`cell-${index}`}
-                          fill={
-                            entry.name === "Traditional"
-                              ? "#9ca3af"
-                              : COLORS[index % COLORS.length]
-                          }
-                        />
-                      ))}
-                    </Pie>
-                    <Tooltip content={<RenewableEnergyTooltip />} />
-                    <Legend />
-                  </PieChart>
-                </ResponsiveContainer>
-              </div>
-
-              {/* Insights panel */}
-              <InsightsPanel
-                title="Renewable Energy Insights"
-                insights={chartInsights.renewableEnergy}
-              />
-            </div>
+                  ))}
+                </Pie>
+                <Tooltip
+                  formatter={(value) => [
+                    `${value.toLocaleString()} tonnes`,
+                    "CO₂ Emissions",
+                  ]}
+                />
+                <Legend verticalAlign="bottom" height={36} />
+              </PieChart>
+            </ResponsiveContainer>
           </div>
+        </div>
+      </div>
 
-          {/* Charts Row 3 - More Sustainability Charts */}
-          <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-            {/* Sustainable Practices Adoption */}
-            <div className="rounded-lg bg-white p-6 shadow-md hover:shadow-lg transition-shadow duration-300">
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center">
-                  <ArrowPathIcon className="h-6 w-6 text-green-500 mr-2" />
-                  <h2 className="text-lg font-medium text-gray-900">
-                    Sustainable Practices Adoption
-                    <ChartMetricsExplainer metricKey="sustainable_practices" />
-                  </h2>
-                </div>
-                <ChartInfoOverlay {...chartInfoContent.sustainablePractices} />
-              </div>
-
-              {/* Chart description */}
-              <div className="mb-4 px-3 py-2 bg-green-50 border-l-4 border-green-200 rounded-r-md">
-                <p className="text-sm text-gray-700">
-                  This chart compares current adoption rates of key sustainable
-                  practices (green bars) against target goals (blue dots). The
-                  gap indicates areas needing additional support and resources.
-                </p>
-              </div>
-
-              <div className="mt-4 h-80">
-                <ResponsiveContainer width="100%" height="100%">
-                  <ComposedChart
-                    data={sustainablePracticesData}
-                    margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
-                  >
-                    <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-                    <XAxis dataKey="practice" />
-                    <YAxis domain={[0, 100]} />
-                    <Tooltip content={<SustainablePracticesTooltip />} />
-                    <Legend />
-                    <Bar
-                      dataKey="adoption"
-                      fill="#22c55e"
-                      radius={[4, 4, 0, 0]}
-                      name="Current Adoption (%)"
-                    />
-                    <Line
-                      type="monotone"
-                      dataKey="target"
-                      stroke="#064e3b"
-                      strokeWidth={2}
-                      name="Target (%)"
-                      dot={{ r: 5 }}
-                    />
-                  </ComposedChart>
-                </ResponsiveContainer>
-              </div>
-
-              {/* Insights panel */}
-              <InsightsPanel
-                title="Sustainable Practices Insights"
-                insights={chartInsights.sustainablePractices}
-              />
-            </div>
-
-            {/* Sustainability Metrics Radar */}
-            <div className="rounded-lg bg-white p-6 shadow-md hover:shadow-lg transition-shadow duration-300">
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center">
-                  <SparklesIcon className="h-6 w-6 text-emerald-500 mr-2" />
-                  <h2 className="text-lg font-medium text-gray-900">
-                    Sustainability Performance vs. Industry
-                    <ChartMetricsExplainer metricKey="sustainability_metrics" />
-                  </h2>
-                </div>
-                <ChartInfoOverlay {...chartInfoContent.sustainabilityMetrics} />
-              </div>
-
-              {/* Chart description */}
-              <div className="mb-4 px-3 py-2 bg-emerald-50 border-l-4 border-emerald-200 rounded-r-md">
-                <p className="text-sm text-gray-700">
-                  This radar chart compares your supply chain's sustainability
-                  performance (green) against industry averages (purple) across
-                  five key metrics. Larger area indicates better performance.
-                </p>
-              </div>
-
-              <div className="mt-4 h-80">
-                <ResponsiveContainer width="100%" height="100%">
-                  <RadarChart outerRadius={90} data={sustainabilityMetricsData}>
-                    <PolarGrid stroke="#e5e7eb" />
-                    <PolarAngleAxis dataKey="metric" />
-                    <PolarRadiusAxis angle={30} domain={[0, 100]} />
-                    <Radar
-                      name="Your Supply Chain"
-                      dataKey="current"
-                      stroke="#10b981"
-                      fill="#10b981"
-                      fillOpacity={0.6}
-                    />
-                    <Radar
-                      name="Industry Average"
-                      dataKey="industry"
-                      stroke="#6366f1"
-                      fill="#6366f1"
-                      fillOpacity={0.3}
-                    />
-                    <Tooltip content={<SustainabilityMetricsTooltip />} />
-                    <Legend />
-                  </RadarChart>
-                </ResponsiveContainer>
-              </div>
-
-              {/* Insights panel */}
-              <InsightsPanel
-                title="Sustainability Performance Insights"
-                insights={chartInsights.sustainabilityMetrics}
-              />
-            </div>
+      {/* Additional Charts Row */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="dashboard-card">
+          <h3 className="text-lg font-semibold text-gray-800 mb-4">
+            Industry Distribution
+          </h3>
+          <div className="h-64">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart
+                layout="vertical"
+                data={Object.entries(data.suppliers_by_country).map(
+                  ([country, count]) => ({
+                    country,
+                    count,
+                  })
+                )}
+                margin={{ top: 5, right: 30, left: 80, bottom: 5 }}
+              >
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis type="number" />
+                <YAxis
+                  dataKey="country"
+                  type="category"
+                  tick={{ fontSize: 12 }}
+                  width={80}
+                />
+                <Tooltip
+                  formatter={(value) => [`${value} suppliers`, "Count"]}
+                />
+                <Bar dataKey="count" fill="#8884d8" radius={[0, 4, 4, 0]}>
+                  {Object.entries(data.suppliers_by_country).map(
+                    (entry, index) => (
+                      <Cell
+                        key={`cell-${index}`}
+                        fill={COLORS[index % COLORS.length]}
+                      />
+                    )
+                  )}
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
           </div>
+        </div>
 
-          {/* Footer section */}
-          <div className="bg-gradient-to-r from-teal-700 to-emerald-700 rounded-lg p-6 text-white shadow-md">
-            <div className="flex flex-col md:flex-row justify-between items-center">
-              <div>
-                <h3 className="text-lg font-medium">
-                  OptiEthic Sustainability Report
-                </h3>
-                <p className="text-sm text-teal-100 mt-1">
-                  Helping your supply chain reach carbon neutrality by 2030
-                </p>
+        <div className="dashboard-card">
+          <h3 className="text-lg font-semibold text-gray-800 mb-4">
+            Risk Breakdown
+          </h3>
+          <div className="h-64">
+            <ResponsiveContainer width="100%" height="100%">
+              <RadarChart
+                cx="50%"
+                cy="50%"
+                outerRadius="80%"
+                data={Object.entries(riskBreakdown).map(([risk, count]) => ({
+                  risk,
+                  count,
+                }))}
+              >
+                <PolarGrid />
+                <PolarAngleAxis dataKey="risk" tick={{ fontSize: 12 }} />
+                <PolarRadiusAxis angle={30} domain={[0, "auto"]} />
+                <Radar
+                  name="Risk Count"
+                  dataKey="count"
+                  stroke="#8884d8"
+                  fill="#8884d8"
+                  fillOpacity={0.6}
+                />
+                <Tooltip
+                  formatter={(value) => [`${value} suppliers`, "Affected"]}
+                />
+              </RadarChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+      </div>
+
+      {/* Footer Section */}
+      <div className="dashboard-header gradient-blue-purple bg-pattern text-white mt-8">
+        <div className="absolute top-0 right-0 opacity-20">
+          <svg
+            className="w-24 h-24"
+            viewBox="0 0 24 24"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <circle
+              cx="12"
+              cy="12"
+              r="8"
+              stroke="currentColor"
+              strokeWidth="2"
+            />
+            <path
+              d="M12 8v8M8 12h8"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+            />
+          </svg>
+        </div>
+        <div className="relative z-10">
+          <h2 className="text-xl md:text-2xl font-bold mb-2">
+            OptiEthic Sustainability Report
+          </h2>
+          <p className="text-blue-100 max-w-3xl">
+            This dashboard is automatically updated with the latest data from
+            your supply chain. For a detailed breakdown or to schedule a
+            consultation on improving your sustainability metrics, please
+            contact our support team.
+          </p>
+          <div className="mt-6 flex items-center bg-white/10 backdrop-blur-sm rounded-lg p-4 w-fit">
+            <div className="text-center">
+              <div className="text-sm font-medium text-blue-100">
+                Overall Sustainability Score
               </div>
-              <div className="flex items-center mt-4 md:mt-0">
-                <ArrowTrendingUpIcon className="h-8 w-8 text-emerald-300 mr-2" />
-                <span className="text-xl font-bold">
-                  73.5% Overall Sustainability Score
-                </span>
+              <div className="text-4xl font-bold mt-1">
+                {data?.avg_ethical_score?.toFixed(1) || "0.0"}
+                <span className="text-lg">/100</span>
               </div>
             </div>
           </div>
         </div>
-      )}
+      </div>
     </div>
   );
 };

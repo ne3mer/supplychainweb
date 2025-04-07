@@ -32,10 +32,32 @@
 
 /* Page header styling */
 .page-header {
-  @apply bg-gradient-to-r from-emerald-700 to-teal-600 py-8 px-4 sm:px-6 rounded-lg shadow-md mb-8;
+  @apply bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 py-8 px-4 sm:px-6 rounded-xl shadow-lg mb-8;
 }
 
 /* Stat card styling */
 .stat-card {
-  @apply bg-white rounded-lg shadow-md p-5 transition-transform duration-300 hover:shadow-lg;
+  @apply bg-white rounded-xl shadow-lg p-5 border border-gray-100 transition-all duration-300 hover:shadow-xl hover:translate-y-[-4px];
+}
+
+/* Background pattern for cards and sections */
+.bg-pattern {
+  background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.15'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+}
+
+/* Dashboard styling */
+.dashboard-container {
+  @apply space-y-8 bg-gray-50 px-4 py-6;
+}
+
+.dashboard-card {
+  @apply rounded-xl bg-white p-6 shadow-lg border border-gray-100 hover:shadow-xl transition-all duration-300;
+}
+
+.gradient-blue-purple {
+  @apply bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600;
+}
+
+.dashboard-header {
+  @apply rounded-xl shadow-lg p-6 sm:p-8 relative overflow-hidden;
 }
