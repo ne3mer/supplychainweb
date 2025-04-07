@@ -1867,8 +1867,8 @@ export interface GraphNode {
 }
 
 export interface GraphLink {
-  source: string;
-  target: string;
+  source: string | GraphNode;
+  target: string | GraphNode;
   type?: string;
   strength?: number;
   ethical?: boolean;
@@ -1877,6 +1877,7 @@ export interface GraphLink {
 export interface GraphData {
   nodes: GraphNode[];
   links: GraphLink[];
+  isMockData?: boolean;
 }
 
 // Function to get supply chain graph data
@@ -1898,6 +1899,7 @@ export const getSupplyChainGraphData = async (): Promise<GraphData> => {
       return {
         nodes: data.nodes,
         links: data.links,
+        isMockData: true,
       };
     } catch (error) {
       console.error("Error fetching supply chain graph data:", error);
