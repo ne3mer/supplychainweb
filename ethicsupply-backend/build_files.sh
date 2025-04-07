@@ -8,11 +8,11 @@ python3 --version
 echo "Installing minimal dependencies for build..."
 pip3 install -r requirements-dev.txt
 
-# Make migrations
+# Make migrations with SQLite using custom settings
 echo "Running migrations..."
-python3 manage.py makemigrations
-python3 manage.py migrate
+DJANGO_SETTINGS_MODULE=ethicsupply.vercel_settings python3 manage.py makemigrations
+DJANGO_SETTINGS_MODULE=ethicsupply.vercel_settings python3 manage.py migrate
 
 # Collect static files
 echo "Collecting static files..."
-python3 manage.py collectstatic --noinput 
+DJANGO_SETTINGS_MODULE=ethicsupply.vercel_settings python3 manage.py collectstatic --noinput 
