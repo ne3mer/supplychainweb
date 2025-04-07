@@ -16,6 +16,10 @@ import {
   Mail,
   ArrowDown,
   ChevronRight,
+  Phone,
+  MapPin,
+  User,
+  School,
 } from "lucide-react";
 
 const LandingPage = () => {
@@ -133,7 +137,7 @@ const LandingPage = () => {
         {/* Tree trunk */}
         <motion.path
           d="M50,100 L50,60"
-          stroke="#8B5CF6"
+          stroke="#10B981"
           strokeWidth="2"
           fill="none"
           style={{
@@ -145,7 +149,7 @@ const LandingPage = () => {
         {/* Left branches */}
         <motion.path
           d="M50,60 C30,50 20,30 10,20"
-          stroke="#8B5CF6"
+          stroke="#10B981"
           strokeWidth="1.5"
           fill="none"
           style={{
@@ -157,7 +161,7 @@ const LandingPage = () => {
 
         <motion.path
           d="M50,75 C35,70 25,60 15,50"
-          stroke="#8B5CF6"
+          stroke="#10B981"
           strokeWidth="1.5"
           fill="none"
           style={{
@@ -170,7 +174,7 @@ const LandingPage = () => {
         {/* Right branches */}
         <motion.path
           d="M50,60 C70,50 80,30 90,20"
-          stroke="#8B5CF6"
+          stroke="#10B981"
           strokeWidth="1.5"
           fill="none"
           style={{
@@ -182,7 +186,7 @@ const LandingPage = () => {
 
         <motion.path
           d="M50,75 C65,70 75,60 85,50"
-          stroke="#8B5CF6"
+          stroke="#10B981"
           strokeWidth="1.5"
           fill="none"
           style={{
@@ -202,7 +206,7 @@ const LandingPage = () => {
               cx={x}
               cy={y}
               r="2"
-              fill={`hsl(${i * 20 + 180}, 80%, 60%)`}
+              fill={`hsl(${150 + i * 5}, 80%, ${50 + (i % 3) * 5}%)`}
               style={{
                 opacity: treeHeight > 40 ? leafOpacity : 0,
                 scale: leafScales[i],
@@ -224,7 +228,7 @@ const LandingPage = () => {
               cx={x}
               cy={y}
               r="1.5"
-              fill={`hsl(${i * 25 + 120}, 80%, 60%)`}
+              fill={`hsl(${145 + i * 3}, 80%, ${55 + (i % 4) * 5}%)`}
               style={{
                 opacity: treeHeight > 60 ? leafOpacity : 0,
                 scale: pulsingLeafScales[i],
@@ -611,143 +615,57 @@ const LandingPage = () => {
         </div>
       </div>
 
-      {/* Footer */}
-      <footer className="bg-black pt-16 pb-8 border-t border-gray-800">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-16">
-            <div>
-              <h3 className="text-xl font-bold mb-4 text-white">EthicSupply</h3>
-              <p className="text-gray-400 text-sm mb-6">
-                Pioneering ethical supply chains through advanced AI and data
-                analytics.
-              </p>
-              <div className="flex gap-4">
-                <a
-                  href="https://github.com/ne3mer"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-gray-400 hover:text-purple-400 transition-colors"
-                >
-                  <Github className="w-5 h-5" />
-                </a>
-                <a
-                  href="https://linkedin.com/"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-gray-400 hover:text-purple-400 transition-colors"
-                >
-                  <Linkedin className="w-5 h-5" />
-                </a>
-                <a
-                  href="mailto:contact@ethicsupply.com"
-                  className="text-gray-400 hover:text-purple-400 transition-colors"
-                >
-                  <Mail className="w-5 h-5" />
-                </a>
+      {/* Creator Card - Replaces Footer */}
+      <div className="py-16 bg-gradient-to-t from-black to-transparent">
+        <div className="max-w-2xl mx-auto">
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8 }}
+            className="backdrop-blur-md bg-gradient-to-r from-emerald-900/20 to-indigo-900/20 p-8 rounded-2xl shadow-xl border border-emerald-500/30 overflow-hidden relative"
+          >
+            {/* Decorative elements */}
+            <div className="absolute -top-24 -right-24 w-48 h-48 rounded-full bg-emerald-500/20 blur-2xl"></div>
+            <div className="absolute -bottom-24 -left-24 w-48 h-48 rounded-full bg-indigo-500/20 blur-2xl"></div>
+
+            <div className="relative flex flex-col items-center text-center z-10">
+              <h3 className="text-3xl font-bold mb-4 bg-clip-text text-transparent bg-gradient-to-r from-emerald-400 to-teal-500">
+                Nima Afshar Far
+              </h3>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full max-w-xl mx-auto mt-6">
+                <div className="flex items-center justify-center md:justify-end gap-3">
+                  <User className="w-5 h-5 text-emerald-400" />
+                  <span className="text-gray-300">
+                    Supervisor: Dr. Péter Nagy
+                  </span>
+                </div>
+
+                <div className="flex items-center justify-center md:justify-start gap-3">
+                  <Phone className="w-5 h-5 text-emerald-400" />
+                  <span className="text-gray-300">+36 70 402 6493</span>
+                </div>
+
+                <div className="flex items-center justify-center md:justify-end gap-3">
+                  <MapPin className="w-5 h-5 text-emerald-400" />
+                  <span className="text-gray-300">Budapest, Hungary</span>
+                </div>
+
+                <div className="flex items-center justify-center md:justify-start gap-3">
+                  <School className="w-5 h-5 text-emerald-400" />
+                  <span className="text-gray-300">
+                    Budapest Metropolitan University
+                  </span>
+                </div>
               </div>
+
+              <p className="text-gray-400 text-sm mt-8">
+                © {new Date().getFullYear()} EthicSupply. All rights reserved.
+              </p>
             </div>
-            <div>
-              <h4 className="text-md font-semibold mb-4 text-white">
-                Platform
-              </h4>
-              <ul className="space-y-3">
-                <li>
-                  <a
-                    href="#"
-                    className="text-gray-400 hover:text-purple-400 flex items-center"
-                  >
-                    <ChevronRight className="w-4 h-4 mr-1" />
-                    Dashboard
-                  </a>
-                </li>
-                <li>
-                  <a
-                    href="#"
-                    className="text-gray-400 hover:text-purple-400 flex items-center"
-                  >
-                    <ChevronRight className="w-4 h-4 mr-1" />
-                    Supplier Evaluation
-                  </a>
-                </li>
-                <li>
-                  <a
-                    href="#"
-                    className="text-gray-400 hover:text-purple-400 flex items-center"
-                  >
-                    <ChevronRight className="w-4 h-4 mr-1" />
-                    Analytics
-                  </a>
-                </li>
-                <li>
-                  <a
-                    href="#"
-                    className="text-gray-400 hover:text-purple-400 flex items-center"
-                  >
-                    <ChevronRight className="w-4 h-4 mr-1" />
-                    Risk Mapping
-                  </a>
-                </li>
-              </ul>
-            </div>
-            <div>
-              <h4 className="text-md font-semibold mb-4 text-white">
-                Resources
-              </h4>
-              <ul className="space-y-3">
-                <li>
-                  <a
-                    href="#"
-                    className="text-gray-400 hover:text-purple-400 flex items-center"
-                  >
-                    <ChevronRight className="w-4 h-4 mr-1" />
-                    Documentation
-                  </a>
-                </li>
-                <li>
-                  <a
-                    href="#"
-                    className="text-gray-400 hover:text-purple-400 flex items-center"
-                  >
-                    <ChevronRight className="w-4 h-4 mr-1" />
-                    API Reference
-                  </a>
-                </li>
-                <li>
-                  <a
-                    href="#"
-                    className="text-gray-400 hover:text-purple-400 flex items-center"
-                  >
-                    <ChevronRight className="w-4 h-4 mr-1" />
-                    Case Studies
-                  </a>
-                </li>
-                <li>
-                  <a
-                    href="#"
-                    className="text-gray-400 hover:text-purple-400 flex items-center"
-                  >
-                    <ChevronRight className="w-4 h-4 mr-1" />
-                    Blog
-                  </a>
-                </li>
-              </ul>
-            </div>
-            <div>
-              <h4 className="text-md font-semibold mb-4 text-white">Contact</h4>
-              <ul className="space-y-3 text-gray-400">
-                <li>contact@ethicsupply.com</li>
-                <li>+1 (123) 456-7890</li>
-                <li>123 Innovation Way, Tech City, 12345</li>
-              </ul>
-            </div>
-          </div>
-          <div className="pt-8 border-t border-gray-800 text-center text-gray-500 text-sm">
-            <p>
-              © {new Date().getFullYear()} EthicSupply. All rights reserved.
-            </p>
-          </div>
+          </motion.div>
         </div>
-      </footer>
+      </div>
     </div>
   );
 };
