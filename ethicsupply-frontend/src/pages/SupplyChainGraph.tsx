@@ -75,8 +75,8 @@ type ForceGraph2DInstance = {
   centerAt: (x: number, y: number, ms: number) => void;
   zoom: (scale: number, ms: number) => void;
 } & React.ComponentType<{
-  ref: React.RefObject<any>;
-  graphData: any;
+  ref: React.RefObject<unknown>;
+  graphData: ExtendedGraphData;
   nodeLabel?: (node: NodeObject) => string;
   nodeCanvasObject?: (
     node: NodeObject,
@@ -101,8 +101,8 @@ type ForceGraph3DInstance = {
     ms?: number
   ) => void;
 } & React.ComponentType<{
-  ref: React.RefObject<any>;
-  graphData: any;
+  ref: React.RefObject<unknown>;
+  graphData: ExtendedGraphData;
   nodeLabel?: (node: NodeObject) => string;
   nodeColor?: (node: NodeObject) => string;
   nodeThreeObject?: (node: NodeObject) => THREE.Object3D;
@@ -545,8 +545,8 @@ const SupplyChainGraph = () => {
       const color = getLinkColor(link);
 
       // Extract coordinates
-      const source = link.source as any;
-      const target = link.target as any;
+      const source = link.source as NodeObject;
+      const target = link.target as NodeObject;
 
       const sourceX = source.x !== undefined ? source.x : 0;
       const sourceY = source.y !== undefined ? source.y : 0;
