@@ -85,7 +85,7 @@ const EvaluateSupplier = () => {
     "Other",
   ];
 
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<FormData>({
     name: "",
     country: "",
     co2_emissions: "50",
@@ -95,7 +95,7 @@ const EvaluateSupplier = () => {
     waste_management_score: "0.5",
   });
 
-  const [loadingSupplier, setLoadingSupplier] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const [result, setResult] = useState<EvaluationResult | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -108,7 +108,7 @@ const EvaluateSupplier = () => {
       if (!supplierId) return;
 
       try {
-        setLoadingSupplier(true);
+        setIsLoading(true);
         setError(null);
 
         console.log(`Loading supplier ${supplierId} for evaluation...`);
@@ -154,7 +154,7 @@ const EvaluateSupplier = () => {
           }`
         );
       } finally {
-        setLoadingSupplier(false);
+        setIsLoading(false);
       }
     };
 
@@ -187,7 +187,7 @@ const EvaluateSupplier = () => {
 
     try {
       console.log("Submitting evaluation data:", dataToSubmit);
-      // @ts-ignore - API type mismatch but our implementation is correct
+      // @ts-expect-error - API type mismatch but our implementation is correct
       const evaluation = await evaluateSupplier(dataToSubmit);
       console.log("Evaluation result:", evaluation);
       setResult(evaluation);
@@ -205,12 +205,6 @@ const EvaluateSupplier = () => {
     } finally {
       setIsSubmitting(false);
     }
-  };
-
-  const getColorForValue = (value: number): string => {
-    if (value < 0.3) return "bg-red-500";
-    if (value < 0.7) return "bg-yellow-500";
-    return "bg-green-500";
   };
 
   // Helper function to compare string values that represent numbers
@@ -408,52 +402,78 @@ const EvaluateSupplier = () => {
         <div className="p-4 sm:p-6">
           {activeTab === "form" && (
             <form onSubmit={handleSubmit} className="space-y-6">
-              <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 mb-8">
-                {textFields.map((field) => (
-                  <div key={field.name} className="col-span-1">
-                    <label
-                      htmlFor={field.name}
-                      className="block text-sm font-medium text-gray-700"
-                    >
-                      <div className="flex items-center">
-                        <field.icon
-                          className="h-5 w-5 mr-2 text-gray-500"
-                          aria-hidden="true"
-                        />
-                        {field.label}
-                      </div>
-                    </label>
-
-                    {field.type === "text" && (
-                      <input
-                        type="text"
-                        name={field.name}
-                        id={field.name}
-                        value={formData[field.name]}
-                        onChange={handleChange}
-                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500"
-                      />
-                    )}
-
-                    {field.type === "select" && field.options && (
-                      <select
-                        name={field.name}
-                        id={field.name}
-                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500"
-                        value={formData[field.name]}
-                        onChange={handleChange}
+              {isLoading ? (
+                <div className="text-center py-12">
+                  <svg
+                    className="animate-spin h-10 w-10 text-emerald-500 mx-auto mb-4"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                  >
+                    <circle
+                      className="opacity-25"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      strokeWidth="4"
+                    ></circle>
+                    <path
+                      className="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                    ></path>
+                  </svg>
+                  <p className="text-gray-600">Loading supplier data...</p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 mb-8">
+                  {textFields.map((field) => (
+                    <div key={field.name} className="col-span-1">
+                      <label
+                        htmlFor={field.name}
+                        className="block text-sm font-medium text-gray-700"
                       >
-                        <option value="">Select {field.label}</option>
-                        {field.options.map((option) => (
-                          <option key={option} value={option}>
-                            {option}
-                          </option>
-                        ))}
-                      </select>
-                    )}
-                  </div>
-                ))}
-              </div>
+                        <div className="flex items-center">
+                          <field.icon
+                            className="h-5 w-5 mr-2 text-gray-500"
+                            aria-hidden="true"
+                          />
+                          {field.label}
+                        </div>
+                      </label>
+
+                      {field.type === "text" && (
+                        <input
+                          type="text"
+                          name={field.name}
+                          id={field.name}
+                          value={formData[field.name]}
+                          onChange={handleChange}
+                          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500"
+                        />
+                      )}
+
+                      {field.type === "select" && field.options && (
+                        <select
+                          name={field.name}
+                          id={field.name}
+                          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500"
+                          value={formData[field.name]}
+                          onChange={handleChange}
+                        >
+                          <option value="">Select {field.label}</option>
+                          {field.options.map((option) => (
+                            <option key={option} value={option}>
+                              {option}
+                            </option>
+                          ))}
+                        </select>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
 
               <div className="space-y-8">
                 <h3 className="text-lg font-medium text-gray-900 mb-4">
