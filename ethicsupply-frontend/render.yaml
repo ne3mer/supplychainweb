@@ -4,9 +4,10 @@ services:
     name: optiethic-frontend
     runtime: static
     buildCommand: |
+      export NODE_VERSION=18.17.0
       yarn config set network-timeout 300000
       yarn config set registry https://registry.npmjs.org/
-      yarn install --network-timeout 300000
+      yarn install --no-frozen-lockfile
       yarn build
     staticPublishPath: ./dist
     envVars:
