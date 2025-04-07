@@ -18,6 +18,9 @@ import {
   GlobeIcon,
   PieChart,
   LightbulbIcon,
+  Github,
+  Linkedin,
+  Mail,
 } from "lucide-react";
 
 const LandingPage = () => {
@@ -73,7 +76,7 @@ const LandingPage = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-[#fdf6e3] to-white">
+    <div className="min-h-screen bg-gradient-to-b from-[#f0f7ff] to-white">
       {/* Hero Section */}
       <div className="relative overflow-hidden">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-20 pb-16">
@@ -83,8 +86,8 @@ const LandingPage = () => {
             transition={{ duration: 0.8 }}
             className="text-center mb-16"
           >
-            <div className="inline-block bg-[#dcf3dc] border-2 border-[#81C784] rounded-full px-4 py-1 mb-6">
-              <span className="text-[#2e7d32] font-medium">ESG Focused</span>
+            <div className="inline-block bg-[#e0edff] border-2 border-[#3b82f6] rounded-full px-4 py-1 mb-6">
+              <span className="text-[#1e40af] font-medium">ESG Focused</span>
             </div>
             <h1 className="text-5xl md:text-6xl font-bold text-gray-900 mb-6">
               EthicSupply
@@ -97,7 +100,7 @@ const LandingPage = () => {
                 <motion.button
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
-                  className="bg-gray-900 text-white px-8 py-3 rounded-full text-lg font-semibold hover:bg-gray-800 transition-colors"
+                  className="bg-[#1e40af] text-white px-8 py-3 rounded-full text-lg font-semibold hover:bg-[#1e3a8a] transition-colors"
                 >
                   Get Started
                 </motion.button>
@@ -115,7 +118,7 @@ const LandingPage = () => {
                   transition={{ delay: Element.delay, duration: 0.5 }}
                   className="flex items-center justify-center w-16 h-16 bg-white rounded-full shadow-lg"
                 >
-                  <Element.icon className="w-8 h-8 text-gray-700" />
+                  <Element.icon className="w-8 h-8 text-[#3b82f6]" />
                 </motion.div>
                 {index < flowElements.length - 1 && (
                   <motion.div
@@ -123,7 +126,7 @@ const LandingPage = () => {
                     animate={{ opacity: 1, scaleX: 1 }}
                     transition={{ delay: Element.delay + 0.1, duration: 0.3 }}
                   >
-                    <ArrowRight className="w-6 h-6 text-gray-400" />
+                    <ArrowRight className="w-6 h-6 text-[#3b82f6]" />
                   </motion.div>
                 )}
               </React.Fragment>
@@ -142,7 +145,7 @@ const LandingPage = () => {
                 repeat: Infinity,
                 ease: "linear",
               }}
-              className="absolute -top-1/2 -left-1/2 w-full h-full border-[40px] border-[#dcf3dc] rounded-full"
+              className="absolute -top-1/2 -left-1/2 w-full h-full border-[40px] border-[#e0edff] rounded-full"
             />
             <motion.div
               animate={{
@@ -154,7 +157,7 @@ const LandingPage = () => {
                 repeat: Infinity,
                 ease: "linear",
               }}
-              className="absolute -bottom-1/2 -right-1/2 w-full h-full border-[40px] border-[#81C784] rounded-full opacity-20"
+              className="absolute -bottom-1/2 -right-1/2 w-full h-full border-[40px] border-[#3b82f6] rounded-full opacity-20"
             />
           </div>
         </div>
@@ -182,7 +185,7 @@ const LandingPage = () => {
             >
               <motion.div
                 whileHover={{ scale: 1.1 }}
-                className="text-[#2e7d32] mb-4"
+                className="text-[#3b82f6] mb-4"
               >
                 {feature.icon}
               </motion.div>
@@ -194,7 +197,7 @@ const LandingPage = () => {
       </div>
 
       {/* Stats Section */}
-      <div className="bg-gradient-to-r from-gray-800 to-gray-900 text-white py-16">
+      <div className="bg-gradient-to-r from-[#1e3a8a] to-[#1e40af] text-white py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <motion.div
             initial={{ opacity: 0 }}
@@ -211,7 +214,7 @@ const LandingPage = () => {
               >
                 98%
               </motion.div>
-              <div className="text-gray-300">Optimization Rate</div>
+              <div className="text-blue-200">Optimization Rate</div>
             </div>
             <div>
               <motion.div
@@ -222,7 +225,7 @@ const LandingPage = () => {
               >
                 24/7
               </motion.div>
-              <div className="text-gray-300">Real-time Monitoring</div>
+              <div className="text-blue-200">Real-time Monitoring</div>
             </div>
             <div>
               <motion.div
@@ -233,14 +236,72 @@ const LandingPage = () => {
               >
                 50%
               </motion.div>
-              <div className="text-gray-300">Cost Reduction</div>
+              <div className="text-blue-200">Cost Reduction</div>
             </div>
           </motion.div>
         </div>
       </div>
 
+      {/* About the Author Section */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8 }}
+          className="bg-white p-8 rounded-xl shadow-lg flex flex-col md:flex-row items-center gap-8"
+        >
+          <div className="w-48 h-48 rounded-full overflow-hidden flex-shrink-0">
+            <img
+              src="https://via.placeholder.com/200x200"
+              alt="Author"
+              className="w-full h-full object-cover"
+            />
+          </div>
+          <div>
+            <h3 className="text-2xl font-bold text-gray-900 mb-2">About Me</h3>
+            <p className="text-gray-600 mb-4">
+              Hi, I'm Nima Afshar Far. I'm a passionate developer focused on
+              creating ethical AI solutions for supply chain optimization. With
+              a background in both AI and supply chain management, I've
+              developed EthicSupply to address the growing need for sustainable
+              and ethical business practices in global supply chains.
+            </p>
+            <p className="text-gray-600 mb-6">
+              My mission is to help companies make better decisions about their
+              supply networks by considering not just efficiency and cost, but
+              also environmental impact, social responsibility, and ethical
+              governance.
+            </p>
+            <div className="flex gap-4">
+              <a
+                href="https://github.com/ne3mer"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-[#3b82f6] hover:text-[#1e40af]"
+              >
+                <Github className="w-6 h-6" />
+              </a>
+              <a
+                href="https://linkedin.com/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-[#3b82f6] hover:text-[#1e40af]"
+              >
+                <Linkedin className="w-6 h-6" />
+              </a>
+              <a
+                href="mailto:contact@ethicsupply.com"
+                className="text-[#3b82f6] hover:text-[#1e40af]"
+              >
+                <Mail className="w-6 h-6" />
+              </a>
+            </div>
+          </div>
+        </motion.div>
+      </div>
+
       {/* CTA Section */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 text-center relative overflow-hidden">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 text-center relative overflow-hidden">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -254,7 +315,7 @@ const LandingPage = () => {
             <motion.button
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
-              className="bg-gray-900 text-white px-8 py-3 rounded-full text-lg font-semibold hover:bg-gray-800 transition-colors"
+              className="bg-[#1e40af] text-white px-8 py-3 rounded-full text-lg font-semibold hover:bg-[#1e3a8a] transition-colors"
             >
               Start Free Trial
             </motion.button>
@@ -273,7 +334,7 @@ const LandingPage = () => {
               repeat: Infinity,
               ease: "linear",
             }}
-            className="absolute top-10 left-10 w-20 h-20 bg-[#dcf3dc] rounded-full opacity-20"
+            className="absolute top-10 left-10 w-20 h-20 bg-[#e0edff] rounded-full opacity-20"
           />
           <motion.div
             animate={{
@@ -285,10 +346,112 @@ const LandingPage = () => {
               repeat: Infinity,
               ease: "linear",
             }}
-            className="absolute bottom-10 right-10 w-32 h-32 bg-[#81C784] rounded-full opacity-20"
+            className="absolute bottom-10 right-10 w-32 h-32 bg-[#3b82f6] rounded-full opacity-20"
           />
         </div>
       </div>
+
+      {/* Footer */}
+      <footer className="bg-gray-900 text-white py-12">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+            <div>
+              <h3 className="text-xl font-semibold mb-4">EthicSupply</h3>
+              <p className="text-gray-400 text-sm">
+                Revolutionizing supply chain management with ethical AI
+                solutions.
+              </p>
+            </div>
+            <div>
+              <h4 className="text-lg font-medium mb-4">Features</h4>
+              <ul className="space-y-2 text-gray-400">
+                <li>
+                  <a href="#" className="hover:text-blue-300">
+                    Dashboard
+                  </a>
+                </li>
+                <li>
+                  <a href="#" className="hover:text-blue-300">
+                    Supplier Evaluation
+                  </a>
+                </li>
+                <li>
+                  <a href="#" className="hover:text-blue-300">
+                    Analytics
+                  </a>
+                </li>
+                <li>
+                  <a href="#" className="hover:text-blue-300">
+                    Geo Risk Mapping
+                  </a>
+                </li>
+              </ul>
+            </div>
+            <div>
+              <h4 className="text-lg font-medium mb-4">Resources</h4>
+              <ul className="space-y-2 text-gray-400">
+                <li>
+                  <a href="#" className="hover:text-blue-300">
+                    Documentation
+                  </a>
+                </li>
+                <li>
+                  <a href="#" className="hover:text-blue-300">
+                    API
+                  </a>
+                </li>
+                <li>
+                  <a href="#" className="hover:text-blue-300">
+                    Support
+                  </a>
+                </li>
+                <li>
+                  <a href="#" className="hover:text-blue-300">
+                    Blog
+                  </a>
+                </li>
+              </ul>
+            </div>
+            <div>
+              <h4 className="text-lg font-medium mb-4">Contact</h4>
+              <ul className="space-y-2 text-gray-400">
+                <li>contact@ethicsupply.com</li>
+                <li>+1 (123) 456-7890</li>
+                <li>123 Innovation Way, Tech City, 12345</li>
+              </ul>
+              <div className="flex gap-4 mt-4">
+                <a
+                  href="https://github.com/ne3mer"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-gray-400 hover:text-blue-300"
+                >
+                  <Github className="w-5 h-5" />
+                </a>
+                <a
+                  href="https://linkedin.com/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-gray-400 hover:text-blue-300"
+                >
+                  <Linkedin className="w-5 h-5" />
+                </a>
+                <a
+                  href="mailto:contact@ethicsupply.com"
+                  className="text-gray-400 hover:text-blue-300"
+                >
+                  <Mail className="w-5 h-5" />
+                </a>
+              </div>
+            </div>
+          </div>
+          <div className="border-t border-gray-800 mt-12 pt-8 text-center text-gray-400 text-sm">
+            <p>
+              © {new Date().getFullYear()} EthicSupply. All rights reserved.
+            </p>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 };
