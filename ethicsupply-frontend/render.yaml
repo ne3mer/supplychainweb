@@ -3,13 +3,19 @@ services:
   - type: web
     name: optiethic-frontend
     runtime: static
-    buildCommand: yarn install && yarn build
+    buildCommand: |
+      yarn config set network-timeout 300000
+      yarn config set registry https://registry.npmjs.org/
+      yarn install --network-timeout 300000
+      yarn build
     staticPublishPath: ./dist
     envVars:
       - key: VITE_API_URL
         value: https://optiethic-backend.onrender.com/api
       - key: VITE_ENABLE_MOCK_DATA
         value: false
+      - key: NODE_VERSION
+        value: 18.17.0
     routes:
       - type: rewrite
         source: /*

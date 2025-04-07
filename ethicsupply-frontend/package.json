@@ -52,6 +52,7 @@
     "vite": "^6.2.0"
   },
   "resolutions": {
-    "three-bmfont-text": "npm:three-bmfont-text@^3.0.1"
+    "three-bmfont-text": "npm:three-bmfont-text@^3.0.1",
+    "debug": "https://github.com/ngokevin/debug.git"
   }
 }
