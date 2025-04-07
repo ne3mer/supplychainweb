@@ -251,9 +251,20 @@ const Dashboard = () => {
 
   // Check API connection status
   const checkConnection = async () => {
-    const isConnected = await checkApiConnection();
-    setApiConnected(isConnected);
-    return isConnected;
+    try {
+      const response = await fetch("/api/health-check/");
+      if (response.ok) {
+        setApiConnected(true);
+        return true;
+      } else {
+        setApiConnected(false);
+        return false;
+      }
+    } catch (error) {
+      console.error("API connection check failed:", error);
+      setApiConnected(false);
+      return false;
+    }
   };
 
   useEffect(() => {
@@ -268,55 +279,36 @@ const Dashboard = () => {
 
         if (connected) {
           // Real API call
-          const response = await fetch("/api/dashboard");
+          try {
+            const response = await fetch("/api/dashboard/");
 
-          if (response.ok) {
-            const result = await response.json();
-            setData(result);
-            setUsingMockData(false);
-          } else {
-            throw new Error("Failed to fetch data from API");
+            // Check if response is valid JSON
+            const contentType = response.headers.get("content-type");
+            if (contentType && contentType.includes("application/json")) {
+              if (response.ok) {
+                const result = await response.json();
+                setData(result);
+                setUsingMockData(false);
+              } else {
+                throw new Error(`API returned status ${response.status}`);
+              }
+            } else {
+              console.error(
+                "Received non-JSON response from server",
+                contentType
+              );
+              throw new Error("Server returned non-JSON response");
+            }
+          } catch (error) {
+            console.error("Error fetching dashboard data:", error);
+            // Fall back to mock data on any fetch error
+            setUsingMockData(true);
+            useMockData();
           }
         } else {
           // Use mock data
           setUsingMockData(true);
-          const mockData: DashboardData = {
-            total_suppliers: 12,
-            avg_ethical_score: 75.3,
-            avg_co2_emissions: 23.9,
-            suppliers_by_country: {
-              "United States": 4,
-              "United Kingdom": 1,
-              Taiwan: 1,
-              "South Korea": 1,
-              Switzerland: 1,
-              "Hong Kong": 1,
-              France: 1,
-              China: 1,
-            },
-            ethical_score_distribution: [
-              { range: "0-20", count: 0 },
-              { range: "21-40", count: 0 },
-              { range: "41-60", count: 2 },
-              { range: "61-80", count: 7 },
-              { range: "81-100", count: 3 },
-            ],
-            co2_emissions_by_industry: [
-              { name: "Consumer Goods", value: 4.3 },
-              { name: "Electronics", value: 20.4 },
-              { name: "Food & Beverage", value: 128.7 },
-              { name: "Apparel", value: 2.5 },
-              { name: "Home Appliances", value: 18.5 },
-            ],
-            isMockData: true,
-          };
-          setData(mockData);
-
-          // Generate random number for onboarding pending suppliers (between 3-15)
-          setOnboardingPending(Math.floor(Math.random() * 12) + 3);
-
-          // Calculate compliance rate - percentage of suppliers with ethical score >= 70
-          setComplianceRate(70); // Example value, can be calculated from mockData if needed
+          useMockData();
         }
       } catch (err) {
         console.error("Error fetching dashboard data:", err);
@@ -325,6 +317,47 @@ const Dashboard = () => {
       } finally {
         setLoading(false);
       }
+    };
+
+    // Function to set up mock data
+    const useMockData = () => {
+      const mockData: DashboardData = {
+        total_suppliers: 12,
+        avg_ethical_score: 75.3,
+        avg_co2_emissions: 23.9,
+        suppliers_by_country: {
+          "United States": 4,
+          "United Kingdom": 1,
+          Taiwan: 1,
+          "South Korea": 1,
+          Switzerland: 1,
+          "Hong Kong": 1,
+          France: 1,
+          China: 1,
+        },
+        ethical_score_distribution: [
+          { range: "0-20", count: 0 },
+          { range: "21-40", count: 0 },
+          { range: "41-60", count: 2 },
+          { range: "61-80", count: 7 },
+          { range: "81-100", count: 3 },
+        ],
+        co2_emissions_by_industry: [
+          { name: "Consumer Goods", value: 4.3 },
+          { name: "Electronics", value: 20.4 },
+          { name: "Food & Beverage", value: 128.7 },
+          { name: "Apparel", value: 2.5 },
+          { name: "Home Appliances", value: 18.5 },
+        ],
+        isMockData: true,
+      };
+      setData(mockData);
+
+      // Generate random number for onboarding pending suppliers (between 3-15)
+      setOnboardingPending(Math.floor(Math.random() * 12) + 3);
+
+      // Calculate compliance rate - percentage of suppliers with ethical score >= 70
+      setComplianceRate(70); // Example value, can be calculated from mockData if needed
     };
 
     fetchData();
