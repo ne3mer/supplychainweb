@@ -265,7 +265,7 @@ const Dashboard: React.FC = () => {
   const stats = [
     {
       name: "Total Suppliers",
-      value: data?.total_suppliers || 0,
+      value: totalSuppliers || 0,
       icon: UsersIcon,
       change: "+12.5%",
       changeType: "positive",
@@ -274,7 +274,7 @@ const Dashboard: React.FC = () => {
     },
     {
       name: "Avg. Ethical Score",
-      value: `${(data?.avg_ethical_score || 0).toFixed(1)}%`,
+      value: `${(avgEthicalScore || 0).toFixed(1)}%`,
       icon: ScaleIcon,
       change: "+4.2%",
       changeType: "positive",
@@ -283,7 +283,7 @@ const Dashboard: React.FC = () => {
     },
     {
       name: "CO₂ Emissions",
-      value: `${(data?.avg_co2_emissions || 0).toFixed(1)}t`,
+      value: `${(co2Emissions || 0).toFixed(1)}t`,
       icon: CloudIcon,
       change: "-8.1%",
       changeType: "positive",
@@ -630,12 +630,10 @@ const Dashboard: React.FC = () => {
           <div className="h-64">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart
-                data={data.ethical_score_distribution.map(
-                  ({ range, count }) => ({
-                    range,
-                    count,
-                  })
-                )}
+                data={ethicalScoreDistribution.map(({ range, count }) => ({
+                  range,
+                  count,
+                }))}
                 margin={{ top: 5, right: 20, left: 0, bottom: 25 }}
               >
                 <CartesianGrid strokeDasharray="3 3" />
@@ -665,12 +663,10 @@ const Dashboard: React.FC = () => {
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
                 <Pie
-                  data={data.co2_emissions_by_industry.map(
-                    ({ name, value }) => ({
-                      name,
-                      value,
-                    })
-                  )}
+                  data={co2ByIndustry.map(({ name, value }) => ({
+                    name,
+                    value,
+                  }))}
                   cx="50%"
                   cy="50%"
                   labelLine={false}
@@ -679,7 +675,7 @@ const Dashboard: React.FC = () => {
                   dataKey="value"
                   label={renderCustomizedLabel}
                 >
-                  {data.co2_emissions_by_industry.map((entry, index) => (
+                  {co2ByIndustry.map((entry, index) => (
                     <Cell
                       key={`cell-${index}`}
                       fill={COLORS[index % COLORS.length]}
@@ -810,7 +806,7 @@ const Dashboard: React.FC = () => {
         <div className="h-64">
           <ResponsiveContainer width="100%" height="100%">
             <AreaChart
-              data={data?.compliance_rate_trend || []}
+              data={complianceRate || []}
               margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
             >
               <defs>
@@ -883,8 +879,8 @@ const Dashboard: React.FC = () => {
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {data?.recent_suppliers && data.recent_suppliers.length > 0 ? (
-                data.recent_suppliers.map((supplier) => (
+              {recentSuppliers && recentSuppliers.length > 0 ? (
+                recentSuppliers.map((supplier) => (
                   <tr key={supplier.id} className="hover:bg-gray-50">
                     <td className="px-6 py-3 whitespace-nowrap">
                       <div className="text-sm font-medium text-gray-900">
@@ -987,7 +983,7 @@ const Dashboard: React.FC = () => {
                 Overall Sustainability Score
               </div>
               <div className="text-4xl font-bold mt-1">
-                {data?.avg_ethical_score?.toFixed(1) || "0.0"}
+                {avgEthicalScore?.toFixed(1) || "0.0"}
                 <span className="text-lg">/100</span>
               </div>
             </div>
