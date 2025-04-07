@@ -16,6 +16,10 @@ services:
         value: false
       - key: NODE_VERSION
         value: 18.17.0
+      - key: VITE_LEAFLET_URL
+        value: https://unpkg.com/leaflet@1.9.4/dist/leaflet.css
+      - key: VITE_LEAFLET_SCRIPT
+        value: https://unpkg.com/leaflet@1.9.4/dist/leaflet.js
     routes:
       - type: rewrite
         source: /*

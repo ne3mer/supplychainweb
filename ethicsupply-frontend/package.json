@@ -18,7 +18,9 @@
     "aframe": "1.4.2",
     "axios": "^1.8.4",
     "bootstrap": "^5.3.5",
+    "d3": "^5.16.0",
     "framer-motion": "^11.0.3",
+    "leaflet": "^1.9.4",
     "lucide-react": "^0.359.0",
     "react": "^18.2.0",
     "react-bootstrap": "^2.10.9",
@@ -30,8 +32,10 @@
     "react-force-graph-2d": "^1.27.1",
     "react-force-graph-3d": "^1.26.1",
     "react-intersection-observer": "^9.16.0",
+    "react-leaflet": "^4.2.1",
     "react-router": "^7.5.0",
-    "react-router-dom": "^7.5.0"
+    "react-router-dom": "^7.5.0",
+    "@popperjs/core": "^2.11.8"
   },
   "devDependencies": {
     "@eslint/js": "^9.21.0",
@@ -53,6 +57,8 @@
   },
   "resolutions": {
     "three-bmfont-text": "npm:three-bmfont-text@^3.0.1",
-    "debug": "https://github.com/ngokevin/debug.git"
+    "debug": "https://github.com/ngokevin/debug.git",
+    "react": "^18.2.0",
+    "aframe": "^1.4.2"
   }
 }
