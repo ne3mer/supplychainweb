@@ -70,10 +70,60 @@ class SpriteText {
   }
 }
 
+// Define types for the force graph refs
+type ForceGraph2DInstance = {
+  centerAt: (x: number, y: number, ms: number) => void;
+  zoom: (scale: number, ms: number) => void;
+} & React.ComponentType<{
+  ref: React.RefObject<any>;
+  graphData: any;
+  nodeLabel?: (node: NodeObject) => string;
+  nodeCanvasObject?: (
+    node: NodeObject,
+    ctx: CanvasRenderingContext2D,
+    globalScale: number
+  ) => void;
+  linkCanvasObject?: (link: LinkObject, ctx: CanvasRenderingContext2D) => void;
+  onNodeHover?: (node: NodeObject | null) => void;
+  onNodeClick?: (node: NodeObject) => void;
+  onBackgroundClick?: () => void;
+  cooldownTicks?: number;
+  d3AlphaDecay?: number;
+  d3VelocityDecay?: number;
+  nodeRelSize?: number;
+  backgroundColor?: string;
+}>;
+
+type ForceGraph3DInstance = {
+  cameraPosition: (
+    position: { x: number; y: number; z: number },
+    lookAt?: { x: number; y: number; z: number },
+    ms?: number
+  ) => void;
+} & React.ComponentType<{
+  ref: React.RefObject<any>;
+  graphData: any;
+  nodeLabel?: (node: NodeObject) => string;
+  nodeColor?: (node: NodeObject) => string;
+  nodeThreeObject?: (node: NodeObject) => THREE.Object3D;
+  linkColor?: (link: LinkObject) => string;
+  linkWidth?: (link: LinkObject) => number;
+  linkDirectionalParticles?: (link: LinkObject) => number;
+  linkDirectionalParticleWidth?: number;
+  linkDirectionalParticleSpeed?: number;
+  linkDirectionalArrowLength?: number;
+  linkDirectionalArrowRelPos?: number;
+  linkCurvature?: number;
+  onNodeHover?: (node: NodeObject | null) => void;
+  onNodeClick?: (node: NodeObject) => void;
+  onBackgroundClick?: () => void;
+  backgroundColor?: string;
+}>;
+
 const SupplyChainGraph = () => {
   // Refs for the graph components
-  const graph2DRef = useRef<any>(null);
-  const graph3DRef = useRef<any>(null);
+  const graph2DRef = useRef<ForceGraph2DInstance | null>(null);
+  const graph3DRef = useRef<ForceGraph3DInstance | null>(null);
 
   // State management
   const [graphData, setGraphData] = useState<ExtendedGraphData>({
