@@ -4,12 +4,10 @@ services:
     name: optiethic-frontend
     runtime: static
     buildCommand: |
-      # Remove any existing package-lock.json
-      rm -f package-lock.json
       # Install dependencies
-      yarn install --network-timeout 300000
+      npm install
       # Build the application
-      yarn build
+      npm run build
     staticPublishPath: ./dist
     envVars:
       - key: VITE_API_URL
