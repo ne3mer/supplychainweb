@@ -1,6 +1,5 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { GlobeAltIcon } from "@heroicons/react/24/outline";
 import {
   getSupplyChainGraphData,
   GraphNode,
@@ -26,10 +25,6 @@ import {
   Eye,
   EyeOff,
   Filter,
-  Zap,
-  Sliders,
-  ChevronDown,
-  ChevronUp,
   Search,
 } from "lucide-react";
 
