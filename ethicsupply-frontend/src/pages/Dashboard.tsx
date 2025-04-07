@@ -64,6 +64,7 @@ import ChartInfoOverlay from "../components/ChartInfoOverlay";
 import ChartMetricsExplainer from "../components/ChartMetricsExplainer";
 import InsightsPanel, { chartInsights } from "../components/InsightsPanel";
 import { CircularProgressbar, buildStyles } from "react-circular-progressbar";
+import "react-circular-progressbar/dist/styles.css";
 
 // Define chart info content
 const chartInfoContent = {
@@ -163,8 +164,6 @@ interface DashboardData {
 const apiEndpoint = "/api/dashboard/";
 
 const Dashboard = () => {
-  const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
   const [data, setData] = useState<DashboardData>({
     total_suppliers: 0,
     avg_ethical_score: 0,
@@ -173,8 +172,32 @@ const Dashboard = () => {
     ethical_score_distribution: [],
     co2_emissions_by_industry: [],
   });
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
   const [usingMockData, setUsingMockData] = useState<boolean>(false);
   const [apiConnected, setApiConnected] = useState<boolean | null>(null);
+
+  const [onboardingPending, setOnboardingPending] = useState(0);
+  const [complianceRate, setComplianceRate] = useState(0);
+
+  const [suppliers, setSuppliers] = useState<Supplier[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  const [totalSuppliers, setTotalSuppliers] = useState(0);
+  const [avgEthicalScore, setAvgEthicalScore] = useState(0);
+  const [co2Emissions, setCo2Emissions] = useState(0);
+  const [riskBreakdown, setRiskBreakdown] = useState<{ [key: string]: number }>(
+    {}
+  );
+  const [industryDistribution, setIndustryDistribution] = useState<{
+    [key: string]: number;
+  }>({});
+  const [ethicalScoreDistribution, setEthicalScoreDistribution] = useState<
+    number[]
+  >([]);
+  const [co2ByIndustry, setCo2ByIndustry] = useState<
+    { industry: string; emissions: number }[]
+  >([]);
 
   // Function to get text description based on ethical score
   const getEthicalScoreText = () => {
@@ -234,39 +257,71 @@ const Dashboard = () => {
   };
 
   useEffect(() => {
+    // Simulate API call
     const fetchData = async () => {
       try {
         setLoading(true);
-        setError(null);
 
-        // First check connection
-        const isConnected = await checkConnection();
-        if (!isConnected) {
-          setError(
-            "Cannot connect to the backend server. Please make sure the Django server is running at http://localhost:8000"
-          );
-          // Don't automatically set mock data, let the user decide
-          return;
+        // Check API connection
+        const connected = await checkConnection();
+        setApiConnected(connected);
+
+        if (connected) {
+          // Real API call
+          const response = await fetch("/api/dashboard");
+
+          if (response.ok) {
+            const result = await response.json();
+            setData(result);
+            setUsingMockData(false);
+          } else {
+            throw new Error("Failed to fetch data from API");
+          }
+        } else {
+          // Use mock data
+          setUsingMockData(true);
+          const mockData: DashboardData = {
+            total_suppliers: 12,
+            avg_ethical_score: 75.3,
+            avg_co2_emissions: 23.9,
+            suppliers_by_country: {
+              "United States": 4,
+              "United Kingdom": 1,
+              Taiwan: 1,
+              "South Korea": 1,
+              Switzerland: 1,
+              "Hong Kong": 1,
+              France: 1,
+              China: 1,
+            },
+            ethical_score_distribution: [
+              { range: "0-20", count: 0 },
+              { range: "21-40", count: 0 },
+              { range: "41-60", count: 2 },
+              { range: "61-80", count: 7 },
+              { range: "81-100", count: 3 },
+            ],
+            co2_emissions_by_industry: [
+              { name: "Consumer Goods", value: 4.3 },
+              { name: "Electronics", value: 20.4 },
+              { name: "Food & Beverage", value: 128.7 },
+              { name: "Apparel", value: 2.5 },
+              { name: "Home Appliances", value: 18.5 },
+            ],
+            isMockData: true,
+          };
+          setData(mockData);
+
+          // Generate random number for onboarding pending suppliers (between 3-15)
+          setOnboardingPending(Math.floor(Math.random() * 12) + 3);
+
+          // Calculate compliance rate - percentage of suppliers with ethical score >= 70
+          setComplianceRate(70); // Example value, can be calculated from mockData if needed
         }
-
-        const dashboardData = await getDashboardData();
-        console.log("Dashboard data received:", dashboardData);
-        setData(dashboardData);
-
-        // Check if we're using mock data based on the API indicator
-        setUsingMockData(!!dashboardData.isMockData);
-
-        // If using mock data due to API error, show a specific error
-        if (dashboardData.isMockData) {
-          setError("The API returned an error. Using mock data instead.");
-        }
-      } catch (error) {
-        console.error("Error fetching dashboard data:", error);
-        setError(
-          "Failed to fetch data from API. Please make sure the backend server is running correctly."
-        );
-        // Don't automatically fall back to mock data
-        setUsingMockData(false);
+      } catch (err) {
+        console.error("Error fetching dashboard data:", err);
+        setError("Failed to load dashboard data");
+        setLoading(false);
       } finally {
         setLoading(false);
       }
