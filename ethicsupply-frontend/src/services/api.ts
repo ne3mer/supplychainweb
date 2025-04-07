@@ -2270,3 +2270,108 @@ const getMockSupplyChainGraphData = (): GraphData => {
     isMockData: true,
   };
 };
+
+// Interface for geo risk alerts
+export interface GeoRiskAlert {
+  id: number;
+  date: string;
+  title: string;
+  description: string;
+  type: string;
+  country: string;
+  read: boolean;
+}
+
+// Function to fetch geo risk alerts
+export async function getGeoRiskAlerts(): Promise<GeoRiskAlert[]> {
+  try {
+    const response = await fetch(`${API_BASE_URL}/geo-risk-alerts/`);
+
+    if (!response.ok) {
+      throw new Error(`Geo Risk Alerts API returned status ${response.status}`);
+    }
+
+    const data = await response.json();
+    return data.map((alert: any) => ({
+      ...alert,
+      read: false, // Default all fetched alerts to unread
+    }));
+  } catch (error) {
+    console.error("Error fetching geo risk alerts:", error);
+
+    // Generate mock alerts as fallback
+    return generateMockGeoRiskAlerts();
+  }
+}
+
+// Generate mock geo risk alerts
+function generateMockGeoRiskAlerts(): GeoRiskAlert[] {
+  const today = new Date();
+
+  const mockAlerts: GeoRiskAlert[] = [
+    {
+      id: 1,
+      date: formatDate(subtractDays(today, 0)),
+      title: "Political Unrest in Thailand",
+      description:
+        "Increasing political protests in Bangkok may cause supply chain disruptions",
+      type: "political",
+      country: "Thailand",
+      read: false,
+    },
+    {
+      id: 2,
+      date: formatDate(subtractDays(today, 1)),
+      title: "Water Scarcity Alert: India",
+      description:
+        "Severe water shortages reported in manufacturing regions of South India",
+      type: "environmental",
+      country: "India",
+      read: false,
+    },
+    {
+      id: 3,
+      date: formatDate(subtractDays(today, 2)),
+      title: "New Labor Regulations in China",
+      description:
+        "Chinese government announces stricter labor laws affecting manufacturing",
+      type: "regulatory",
+      country: "China",
+      read: true,
+    },
+    {
+      id: 4,
+      date: formatDate(subtractDays(today, 3)),
+      title: "Child Labor Investigation in Bangladesh",
+      description:
+        "NGO report highlights child labor concerns in textile industry",
+      type: "socialEthical",
+      country: "Bangladesh",
+      read: true,
+    },
+    {
+      id: 5,
+      date: formatDate(subtractDays(today, 4)),
+      title: "Conflict Escalation in Nigeria",
+      description:
+        "Civil unrest increases in Lagos region, affecting oil suppliers",
+      type: "conflict",
+      country: "Nigeria",
+      read: true,
+    },
+  ];
+
+  return mockAlerts;
+}
+
+// Helper function to format dates
+function formatDate(date: Date): string {
+  return date.toISOString().split("T")[0];
+}
+
+// Helper function to subtract days from a date
+function subtractDays(date: Date, days: number): Date {
+  const result = new Date(date);
+  result.setDate(result.getDate() - days);
+  return result;
+}

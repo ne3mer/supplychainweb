@@ -7,7 +7,12 @@ import {
   CircleMarker,
   useMap,
 } from "react-leaflet";
-import { getSuppliers, Supplier } from "../services/api";
+import {
+  getSuppliers,
+  Supplier,
+  getGeoRiskAlerts,
+  GeoRiskAlert,
+} from "../services/api";
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
 import {
@@ -145,60 +150,6 @@ const countryCoordinates = {
   Other: [0, 0],
 };
 
-// Mock recent alerts
-const initialAlerts = [
-  {
-    id: 1,
-    date: "2024-04-05",
-    title: "Political Unrest in Thailand",
-    description:
-      "Increasing political protests in Bangkok may cause supply chain disruptions",
-    type: "political",
-    country: "Thailand",
-    read: false,
-  },
-  {
-    id: 2,
-    date: "2024-04-04",
-    title: "Water Scarcity Alert: India",
-    description:
-      "Severe water shortages reported in manufacturing regions of South India",
-    type: "environmental",
-    country: "India",
-    read: false,
-  },
-  {
-    id: 3,
-    date: "2024-04-03",
-    title: "New Labor Regulations in China",
-    description:
-      "Chinese government announces stricter labor laws affecting manufacturing",
-    type: "regulatory",
-    country: "China",
-    read: true,
-  },
-  {
-    id: 4,
-    date: "2024-04-02",
-    title: "Child Labor Investigation in Bangladesh",
-    description:
-      "NGO report highlights child labor concerns in textile industry",
-    type: "socialEthical",
-    country: "Bangladesh",
-    read: true,
-  },
-  {
-    id: 5,
-    date: "2024-04-01",
-    title: "Conflict Escalation in Nigeria",
-    description:
-      "Civil unrest increases in Lagos region, affecting oil suppliers",
-    type: "conflict",
-    country: "Nigeria",
-    read: true,
-  },
-];
-
 // Risk overlay component
 interface RiskOverlayProps {
   country: string;
@@ -246,7 +197,8 @@ const GeoRiskMapping = () => {
   const [activeRiskTypes, setActiveRiskTypes] = useState<string[]>(
     Object.keys(riskTypes)
   );
-  const [alerts, setAlerts] = useState<Alert[]>(initialAlerts);
+  const [alerts, setAlerts] = useState<GeoRiskAlert[]>([]);
+  const [alertsLoading, setAlertsLoading] = useState<boolean>(true);
   const [showAlerts, setShowAlerts] = useState<boolean>(false);
   const [highlightedCountry, setHighlightedCountry] = useState<string | null>(
     null
@@ -269,6 +221,24 @@ const GeoRiskMapping = () => {
     }
 
     fetchData();
+  }, []);
+
+  // Fetch real-time alerts
+  useEffect(() => {
+    async function fetchAlerts() {
+      try {
+        setAlertsLoading(true);
+        const alertsData = await getGeoRiskAlerts();
+        setAlerts(alertsData);
+      } catch (err) {
+        console.error("Error fetching geo risk alerts:", err);
+        // No need to set error state as we're falling back to mock data
+      } finally {
+        setAlertsLoading(false);
+      }
+    }
+
+    fetchAlerts();
   }, []);
 
   // Mark an alert as read
@@ -530,7 +500,12 @@ const GeoRiskMapping = () => {
           </div>
 
           <div className="p-2 max-h-[550px] overflow-y-auto">
-            {alerts.length > 0 ? (
+            {alertsLoading ? (
+              <div className="p-4 text-center text-gray-500">
+                <ArrowPathIcon className="h-8 w-8 mx-auto mb-2 text-gray-400 animate-spin" />
+                <p>Loading alerts...</p>
+              </div>
+            ) : alerts.length > 0 ? (
               <div className="divide-y divide-gray-200">
                 {alerts.map((alert) => (
                   <div
