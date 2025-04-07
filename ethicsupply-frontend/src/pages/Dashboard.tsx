@@ -44,11 +44,7 @@ import {
   Radar,
   ReferenceLine,
 } from "recharts";
-import { fetchWithTimeout } from "../utils/api";
-import {
-  getDashboardData,
-  checkApiConnection,
-} from "../services/dashboardService";
+import { getDashboardData } from "../services/api";
 import MachineLearningStatus from "../components/MachineLearningStatus";
 import EthicalScoreDistributionChart from "../components/EthicalScoreDistributionChart";
 import CO2EmissionsChart from "../components/CO2EmissionsChart";
@@ -65,6 +61,7 @@ import ChartMetricsExplainer from "../components/ChartMetricsExplainer";
 import InsightsPanel, { chartInsights } from "../components/InsightsPanel";
 import { CircularProgressbar, buildStyles } from "react-circular-progressbar";
 import "react-circular-progressbar/dist/styles.css";
+import { DashboardData } from "../services/api";
 
 // Constant needed for pie chart calculations
 const RADIAN = Math.PI / 180;
@@ -201,7 +198,7 @@ interface DashboardData {
 
 const apiEndpoint = "/api/dashboard/";
 
-const Dashboard = () => {
+const Dashboard: React.FC = () => {
   const [data, setData] = useState<DashboardData>({
     total_suppliers: 0,
     avg_ethical_score: 0,
@@ -226,24 +223,30 @@ const Dashboard = () => {
   const [onboardingPending, setOnboardingPending] = useState(0);
   const [complianceRate, setComplianceRate] = useState(0);
 
-  const [suppliers, setSuppliers] = useState<Supplier[]>([]);
+  const [suppliers, setSuppliers] = useState<Array<any>>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   const [totalSuppliers, setTotalSuppliers] = useState(0);
   const [avgEthicalScore, setAvgEthicalScore] = useState(0);
   const [co2Emissions, setCo2Emissions] = useState(0);
-  const [riskBreakdown, setRiskBreakdown] = useState<{ [key: string]: number }>(
+  const [riskBreakdown, setRiskBreakdown] = useState<Record<string, number>>(
     {}
   );
-  const [industryDistribution, setIndustryDistribution] = useState<{
-    [key: string]: number;
-  }>({});
+  const [industryDistribution, setIndustryDistribution] = useState<
+    Record<string, number>
+  >({});
   const [ethicalScoreDistribution, setEthicalScoreDistribution] = useState<
-    number[]
+    Array<{ range: string; count: number }>
   >([]);
   const [co2ByIndustry, setCo2ByIndustry] = useState<
-    { industry: string; emissions: number }[]
+    Array<{ name: string; value: number }>
   >([]);
+
+  // Chart state for tooltips
+  const [activeChart, setActiveChart] = useState<string | null>(null);
+  const [showInfoModal, setShowInfoModal] = useState(false);
+  const [chartTitle, setChartTitle] = useState("");
+  const [chartDesc, setChartDesc] = useState("");
 
   // Function to get text description based on ethical score
   const getEthicalScoreText = () => {
@@ -295,249 +298,108 @@ const Dashboard = () => {
     },
   ];
 
-  // Check API connection status
+  // Function to check API connection
   const checkConnection = async () => {
     try {
       const response = await fetch("/api/health-check/");
-      if (response.ok) {
-        setApiConnected(true);
-        return true;
-      } else {
-        setApiConnected(false);
-        return false;
-      }
+      setApiConnected(response.status === 200);
     } catch (error) {
-      console.error("API connection check failed:", error);
+      console.error("API connection error:", error);
       setApiConnected(false);
-      return false;
     }
   };
 
   useEffect(() => {
-    // Simulate API call
     const fetchData = async () => {
       try {
         setLoading(true);
+        setError(null);
 
-        // Check API connection
-        const connected = await checkConnection();
-        setApiConnected(connected);
+        // First check the API connection
+        await checkConnection();
 
-        if (connected) {
-          // Real API call using the service function
-          try {
-            const dashboardData = await getDashboardData();
-            if (dashboardData) {
-              setData(dashboardData);
-              setUsingMockData(!!dashboardData.isMockData);
+        // Fetch data from the API
+        const dashboardData = await getDashboardData();
 
-              // If we have data but it's mock data, set the mock-related states
-              if (dashboardData.isMockData) {
-                // Generate random number for onboarding pending suppliers (between 3-15)
-                setOnboardingPending(Math.floor(Math.random() * 12) + 3);
+        // Set the state with the returned data
+        setTotalSuppliers(dashboardData.total_suppliers);
+        setAvgEthicalScore(dashboardData.avg_ethical_score);
+        setCo2Emissions(dashboardData.avg_co2_emissions);
+        setEthicalScoreDistribution(dashboardData.ethical_score_distribution);
+        setCo2ByIndustry(dashboardData.co2_emissions_by_industry);
+        setRiskBreakdown(dashboardData.risk_breakdown);
+        setIndustryDistribution(dashboardData.industry_distribution);
+        setComplianceRate(dashboardData.compliance_rate_trend);
+        setWaterUsageData(dashboardData.water_usage_trend);
+        setRenewableEnergyData(dashboardData.renewable_energy_adoption);
+        setSustainablePracticesData(dashboardData.sustainable_practices);
+        setSustainabilityMetricsData(dashboardData.sustainability_metrics);
+        setRecentSuppliers(dashboardData.recent_suppliers);
 
-                // Calculate compliance rate - percentage of suppliers with ethical score >= 70
-                setComplianceRate(70); // Example value, can be calculated from mockData if needed
-              }
-            } else {
-              throw new Error("No dashboard data returned");
-            }
-          } catch (error) {
-            console.error("Error fetching dashboard data:", error);
-            // Fall back to mock data on any fetch error
-            setUsingMockData(true);
-            useMockData();
-          }
-        } else {
-          // Use mock data
-          setUsingMockData(true);
-          useMockData();
-        }
-      } catch (err) {
-        console.error("Error fetching dashboard data:", err);
-        setError("Failed to load dashboard data");
+        // Set onboarding pending (assume 3 suppliers are pending for this example)
+        setOnboardingPending(3);
+
         setLoading(false);
-      } finally {
+      } catch (error) {
+        console.error("Error fetching dashboard data:", error);
+        setError("Failed to load dashboard data. Please try again later.");
         setLoading(false);
       }
     };
 
-    // Function to set up mock data
-    const useMockData = () => {
-      const mockData: DashboardData = {
-        total_suppliers: 12,
-        avg_ethical_score: 75.3,
-        avg_co2_emissions: 23.9,
-        suppliers_by_country: {
-          "United States": 4,
-          "United Kingdom": 1,
-          Taiwan: 1,
-          "South Korea": 1,
-          Switzerland: 1,
-          "Hong Kong": 1,
-          France: 1,
-          China: 1,
-        },
-        ethical_score_distribution: [
-          { range: "0-20", count: 0 },
-          { range: "21-40", count: 2 },
-          { range: "41-60", count: 2 },
-          { range: "61-80", count: 5 },
-          { range: "81-100", count: 3 },
-        ],
-        co2_emissions_by_industry: [
-          { name: "Food & Beverage", value: 128.7 },
-          { name: "Electronics", value: 20.4 },
-          { name: "Consumer Goods", value: 4.3 },
-          { name: "Apparel", value: 2.5 },
-          { name: "Home Appliances", value: 18.5 },
-        ],
-        risk_breakdown: {
-          "Low Risk": 5,
-          "Medium Risk": 4,
-          "High Risk": 2,
-          "Critical Risk": 1,
-        },
-        water_usage_trend: [
-          { month: "Jan", usage: 135 },
-          { month: "Feb", usage: 128 },
-          { month: "Mar", usage: 124 },
-          { month: "Apr", usage: 118 },
-          { month: "May", usage: 113 },
-          { month: "Jun", usage: 108 },
-          { month: "Jul", usage: 102 },
-          { month: "Aug", usage: 94 },
-          { month: "Sep", usage: 89 },
-          { month: "Oct", usage: 86 },
-          { month: "Nov", usage: 82 },
-          { month: "Dec", usage: 79 },
-        ],
-        renewable_energy_adoption: [
-          { name: "Solar", value: 38 },
-          { name: "Wind", value: 27 },
-          { name: "Hydro", value: 12 },
-          { name: "Biomass", value: 6 },
-          { name: "Traditional", value: 17 },
-        ],
-        sustainable_practices: [
-          { practice: "Recycling", adoption: 92, target: 95 },
-          { practice: "Emissions Reduction", adoption: 68, target: 80 },
-          { practice: "Water Conservation", adoption: 76, target: 85 },
-          { practice: "Renewable Energy", adoption: 83, target: 90 },
-          { practice: "Zero Waste", adoption: 54, target: 75 },
-        ],
-        sustainability_metrics: [
-          { metric: "Carbon Footprint", current: 82, industry: 68 },
-          { metric: "Water Usage", current: 76, industry: 62 },
-          { metric: "Waste Reduction", current: 91, industry: 59 },
-          { metric: "Energy Efficiency", current: 84, industry: 71 },
-          { metric: "Social Impact", current: 70, industry: 58 },
-        ],
-        recent_suppliers: [
-          {
-            id: 1,
-            name: "TechGlobal Inc.",
-            country: "United States",
-            ethical_score: 82,
-            trend: "+2.4%",
-            date: "2025-04-01",
-          },
-          {
-            id: 2,
-            name: "EcoFabrics Ltd.",
-            country: "United Kingdom",
-            ethical_score: 78,
-            trend: "+1.5%",
-            date: "2025-03-28",
-          },
-          {
-            id: 3,
-            name: "GreenSource Materials",
-            country: "Germany",
-            ethical_score: 91,
-            trend: "+4.2%",
-            date: "2025-03-25",
-          },
-          {
-            id: 4,
-            name: "Pacific Components",
-            country: "Taiwan",
-            ethical_score: 65,
-            trend: "-1.3%",
-            date: "2025-03-22",
-          },
-          {
-            id: 5,
-            name: "Global Foods Co.",
-            country: "France",
-            ethical_score: 73,
-            trend: "+0.8%",
-            date: "2025-03-20",
-          },
-        ],
-        industry_distribution: {
-          Electronics: 4,
-          "Consumer Goods": 3,
-          "Food & Beverage": 2,
-          Apparel: 2,
-          Automotive: 1,
-        },
-        compliance_rate_trend: [
-          { month: "Jan", rate: 63 },
-          { month: "Feb", rate: 67 },
-          { month: "Mar", rate: 68 },
-          { month: "Apr", rate: 72 },
-          { month: "May", rate: 74 },
-          { month: "Jun", rate: 69 },
-          { month: "Jul", rate: 73 },
-          { month: "Aug", rate: 75 },
-          { month: "Sep", rate: 78 },
-          { month: "Oct", rate: 82 },
-          { month: "Nov", rate: 86 },
-          { month: "Dec", rate: 90 },
-        ],
-        isMockData: true,
-      };
-      setData(mockData);
-
-      // Set risk breakdown data
-      setRiskBreakdown({
-        "Low Risk": 5,
-        "Medium Risk": 4,
-        "High Risk": 2,
-        "Critical Risk": 1,
-      });
-
-      // Set industry distribution data
-      setIndustryDistribution({
-        Electronics: 4,
-        "Consumer Goods": 3,
-        "Food & Beverage": 2,
-        Apparel: 2,
-        Automotive: 1,
-      });
-
-      // Set ethical score distribution data
-      setEthicalScoreDistribution([0, 2, 2, 5, 3]);
-
-      // Set CO2 emissions by industry
-      setCo2ByIndustry([
-        { industry: "Food & Beverage", emissions: 128.7 },
-        { industry: "Electronics", emissions: 20.4 },
-        { industry: "Consumer Goods", emissions: 4.3 },
-        { industry: "Apparel", emissions: 2.5 },
-        { industry: "Home Appliances", emissions: 18.5 },
-      ]);
-
-      // Generate random number for onboarding pending suppliers (between 3-15)
-      setOnboardingPending(8);
-
-      // Set compliance rate
-      setComplianceRate(82);
-    };
-
     fetchData();
   }, []);
+
+  const handleInfoClick = (type: string) => {
+    setActiveChart(type);
+    setChartTitle(
+      chartInfoContent[type as keyof typeof chartInfoContent].title
+    );
+    setChartDesc(
+      chartInfoContent[type as keyof typeof chartInfoContent].description
+    );
+    setShowInfoModal(true);
+  };
+
+  // Custom Pie Chart label renderer
+  const renderCustomizedLabel = ({
+    cx,
+    cy,
+    midAngle,
+    innerRadius,
+    outerRadius,
+    percent,
+    index,
+    name,
+  }: any) => {
+    const radius = innerRadius + (outerRadius - innerRadius) * 0.5;
+    const x = cx + radius * Math.cos(-midAngle * RADIAN);
+    const y = cy + radius * Math.sin(-midAngle * RADIAN);
+
+    return (
+      <text
+        x={x}
+        y={y}
+        fill="white"
+        textAnchor={x > cx ? "start" : "end"}
+        dominantBaseline="central"
+        className="text-xs"
+      >
+        {`${name} ${(percent * 100).toFixed(0)}%`}
+      </text>
+    );
+  };
+
+  // Risk color mapping
+  const getRiskColor = (risk: string) => {
+    const riskColorMap: Record<string, string> = {
+      "Low Risk": "#10B981",
+      "Medium Risk": "#F59E0B",
+      "High Risk": "#EF4444",
+      "Critical Risk": "#7F1D1D",
+    };
+    return riskColorMap[risk] || "#9CA3AF";
+  };
 
   if (loading) {
     return (
@@ -812,32 +674,7 @@ const Dashboard = () => {
                   outerRadius={80}
                   fill="#8884d8"
                   dataKey="value"
-                  label={({
-                    cx,
-                    cy,
-                    midAngle,
-                    innerRadius,
-                    outerRadius,
-                    percent,
-                  }) => {
-                    const radius =
-                      innerRadius + (outerRadius - innerRadius) * 0.5;
-                    const x = cx + radius * Math.cos(-midAngle * RADIAN);
-                    const y = cy + radius * Math.sin(-midAngle * RADIAN);
-
-                    return (
-                      <text
-                        x={x}
-                        y={y}
-                        fill="white"
-                        textAnchor={x > cx ? "start" : "end"}
-                        dominantBaseline="central"
-                        fontSize={12}
-                      >
-                        {`${(percent * 100).toFixed(0)}%`}
-                      </text>
-                    );
-                  }}
+                  label={renderCustomizedLabel}
                 >
                   {data.co2_emissions_by_industry.map((entry, index) => (
                     <Cell
@@ -894,14 +731,7 @@ const Dashboard = () => {
                   }
                 >
                   {Object.entries(riskBreakdown).map(([name], index) => {
-                    const colorMap: Record<string, string> = {
-                      "Low Risk": "#10B981",
-                      "Medium Risk": "#F59E0B",
-                      "High Risk": "#EF4444",
-                      "Critical Risk": "#7F1D1D",
-                    };
-                    const color =
-                      colorMap[name] || COLORS[index % COLORS.length];
+                    const color = getRiskColor(name);
                     return <Cell key={`cell-${index}`} fill={color} />;
                   })}
                 </Pie>

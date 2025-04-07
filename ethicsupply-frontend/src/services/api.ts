@@ -123,6 +123,29 @@ export interface DashboardData {
   suppliers_by_country: Record<string, number>;
   ethical_score_distribution: Array<{ range: string; count: number }>;
   co2_emissions_by_industry: Array<{ name: string; value: number }>;
+  risk_breakdown: Record<string, number>;
+  water_usage_trend: Array<{ month: string; usage: number }>;
+  renewable_energy_adoption: Array<{ name: string; value: number }>;
+  sustainable_practices: Array<{
+    practice: string;
+    adoption: number;
+    target: number;
+  }>;
+  sustainability_metrics: Array<{
+    metric: string;
+    current: number;
+    industry: number;
+  }>;
+  recent_suppliers: Array<{
+    id: number;
+    name: string;
+    country: string;
+    ethical_score: number;
+    trend: string;
+    date: string;
+  }>;
+  industry_distribution: Record<string, number>;
+  compliance_rate_trend: Array<{ month: string; rate: number }>;
   isMockData?: boolean;
 }
 
@@ -1220,17 +1243,121 @@ const getMockDashboardData = (): DashboardData => {
     },
     ethical_score_distribution: [
       { range: "0-20", count: 0 },
-      { range: "21-40", count: 0 },
+      { range: "21-40", count: 2 },
       { range: "41-60", count: 2 },
-      { range: "61-80", count: 7 },
+      { range: "61-80", count: 5 },
       { range: "81-100", count: 3 },
     ],
     co2_emissions_by_industry: [
-      { name: "Consumer Goods", value: 4.3 },
-      { name: "Electronics", value: 20.4 },
       { name: "Food & Beverage", value: 128.7 },
+      { name: "Electronics", value: 20.4 },
+      { name: "Consumer Goods", value: 4.3 },
       { name: "Apparel", value: 2.5 },
       { name: "Home Appliances", value: 18.5 },
+    ],
+    risk_breakdown: {
+      "Low Risk": 5,
+      "Medium Risk": 4,
+      "High Risk": 2,
+      "Critical Risk": 1,
+    },
+    water_usage_trend: [
+      { month: "Jan", usage: 135 },
+      { month: "Feb", usage: 128 },
+      { month: "Mar", usage: 124 },
+      { month: "Apr", usage: 118 },
+      { month: "May", usage: 113 },
+      { month: "Jun", usage: 108 },
+      { month: "Jul", usage: 102 },
+      { month: "Aug", usage: 94 },
+      { month: "Sep", usage: 89 },
+      { month: "Oct", usage: 86 },
+      { month: "Nov", usage: 82 },
+      { month: "Dec", usage: 79 },
+    ],
+    renewable_energy_adoption: [
+      { name: "Solar", value: 38 },
+      { name: "Wind", value: 27 },
+      { name: "Hydro", value: 12 },
+      { name: "Biomass", value: 6 },
+      { name: "Traditional", value: 17 },
+    ],
+    sustainable_practices: [
+      { practice: "Recycling", adoption: 92, target: 95 },
+      { practice: "Emissions Reduction", adoption: 68, target: 80 },
+      { practice: "Water Conservation", adoption: 76, target: 85 },
+      { practice: "Renewable Energy", adoption: 83, target: 90 },
+      { practice: "Zero Waste", adoption: 54, target: 75 },
+    ],
+    sustainability_metrics: [
+      { metric: "Carbon Footprint", current: 82, industry: 68 },
+      { metric: "Water Usage", current: 76, industry: 62 },
+      { metric: "Waste Reduction", current: 91, industry: 59 },
+      { metric: "Energy Efficiency", current: 84, industry: 71 },
+      { metric: "Social Impact", current: 70, industry: 58 },
+    ],
+    recent_suppliers: [
+      {
+        id: 1,
+        name: "TechGlobal Inc.",
+        country: "United States",
+        ethical_score: 82,
+        trend: "+2.4%",
+        date: "2025-04-01",
+      },
+      {
+        id: 2,
+        name: "EcoFabrics Ltd.",
+        country: "United Kingdom",
+        ethical_score: 78,
+        trend: "+1.5%",
+        date: "2025-03-28",
+      },
+      {
+        id: 3,
+        name: "GreenSource Materials",
+        country: "Germany",
+        ethical_score: 91,
+        trend: "+4.2%",
+        date: "2025-03-25",
+      },
+      {
+        id: 4,
+        name: "Pacific Components",
+        country: "Taiwan",
+        ethical_score: 65,
+        trend: "-1.3%",
+        date: "2025-03-22",
+      },
+      {
+        id: 5,
+        name: "Global Foods Co.",
+        country: "France",
+        ethical_score: 73,
+        trend: "+0.8%",
+        date: "2025-03-20",
+      },
+    ],
+    industry_distribution: {
+      Electronics: 4,
+      "Consumer Goods": 3,
+      "Food & Beverage": 2,
+      Apparel: 2,
+      Automotive: 1,
+    },
+    compliance_rate_trend: [
+      { month: "Jan", rate: 63 },
+      { month: "Feb", rate: 67 },
+      { month: "Mar", rate: 68 },
+      { month: "Apr", rate: 72 },
+      { month: "May", rate: 74 },
+      { month: "Jun", rate: 69 },
+      { month: "Jul", rate: 73 },
+      { month: "Aug", rate: 75 },
+      { month: "Sep", rate: 78 },
+      { month: "Oct", rate: 82 },
+      { month: "Nov", rate: 86 },
+      { month: "Dec", rate: 90 },
     ],
     isMockData: true,
   };
